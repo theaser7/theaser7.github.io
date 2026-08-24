@@ -198,6 +198,50 @@
             padding-bottom: 2px;
         }
 
+        .rnd-group {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .rnd-group .len-btn {
+            border: none;
+            background: transparent;
+            border-radius: 0;
+        }
+
+        .rnd-group .len-btn.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-dots {
+            background: transparent;
+            border: none;
+            border-left: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            padding: 0.3rem 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .btn-dots:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-dots svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
         .len-btn {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -464,7 +508,7 @@
             border: 1px solid var(--card-border);
             border-radius: 16px;
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             padding: 1.75rem;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
             display: flex;
@@ -507,6 +551,142 @@
         .setting-sub {
             font-size: 0.8rem;
             color: var(--text-secondary);
+        }
+
+        /* Interactive Number Axis for Random Range */
+        .axis-container {
+            margin: 1rem 0;
+            padding: 1.5rem 0.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .axis-values {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-align: center;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+        }
+
+        .axis-track-wrapper {
+            position: relative;
+            padding: 20px 8px;
+            user-select: none;
+        }
+
+        .axis-line {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            right: 10px;
+            height: 4px;
+            background: #2e3446;
+            transform: translateY(-50%);
+            border-radius: 2px;
+        }
+
+        .axis-highlight {
+            position: absolute;
+            top: 50%;
+            height: 4px;
+            background: var(--accent);
+            transform: translateY(-50%);
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .axis-ticks {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            z-index: 2;
+        }
+
+        .axis-tick-btn {
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.15s ease;
+        }
+
+        .axis-tick-btn:hover {
+            color: #fff;
+        }
+
+        .axis-tick-mark {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #2e3446;
+            border: 2px solid var(--card-bg);
+            transition: all 0.15s ease;
+        }
+
+        .axis-tick-btn.in-range .axis-tick-mark {
+            background: var(--accent);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+        }
+
+        .axis-tick-btn.in-range {
+            color: #fff;
+        }
+
+        .axis-bracket {
+            position: absolute;
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 10px var(--accent);
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            transition: left 0.15s ease, right 0.15s ease;
+            z-index: 3;
+            line-height: 1;
+        }
+
+        .range-quick-presets {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .preset-pill {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .preset-pill:hover {
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .preset-pill.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
         }
 
         /* Switch */
@@ -652,15 +832,25 @@
             <button class="len-btn" data-len="9">9</button>
             <button class="len-btn" data-len="10">10</button>
             <button class="len-btn" data-len="11+">11+</button>
-            <button class="len-btn" data-len="random" title="Random length">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="16 3 21 3 21 8"></polyline>
-                    <line x1="4" y1="20" x2="21" y2="3"></line>
-                    <polyline points="21 16 21 21 16 21"></polyline>
-                    <line x1="15" y1="15" x2="21" y2="21"></line>
-                    <line x1="4" y1="4" x2="9" y2="9"></line>
-                </svg>
-            </button>
+            
+            <div class="rnd-group">
+                <button class="len-btn" data-len="random" title="Random length">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="21 16 21 21 16 21"></polyline>
+                        <line x1="15" y1="15" x2="21" y2="21"></line>
+                        <line x1="4" y1="4" x2="9" y2="9"></line>
+                    </svg>
+                </button>
+                <button class="btn-dots" id="btn-open-range" title="Configure Random Range">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <circle cx="19" cy="12" r="2"></circle>
+                        <circle cx="5" cy="12" r="2"></circle>
+                    </svg>
+                </button>
+            </div>
         </div>
         <div class="status-pill" id="attempts-pill">6 attempts</div>
     </div>
@@ -670,6 +860,43 @@
     </main>
 
     <div class="keyboard" id="keyboard"></div>
+
+    <!-- Random Range Settings Modal -->
+    <div class="modal-overlay" id="modal-rnd-range">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">Random Range</h2>
+                <button class="modal-close" id="close-rnd-range">&times;</button>
+            </div>
+            
+            <div class="axis-values">
+                <span>Range:</span>
+                <span id="range-display-text">[ 5 &hellip; 10 ]</span>
+            </div>
+
+            <!-- Number Axis Visualizer -->
+            <div class="axis-track-wrapper" id="axis-track-wrapper">
+                <div class="axis-line"></div>
+                <div class="axis-highlight" id="axis-highlight"></div>
+                <div class="axis-ticks" id="axis-ticks">
+                    <!-- Dynamic Ticks 4, 5, 6, 7, 8, 9, 10, 11+ -->
+                </div>
+            </div>
+
+            <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
+                Click any two points on the axis to set your [ MIN &hellip; MAX ] bounds
+            </div>
+
+            <div class="range-quick-presets">
+                <button class="preset-pill" data-min="4" data-max="10">4 &ndash; 10</button>
+                <button class="preset-pill" data-min="5" data-max="10">5 &ndash; 10</button>
+                <button class="preset-pill" data-min="4" data-max="11">4 &ndash; 11+</button>
+                <button class="preset-pill" data-min="7" data-max="11">7 &ndash; 11+</button>
+            </div>
+
+            <button class="btn-primary" id="btn-save-range">Apply Range</button>
+        </div>
+    </div>
 
     <!-- Settings Modal -->
     <div class="modal-overlay" id="modal-settings">

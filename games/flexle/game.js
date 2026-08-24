@@ -1,10 +1,14 @@
 // Game State
+const savedRange = JSON.parse(localStorage.getItem('flexle_rnd_range') || '{"min": 4, "max": 10}');
+
 const state = {
     lang: localStorage.getItem('flexle_lang') || 'RU',
     strictMode: localStorage.getItem('flexle_strict') !== null 
         ? localStorage.getItem('flexle_strict') === 'true' 
         : true,
     hardMode: localStorage.getItem('flexle_hard') === 'true',
+    rndMin: savedRange.min || 4,
+    rndMax: savedRange.max || 10,
     wordLength: 5,
     isRandomLength: false,
     isXLMode: false,
@@ -125,6 +129,7 @@ function setControlsLocked(isLocked) {
     const btnLang = document.getElementById('btn-lang');
     const modalLangToggle = document.getElementById('modal-lang-toggle');
     const lenBtns = document.querySelectorAll('.len-btn');
+    const btnDots = document.getElementById('btn-open-range');
 
     if (isLocked) {
         btnLang.classList.add('locked');
@@ -140,6 +145,11 @@ function setControlsLocked(isLocked) {
             btn.classList.add('locked');
             btn.setAttribute('disabled', 'true');
         });
+        if (btnDots) {
+            btnDots.setAttribute('disabled', 'true');
+            btnDots.style.pointerEvents = 'none';
+            btnDots.style.opacity = '0.4';
+        }
     } else {
         btnLang.classList.remove('locked');
         btnLang.removeAttribute('disabled');
@@ -154,6 +164,11 @@ function setControlsLocked(isLocked) {
             btn.classList.remove('locked');
             btn.removeAttribute('disabled');
         });
+        if (btnDots) {
+            btnDots.removeAttribute('disabled');
+            btnDots.style.pointerEvents = 'auto';
+            btnDots.style.opacity = '1';
+        }
     }
 }
 
@@ -166,7 +181,33 @@ function startNewGame() {
     state.keyStatuses = {};
 
     let chosenLen = state.wordLength;
-    if (state.isXLMode) {
+
+    if (state.isRandomLength) {
+        // Pick random length from [rndMin .. rndMax]
+        const minL = Math.min(state.rndMin, state.rndMax);
+        const maxL = Math.max(state.rndMin, state.rndMax);
+        const rolled = Math.floor(Math.random() * (maxL - minL + 1)) + minL;
+
+        if (rolled >= 11) {
+            // Pick long word
+            const xlDict = (DICTIONARY[state.lang] && DICTIONARY[state.lang]["11+"]) || [];
+            if (xlDict.length > 0) {
+                state.targetWord = xlDict[Math.floor(Math.random() * xlDict.length)].toUpperCase();
+                chosenLen = state.targetWord.length;
+            } else {
+                state.targetWord = state.lang === 'RU' ? 'ПРИКЛЮЧЕНИЯ' : 'ADVENTURES';
+                chosenLen = state.targetWord.length;
+            }
+        } else {
+            chosenLen = rolled;
+            const dict = (DICTIONARY[state.lang] && DICTIONARY[state.lang][chosenLen]) || [];
+            if (dict.length > 0) {
+                state.targetWord = dict[Math.floor(Math.random() * dict.length)].toUpperCase();
+            } else {
+                state.targetWord = (state.lang === 'RU' ? 'КОСМОС' : 'PLANET').slice(0, chosenLen).toUpperCase();
+            }
+        }
+    } else if (state.isXLMode) {
         // Pick random long word from 11+
         const xlDict = (DICTIONARY[state.lang] && DICTIONARY[state.lang]["11+"]) || [];
         if (xlDict.length > 0) {
@@ -175,14 +216,6 @@ function startNewGame() {
         } else {
             state.targetWord = state.lang === 'RU' ? 'ПРИКЛЮЧЕНИЯ' : 'ADVENTURES';
             chosenLen = state.targetWord.length;
-        }
-    } else if (state.isRandomLength) {
-        chosenLen = Math.floor(Math.random() * 7) + 4; // 4 to 10
-        const dict = (DICTIONARY[state.lang] && DICTIONARY[state.lang][chosenLen]) || [];
-        if (dict.length > 0) {
-            state.targetWord = dict[Math.floor(Math.random() * dict.length)].toUpperCase();
-        } else {
-            state.targetWord = (state.lang === 'RU' ? 'КОСМОС' : 'PLANET').slice(0, chosenLen).toUpperCase();
         }
     } else {
         const dict = (DICTIONARY[state.lang] && DICTIONARY[state.lang][chosenLen]) || [];
@@ -197,8 +230,7 @@ function startNewGame() {
     state.maxAttempts = calcAttempts(chosenLen);
 
     // Auto strict mode default logic
-    if (state.isXLMode) {
-        // Default false for 11+ unless user explicitly forced in settings
+    if (state.isXLMode || (state.isRandomLength && chosenLen >= 11)) {
         if (localStorage.getItem('flexle_strict') === null) {
             state.strictMode = false;
         }
@@ -511,6 +543,83 @@ function updateSoundUI() {
     }
 }
 
+// --- Interactive Number Axis Visualizer ---
+const TICKS = [4, 5, 6, 7, 8, 9, 10, 11]; // 11 represents 11+
+let tempMin = state.rndMin;
+let tempMax = state.rndMax;
+let clickStep = 0; // 0 = next click sets min, 1 = sets max
+
+function renderAxisUI() {
+    const ticksContainer = document.getElementById('axis-ticks');
+    const highlight = document.getElementById('axis-highlight');
+    const displayText = document.getElementById('range-display-text');
+    if (!ticksContainer) return;
+
+    ticksContainer.innerHTML = '';
+    const minVal = Math.min(tempMin, tempMax);
+    const maxVal = Math.max(tempMin, tempMax);
+
+    const minLabel = minVal === 11 ? '11+' : minVal;
+    const maxLabel = maxVal === 11 ? '11+' : maxVal;
+    displayText.textContent = `[ ${minLabel} … ${maxLabel} ]`;
+
+    TICKS.forEach((t, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'axis-tick-btn';
+        if (t >= minVal && t <= maxVal) {
+            btn.classList.add('in-range');
+        }
+
+        const mark = document.createElement('div');
+        mark.className = 'axis-tick-mark';
+
+        const label = document.createElement('span');
+        label.textContent = t === 11 ? '11+' : t;
+
+        // Add visual bracket indicator
+        if (t === minVal && t === maxVal) {
+            label.textContent = `[${label.textContent}]`;
+        } else if (t === minVal) {
+            label.textContent = `[ ${label.textContent}`;
+        } else if (t === maxVal) {
+            label.textContent = `${label.textContent} ]`;
+        }
+
+        btn.appendChild(mark);
+        btn.appendChild(label);
+
+        btn.addEventListener('click', () => {
+            if (clickStep === 0) {
+                tempMin = t;
+                tempMax = Math.max(t, tempMax);
+                clickStep = 1;
+            } else {
+                if (t < tempMin) {
+                    tempMax = tempMin;
+                    tempMin = t;
+                } else {
+                    tempMax = t;
+                }
+                clickStep = 0;
+            }
+            renderAxisUI();
+        });
+
+        ticksContainer.appendChild(btn);
+    });
+
+    // Update Highlight bar position
+    const minIdx = TICKS.indexOf(minVal);
+    const maxIdx = TICKS.indexOf(maxVal);
+    const totalTicks = TICKS.length - 1;
+
+    const leftPercent = (minIdx / totalTicks) * 100;
+    const widthPercent = ((maxIdx - minIdx) / totalTicks) * 100;
+
+    highlight.style.left = `calc(${leftPercent}% + 10px)`;
+    highlight.style.width = `calc(${widthPercent}% - 0px)`;
+}
+
 // Physical Keyboard Listener
 window.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
@@ -585,7 +694,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Length Selector Buttons (4, 5, 6, 7, 8, 9, 10, 11+, random)
+    // Length Selector Buttons
     const lenBtns = document.querySelectorAll('.len-btn[data-len]');
     lenBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -608,6 +717,44 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             startNewGame();
         });
+    });
+
+    // Open Random Range Modal
+    const btnOpenRange = document.getElementById('btn-open-range');
+    const modalRndRange = document.getElementById('modal-rnd-range');
+    btnOpenRange.addEventListener('click', () => {
+        tempMin = state.rndMin;
+        tempMax = state.rndMax;
+        clickStep = 0;
+        renderAxisUI();
+        modalRndRange.classList.add('open');
+    });
+
+    document.getElementById('close-rnd-range').addEventListener('click', () => {
+        modalRndRange.classList.remove('open');
+    });
+
+    // Quick Presets
+    document.querySelectorAll('.preset-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            tempMin = parseInt(pill.dataset.min, 10);
+            tempMax = parseInt(pill.dataset.max, 10);
+            renderAxisUI();
+        });
+    });
+
+    // Apply Range
+    document.getElementById('btn-save-range').addEventListener('click', () => {
+        state.rndMin = Math.min(tempMin, tempMax);
+        state.rndMax = Math.max(tempMin, tempMax);
+        localStorage.setItem('flexle_rnd_range', JSON.stringify({ min: state.rndMin, max: state.rndMax }));
+        modalRndRange.classList.remove('open');
+        showToast(`Random range: [ ${state.rndMin} … ${state.rndMax === 11 ? '11+' : state.rndMax} ]`);
+        
+        // If already in Random mode, trigger new game with updated range
+        if (state.isRandomLength && !state.hasStarted) {
+            startNewGame();
+        }
     });
 
     // Language Toggle Button (Header)
