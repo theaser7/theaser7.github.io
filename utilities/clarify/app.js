@@ -1,3 +1,7 @@
+// Clarify • AI Photo Upscaler & Image Enhancer Engine
+// 100% Client-Side • Directional Super-Resolution & Neural Enhancement • Zero Telemetry
+
+document.addEventListener('DOMContentLoaded', () => {
     // --- Application State ---
     const state = {
         sourceImage: null,
