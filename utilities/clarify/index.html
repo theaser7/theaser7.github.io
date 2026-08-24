@@ -139,6 +139,19 @@
                     </div>
                 </div>
 
+                <!-- AI Model Selection -->
+                <div class="setting-row" id="row-model-select">
+                    <div class="setting-header-row">
+                        <span>AI Neural Model</span>
+                        <span class="setting-val-badge" id="val-model-badge">Real-ESRGAN</span>
+                    </div>
+                    <select class="form-input" id="select-ai-model" style="margin-top: 2px;">
+                        <option value="realesrgan-x4plus">Real-ESRGAN 4K (General Photo)</option>
+                        <option value="realesrgan-x4plus-anime">Anime & Vector Art (x4plus-anime)</option>
+                        <option value="realesr-animevideov3-x2">Fast Crisp 2x (animevideov3)</option>
+                    </select>
+                </div>
+
                 <!-- Enhancement Parameters -->
                 <div style="display: flex; flex-direction: column; gap: 0.85rem;">
                     <div class="setting-row">
@@ -152,9 +165,9 @@
                     <div class="setting-row">
                         <div class="setting-header-row">
                             <span>Adaptive Sharpness</span>
-                            <span class="setting-val-badge" id="val-sharpness">40%</span>
+                            <span class="setting-val-badge" id="val-sharpness">55%</span>
                         </div>
-                        <input type="range" class="range-input" id="input-sharpness" min="0" max="100" value="40">
+                        <input type="range" class="range-input" id="input-sharpness" min="0" max="100" value="55">
                     </div>
                 </div>
 
@@ -223,19 +236,34 @@
                 <button class="modal-close" id="close-settings">&times;</button>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="select-engine">Processing Engine</label>
-                <select class="form-input" id="select-engine">
-                    <option value="browser">100% In-Browser (WebGPU / WebGL &bull; Private)</option>
-                    <option value="api">Custom Cloud AI API (BYOK - Bring Your Own Key)</option>
-                </select>
-                <span class="form-hint">Local processing is 100% free, private, and runs directly on your GPU/CPU.</span>
+            <!-- Companion Server Hardware Status -->
+            <div class="form-group" style="background: rgba(99, 102, 241, 0.06); padding: 1rem; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.25);">
+                <div style="font-weight: 800; font-size: 0.95rem; margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: space-between;">
+                    <span>⚡ RTX 4060 Companion Server</span>
+                    <span id="companion-status-pill" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(34, 197, 94, 0.15); color: #4ade80;">Active</span>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.65rem;">
+                    For 100% genuine studio-grade 4K AI upscaling using Real-ESRGAN / Upscayl engine directly on your NVIDIA GPU:
+                </p>
+                <div style="background: #0d1017; padding: 0.5rem 0.75rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: #a5b4fc; margin-bottom: 0.5rem; user-select: all; display: flex; justify-content: space-between; align-items: center;">
+                    <span>run_clarify.bat</span>
+                    <span style="font-size: 0.7rem; color: var(--text-secondary);">1-click launch</span>
+                </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="input-api-key">Custom API Key (Optional)</label>
-                <input type="password" class="form-input" id="input-api-key" placeholder="Enter API key for cloud provider...">
-                <span class="form-hint">Stored exclusively in your browser's localStorage. Never sent to any analytics.</span>
+                <label class="form-label" for="select-engine">Processing Engine</label>
+                <select class="form-input" id="select-engine">
+                    <option value="auto">Auto-Detect (Use RTX 4060 Server if running, else Browser)</option>
+                    <option value="browser">Force In-Browser Engine (WebGL / CPU)</option>
+                    <option value="api">Custom Cloud AI API (BYOK)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="input-api-key">Custom Cloud API Key (Optional)</label>
+                <input type="password" class="form-input" id="input-api-key" placeholder="Enter API key...">
+                <span class="form-hint">Stored exclusively in local storage. Zero telemetry.</span>
             </div>
 
             <button class="btn-primary" id="btn-save-settings">Save Settings</button>

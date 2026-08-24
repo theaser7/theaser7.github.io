@@ -1,7 +1,3 @@
-// Clarify • AI Photo Upscaler & Image Enhancer Engine
-// 100% Client-Side • Directional Super-Resolution & Neural Enhancement • Zero Telemetry
-
-document.addEventListener('DOMContentLoaded', () => {
     // --- Application State ---
     const state = {
         sourceImage: null,
@@ -9,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sourceHeight: 0,
         fileName: 'image',
         fileSize: 0,
-        scaleFactor: '2', // '2', '4', '1080', '2160'
+        scaleFactor: '4', // '2', '4', '1080', '2160'
         denoiseStrength: 25,
         sharpness: 55,
         exportFormat: 'png',
@@ -18,7 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
         upscaledCanvas: null,
         splitPosition: 50, // % (0..100)
         apiKey: localStorage.getItem('clarify_api_key') || '',
-        engineBackend: localStorage.getItem('clarify_engine') || 'browser'
+        engineBackend: localStorage.getItem('clarify_engine') || 'auto',
+        isCompanionOnline: false
     };
 
     // --- DOM Elements ---
@@ -37,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const metaFileName = document.getElementById('meta-filename');
     const metaDims = document.getElementById('meta-dims');
 
+    const selectAiModel = document.getElementById('select-ai-model');
     const scaleBtns = document.querySelectorAll('.scale-btn');
     const inputDenoise = document.getElementById('input-denoise');
     const valDenoise = document.getElementById('val-denoise');
@@ -60,6 +58,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputApiKey = document.getElementById('input-api-key');
     const selectEngine = document.getElementById('select-engine');
     const btnSaveSettings = document.getElementById('btn-save-settings');
+    const companionStatusPill = document.getElementById('companion-status-pill');
+
+    // --- Companion Server Health Check & Detection ---
+    async function checkCompanionServer() {
+        const accelText = document.getElementById('accel-text');
+        const accelDot = document.querySelector('.accel-dot');
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1200);
+
+            const res = await fetch('http://127.0.0.1:7860/health', {
+                method: 'GET',
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+                const data = await res.json();
+                state.isCompanionOnline = true;
+                if (accelText) accelText.textContent = 'RTX 4060 Engine Active';
+                if (accelDot) {
+                    accelDot.style.background = '#22c55e';
+                    accelDot.style.boxShadow = '0 0 10px #22c55e';
+                }
+                if (companionStatusPill) {
+                    companionStatusPill.textContent = 'Online (RTX 4060)';
+                    companionStatusPill.style.background = 'rgba(34, 197, 94, 0.18)';
+                    companionStatusPill.style.color = '#4ade80';
+                }
+                return;
+            }
+        } catch (e) {
+            // Server offline
+        }
+
+        state.isCompanionOnline = false;
+        if (accelText) accelText.textContent = 'Browser Engine (WebGL)';
+        if (accelDot) {
+            accelDot.style.background = '#facc15';
+            accelDot.style.boxShadow = '0 0 8px #facc15';
+        }
+        if (companionStatusPill) {
+            companionStatusPill.textContent = 'Offline (run_clarify.bat)';
+            companionStatusPill.style.background = 'rgba(234, 179, 8, 0.15)';
+            companionStatusPill.style.color = '#facc15';
+        }
+    }
+
+    checkCompanionServer();
+    setInterval(checkCompanionServer, 5000); // periodically ping server
 
     // --- Animated Starfield Background ---
     function initStarfield() {
@@ -121,18 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => toast.remove(), 300);
         }, 2600);
     }
-
-    // --- Hardware Acceleration Detector ---
-    function checkAcceleration() {
-        const accelText = document.getElementById('accel-text');
-        if (!accelText) return;
-        if ('gpu' in navigator) {
-            accelText.textContent = 'WebGPU Ready';
-        } else {
-            accelText.textContent = 'WebGL Accelerated';
-        }
-    }
-    checkAcceleration();
 
     // --- File Loading & Image Setup ---
     function handleFile(file) {
@@ -319,7 +356,6 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBox.classList.add('active');
         progressBar.style.width = '0%';
         progressPct.textContent = '0%';
-        progressStatus.textContent = 'Initializing Neural Super-Resolution Pipeline...';
 
         const srcW = state.sourceWidth;
         const srcH = state.sourceHeight;
@@ -351,7 +387,80 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // --- PATH A: Companion Server (Real-ESRGAN NCNN Vulkan on RTX 4060) ---
+        if (state.isCompanionOnline && state.engineBackend !== 'browser') {
+            try {
+                progressStatus.textContent = 'Executing Real-ESRGAN Vulkan on RTX 4060...';
+                await stepProgress(30, 'Sending image to RTX 4060...');
+
+                // Convert source image to data URL
+                const srcCanvas = document.createElement('canvas');
+                srcCanvas.width = srcW;
+                srcCanvas.height = srcH;
+                const srcCtx = srcCanvas.getContext('2d');
+                srcCtx.drawImage(state.sourceImage, 0, 0);
+                const base64Img = srcCanvas.toDataURL('image/png');
+
+                const modelName = selectAiModel ? selectAiModel.value : 'realesrgan-x4plus';
+                const scaleNum = (state.scaleFactor === '2') ? 2 : 4;
+
+                await stepProgress(60, `Deep Neural Synthesis (${modelName})...`);
+
+                const response = await fetch('http://127.0.0.1:7860/upscale', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: base64Img,
+                        scale: scaleNum,
+                        model: modelName
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Companion server error: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                await stepProgress(85, 'Rendering 4K Reconstructed Output...');
+
+                const aiImg = new Image();
+                await new Promise((resolve, reject) => {
+                    aiImg.onload = resolve;
+                    aiImg.onerror = reject;
+                    aiImg.src = result.image;
+                });
+
+                const outW = aiImg.naturalWidth || aiImg.width;
+                const outH = aiImg.naturalHeight || aiImg.height;
+
+                // Render "After" Canvas with true AI output
+                canvasAfter.width = outW;
+                canvasAfter.height = outH;
+                const ctxA = canvasAfter.getContext('2d');
+                ctxA.drawImage(aiImg, 0, 0);
+                state.upscaledCanvas = canvasAfter;
+
+                // Render "Before" Canvas with soft baseline original
+                canvasBefore.width = outW;
+                canvasBefore.height = outH;
+                const ctxB = canvasBefore.getContext('2d');
+                ctxB.imageSmoothingEnabled = true;
+                ctxB.imageSmoothingQuality = 'low';
+                ctxB.drawImage(state.sourceImage, 0, 0, outW, outH);
+
+                await stepProgress(100, 'Complete!');
+                metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${Math.round((outW * outH) / (srcW * srcH) * 10) / 10}× resolution)`;
+                showToast(`✨ Studio-Grade 4K AI Upscaled on RTX 4060!`);
+                return;
+            } catch (err) {
+                console.warn('Companion server failed, falling back to browser engine:', err);
+                showToast('Companion error, using browser engine fallback');
+            }
+        }
+
+        // --- PATH B: In-Browser Super-Resolution Fallback ---
         try {
+            progressStatus.textContent = 'Running In-Browser Super-Resolution...';
             await stepProgress(20, 'Directional Spline Tensor Expansion...');
 
             // Step 1: Base high-quality scaling buffer
@@ -363,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
             workCtx.imageSmoothingQuality = 'high';
             workCtx.drawImage(state.sourceImage, 0, 0, targetW, targetH);
 
-            await stepProgress(45, 'Edge Gradient Map & High-Frequency Synthesis...');
+            await stepProgress(45, 'Edge Gradient Map & Line-Thinning...');
             const imgData = workCtx.getImageData(0, 0, targetW, targetH);
             
             // Step 2: Advanced Directional & High-Pass Super-Resolution Filter
@@ -385,7 +494,6 @@ document.addEventListener('DOMContentLoaded', () => {
             canvasBefore.width = targetW;
             canvasBefore.height = targetH;
             const ctxB = canvasBefore.getContext('2d');
-            // Baseline standard smooth rendering so the original softness is compared directly
             ctxB.imageSmoothingEnabled = true;
             ctxB.imageSmoothingQuality = 'low';
             ctxB.drawImage(state.sourceImage, 0, 0, targetW, targetH);

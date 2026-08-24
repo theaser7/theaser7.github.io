@@ -1,3 +1,5 @@
 *.txt
 .DS_Store
 Thumbs.db
+utilities/clarify/bin/
+__pycache__/
