@@ -56,46 +56,84 @@ const EN_CODE_MAP = {
     'KeyN': 'N', 'KeyM': 'M'
 };
 
-// Canvas Background Stars
+// Canvas Background 2D Blueprint Grid
 function initBackground() {
     const canvas = document.getElementById('bg-canvas');
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let stars = [];
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let currentMouseX = mouseX;
+    let currentMouseY = mouseY;
+    const GRID_SIZE = 40;
 
     function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        stars = [];
-        const count = Math.floor((canvas.width * canvas.height) / 8000);
-        for (let i = 0; i < count; i++) {
-            stars.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                radius: Math.random() * 1.5,
-                alpha: Math.random() * 0.8 + 0.2,
-                speed: Math.random() * 0.3 + 0.05
-            });
-        }
-    }
-
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#ffffff';
-        stars.forEach(star => {
-            ctx.globalAlpha = star.alpha;
-            ctx.beginPath();
-            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-            ctx.fill();
-            star.y -= star.speed;
-            if (star.y < 0) {
-                star.y = canvas.height;
-                star.x = Math.random() * canvas.width;
-            }
-        });
-        requestAnimationFrame(animate);
     }
 
     window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+
+    function animate() {
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        currentMouseX += (mouseX - currentMouseX) * 0.08;
+        currentMouseY += (mouseY - currentMouseY) * 0.08;
+
+        // Base 2D grid lines
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(19, 36, 27, 0.45)';
+
+        ctx.beginPath();
+        for (let x = 0; x <= w; x += GRID_SIZE) {
+            ctx.moveTo(x + 0.5, 0);
+            ctx.lineTo(x + 0.5, h);
+        }
+        for (let y = 0; y <= h; y += GRID_SIZE) {
+            ctx.moveTo(0, y + 0.5);
+            ctx.lineTo(w, y + 0.5);
+        }
+        ctx.stroke();
+
+        // Radial Torch
+        const gradient = ctx.createRadialGradient(
+            currentMouseX, currentMouseY, 20,
+            currentMouseX, currentMouseY, 400
+        );
+        gradient.addColorStop(0, 'rgba(0, 255, 157, 0.07)');
+        gradient.addColorStop(0.5, 'rgba(0, 255, 157, 0.02)');
+        gradient.addColorStop(1, 'rgba(0, 255, 157, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+
+        // Crosshairs near cursor
+        ctx.fillStyle = 'rgba(0, 255, 157, 0.25)';
+        const startX = Math.floor((currentMouseX - 250) / GRID_SIZE) * GRID_SIZE;
+        const endX = Math.ceil((currentMouseX + 250) / GRID_SIZE) * GRID_SIZE;
+        const startY = Math.floor((currentMouseY - 250) / GRID_SIZE) * GRID_SIZE;
+        const endY = Math.ceil((currentMouseY + 250) / GRID_SIZE) * GRID_SIZE;
+
+        for (let x = startX; x <= endX; x += GRID_SIZE) {
+            for (let y = startY; y <= endY; y += GRID_SIZE) {
+                const dist = Math.hypot(x - currentMouseX, y - currentMouseY);
+                if (dist < 250) {
+                    const alpha = (1 - dist / 250) * 0.4;
+                    ctx.fillStyle = `rgba(0, 255, 157, ${alpha})`;
+                    ctx.fillRect(x - 1, y - 1, 3, 3);
+                }
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
     resize();
     animate();
 }
