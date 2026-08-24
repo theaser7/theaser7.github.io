@@ -312,11 +312,16 @@
         </div>
 
         <main class="grid" id="project-grid">
-            <article class="card" data-category="playable">
+            <article class="card" data-category="wip">
                 <div>
                     <div class="card-header">
-                        <span class="card-icon">🟩</span>
-                        <span class="badge badge-playable">Playable</span>
+                        <div class="card-custom-icon" style="width: 44px; height: 44px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 4px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);">
+                            <div style="background: #22c55e; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff;">F</div>
+                            <div style="background: #eab308; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff;">L</div>
+                            <div style="background: #374151; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #9ca3af;">E</div>
+                            <div style="background: #6366f1; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff;">X</div>
+                        </div>
+                        <span class="badge badge-wip">In Progress</span>
                     </div>
                     <h2 class="card-title">Flexle</h2>
                     <p class="card-desc">Flexible Wordle game with custom word lengths from 4 to 10 letters. Supports both Russian and English words.</p>

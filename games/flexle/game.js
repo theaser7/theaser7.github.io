@@ -10,7 +10,8 @@ const state = {
     currentCol: 0,
     grid: [],
     keyStatuses: {},
-    isGameOver: false
+    isGameOver: false,
+    hasStarted: false
 };
 
 // Keyboards Layouts
@@ -25,6 +26,26 @@ const KEYBOARDS = {
         ['Ф', 'Ы', 'В', 'А', 'П', 'Р', 'О', 'Л', 'Д', 'Ж', 'Э'],
         ['ENTER', 'Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю', '⌫']
     ]
+};
+
+// Robust Physical Key Code to Char Mapping
+const RU_CODE_MAP = {
+    'KeyQ': 'Й', 'KeyW': 'Ц', 'KeyE': 'У', 'KeyR': 'К', 'KeyT': 'Е',
+    'KeyY': 'Н', 'KeyU': 'Г', 'KeyI': 'Ш', 'KeyO': 'Щ', 'KeyP': 'З',
+    'BracketLeft': 'Х', 'BracketRight': 'Ъ', 'KeyA': 'Ф', 'KeyS': 'Ы',
+    'KeyD': 'В', 'KeyF': 'А', 'KeyG': 'П', 'KeyH': 'Р', 'KeyJ': 'О',
+    'KeyK': 'Л', 'KeyL': 'Д', 'Semicolon': 'Ж', 'Quote': 'Э',
+    'KeyZ': 'Я', 'KeyX': 'Ч', 'KeyC': 'С', 'KeyV': 'М', 'KeyB': 'И',
+    'KeyN': 'Т', 'KeyM': 'Ь', 'Comma': 'Б', 'Period': 'Ю', 'Backquote': 'Ё'
+};
+
+const EN_CODE_MAP = {
+    'KeyQ': 'Q', 'KeyW': 'W', 'KeyE': 'E', 'KeyR': 'R', 'KeyT': 'T',
+    'KeyY': 'Y', 'KeyU': 'U', 'KeyI': 'I', 'KeyO': 'O', 'KeyP': 'P',
+    'KeyA': 'A', 'KeyS': 'S', 'KeyD': 'D', 'KeyF': 'F', 'KeyG': 'G',
+    'KeyH': 'H', 'KeyJ': 'J', 'KeyK': 'K', 'KeyL': 'L',
+    'KeyZ': 'Z', 'KeyX': 'X', 'KeyC': 'C', 'KeyV': 'V', 'KeyB': 'B',
+    'KeyN': 'N', 'KeyM': 'M'
 };
 
 // Canvas Background Stars
@@ -92,9 +113,47 @@ function calcAttempts(len) {
     return 8;
 }
 
+// Lock / Unlock In-Game Language and Length Settings
+function setControlsLocked(isLocked) {
+    const btnLang = document.getElementById('btn-lang');
+    const modalLangToggle = document.getElementById('modal-lang-toggle');
+    const lenBtns = document.querySelectorAll('.len-btn');
+
+    if (isLocked) {
+        btnLang.classList.add('locked');
+        btnLang.setAttribute('disabled', 'true');
+        btnLang.title = state.lang === 'RU' ? 'Язык заблокирован во время раунда' : 'Language locked during round';
+
+        if (modalLangToggle) {
+            modalLangToggle.classList.add('locked');
+            modalLangToggle.setAttribute('disabled', 'true');
+        }
+
+        lenBtns.forEach(btn => {
+            btn.classList.add('locked');
+            btn.setAttribute('disabled', 'true');
+        });
+    } else {
+        btnLang.classList.remove('locked');
+        btnLang.removeAttribute('disabled');
+        btnLang.title = state.lang === 'RU' ? 'Сменить язык' : 'Switch Language';
+
+        if (modalLangToggle) {
+            modalLangToggle.classList.remove('locked');
+            modalLangToggle.removeAttribute('disabled');
+        }
+
+        lenBtns.forEach(btn => {
+            btn.classList.remove('locked');
+            btn.removeAttribute('disabled');
+        });
+    }
+}
+
 // Init & Restart Game
 function startNewGame() {
     state.isGameOver = false;
+    state.hasStarted = false;
     state.currentRow = 0;
     state.currentCol = 0;
     state.keyStatuses = {};
@@ -111,11 +170,11 @@ function startNewGame() {
     if (dict.length > 0) {
         state.targetWord = dict[Math.floor(Math.random() * dict.length)].toUpperCase();
     } else {
-        // Fallback placeholder word
         state.targetWord = (state.lang === 'RU' ? 'КОСМОС' : 'PLANET').slice(0, chosenLen).toUpperCase();
     }
 
     document.getElementById('attempts-pill').textContent = `${state.maxAttempts} attempts`;
+    setControlsLocked(false);
 
     // Initialize Grid Array
     state.grid = Array.from({ length: state.maxAttempts }, () => Array(chosenLen).fill(''));
@@ -199,8 +258,10 @@ function handleInput(key) {
             state.currentCol--;
             state.grid[state.currentRow][state.currentCol] = '';
             const tile = document.getElementById(`tile-${state.currentRow}-${state.currentCol}`);
-            tile.textContent = '';
-            tile.removeAttribute('data-state');
+            if (tile) {
+                tile.textContent = '';
+                tile.removeAttribute('data-state');
+            }
         }
         return;
     }
@@ -218,15 +279,22 @@ function handleInput(key) {
     // Letter Input
     if (state.currentCol < state.activeLength) {
         const cleanLetter = key.toUpperCase();
-        // Check if letter belongs to current language
         const isRu = /^[А-ЯЁ]$/i.test(cleanLetter);
         const isEn = /^[A-Z]$/i.test(cleanLetter);
 
         if ((state.lang === 'RU' && isRu) || (state.lang === 'EN' && isEn)) {
+            // Lock language/length controls on first input
+            if (!state.hasStarted) {
+                state.hasStarted = true;
+                setControlsLocked(true);
+            }
+
             state.grid[state.currentRow][state.currentCol] = cleanLetter;
             const tile = document.getElementById(`tile-${state.currentRow}-${state.currentCol}`);
-            tile.textContent = cleanLetter;
-            tile.setAttribute('data-state', 'active');
+            if (tile) {
+                tile.textContent = cleanLetter;
+                tile.setAttribute('data-state', 'active');
+            }
             state.currentCol++;
         }
     }
@@ -298,8 +366,10 @@ function submitGuess() {
 
     rowTiles.forEach((tile, index) => {
         setTimeout(() => {
-            tile.classList.add('flip');
-            tile.setAttribute('data-state', evaluation[index]);
+            if (tile) {
+                tile.classList.add('flip');
+                tile.setAttribute('data-state', evaluation[index]);
+            }
 
             // Update Keyboard Status
             const letter = guess[index];
@@ -361,7 +431,7 @@ function closeAllModals() {
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
 }
 
-// Physical Keyboard Listener
+// Physical Keyboard Listener with Intelligent Layout Mapping
 window.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
     if (document.querySelector('.modal-overlay.open')) {
@@ -370,12 +440,39 @@ window.addEventListener('keydown', (e) => {
     }
 
     const key = e.key;
+    const code = e.code;
+
     if (key === 'Enter') {
+        e.preventDefault();
         handleInput('ENTER');
-    } else if (key === 'Backspace') {
+        return;
+    }
+
+    if (key === 'Backspace') {
+        e.preventDefault();
         handleInput('BACKSPACE');
-    } else if (key.length === 1) {
-        handleInput(key.toUpperCase());
+        return;
+    }
+
+    // Map physical keyboard key based on selected game language
+    let mappedLetter = null;
+    if (state.lang === 'RU') {
+        if (RU_CODE_MAP[code]) {
+            mappedLetter = RU_CODE_MAP[code];
+        } else if (/^[А-ЯЁ]$/i.test(key)) {
+            mappedLetter = key.toUpperCase();
+        }
+    } else {
+        if (EN_CODE_MAP[code]) {
+            mappedLetter = EN_CODE_MAP[code];
+        } else if (/^[A-Z]$/i.test(key)) {
+            mappedLetter = key.toUpperCase();
+        }
+    }
+
+    if (mappedLetter) {
+        e.preventDefault();
+        handleInput(mappedLetter);
     }
 });
 
@@ -383,10 +480,20 @@ window.addEventListener('keydown', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     initBackground();
 
+    // Hide preloader smoothly
+    setTimeout(() => {
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+            preloader.classList.add('loaded');
+        }
+    }, 400);
+
     // Length Selector Buttons
     const lenBtns = document.querySelectorAll('.len-btn[data-len]');
     lenBtns.forEach(btn => {
         btn.addEventListener('click', () => {
+            if (state.hasStarted && !state.isGameOver) return;
+
             lenBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
@@ -405,6 +512,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnLang = document.getElementById('btn-lang');
     btnLang.textContent = state.lang;
     btnLang.addEventListener('click', () => {
+        if (state.hasStarted && !state.isGameOver) {
+            showToast(state.lang === 'RU' ? 'Смена языка заблокирована во время раунда' : 'Language locked during round');
+            return;
+        }
         state.lang = state.lang === 'RU' ? 'EN' : 'RU';
         localStorage.setItem('flexle_lang', state.lang);
         btnLang.textContent = state.lang;
@@ -439,6 +550,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalLangToggle = document.getElementById('modal-lang-toggle');
     modalLangToggle.textContent = state.lang;
     modalLangToggle.addEventListener('click', () => {
+        if (state.hasStarted && !state.isGameOver) {
+            showToast(state.lang === 'RU' ? 'Смена языка заблокирована во время раунда' : 'Language locked during round');
+            return;
+        }
         state.lang = state.lang === 'RU' ? 'EN' : 'RU';
         localStorage.setItem('flexle_lang', state.lang);
         btnLang.textContent = state.lang;
