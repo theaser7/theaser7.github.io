@@ -349,6 +349,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    if (selectAiModel) {
+        selectAiModel.addEventListener('change', () => {
+            upscaleImage();
+        });
+    }
+
     // --- State-of-the-Art Neural Super-Resolution Engine ---
     async function upscaleImage() {
         if (!state.sourceImage || state.isProcessing) return;
@@ -360,158 +366,154 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.width = '0%';
         progressPct.textContent = '0%';
 
-        const srcW = state.sourceWidth;
-        const srcH = state.sourceHeight;
-        let targetW, targetH;
+        try {
+            const srcW = state.sourceWidth;
+            const srcH = state.sourceHeight;
+            let targetW, targetH;
 
-        if (state.scaleFactor === '2') {
-            targetW = srcW * 2;
-            targetH = srcH * 2;
-        } else if (state.scaleFactor === '4') {
-            targetW = srcW * 4;
-            targetH = srcH * 4;
-        } else if (state.scaleFactor === '1080') {
-            const aspect = srcW / srcH;
-            if (aspect >= 1) {
-                targetW = 1920;
-                targetH = Math.round(1920 / aspect);
-            } else {
-                targetH = 1080;
-                targetW = Math.round(1080 * aspect);
-            }
-        } else if (state.scaleFactor === '2160') {
-            const aspect = srcW / srcH;
-            if (aspect >= 1) {
-                targetW = 3840;
-                targetH = Math.round(3840 / aspect);
-            } else {
-                targetH = 2160;
-                targetW = Math.round(2160 * aspect);
-            }
-        }
-
-        // --- PATH A: Hardware / Cloud AI Engine (Real-ESRGAN NCNN Vulkan) ---
-        const useAiServer = (state.activeEngine === 'local' || state.activeEngine === 'cloud') && state.engineBackend !== 'browser';
-        if (useAiServer) {
-            try {
-                const isLocal = state.activeEngine === 'local';
-                const endpoint = isLocal ? 'http://127.0.0.1:7860/upscale' : `${state.cloudUrl.replace(/\/$/, '')}/upscale`;
-                const engineName = isLocal ? 'RTX 4060 (Local)' : 'Cloud AI Engine';
-
-                progressStatus.textContent = `Executing Real-ESRGAN on ${engineName}...`;
-                await stepProgress(30, `Sending image to ${engineName}...`);
-
-                // Convert source image to data URL
-                const srcCanvas = document.createElement('canvas');
-                srcCanvas.width = srcW;
-                srcCanvas.height = srcH;
-                const srcCtx = srcCanvas.getContext('2d');
-                srcCtx.drawImage(state.sourceImage, 0, 0);
-                const base64Img = srcCanvas.toDataURL('image/png');
-
-                const modelName = selectAiModel ? selectAiModel.value : 'realesrgan-x4plus';
-                const scaleNum = (state.scaleFactor === '2') ? 2 : 4;
-
-                await stepProgress(60, `Deep Neural Synthesis (${modelName})...`);
-
-                const headers = { 'Content-Type': 'application/json' };
-                if (state.apiKey) headers['Authorization'] = `Bearer ${state.apiKey}`;
-
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({
-                        image: base64Img,
-                        scale: scaleNum,
-                        model: modelName
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`AI server error: ${response.statusText}`);
+            if (state.scaleFactor === '2') {
+                targetW = srcW * 2;
+                targetH = srcH * 2;
+            } else if (state.scaleFactor === '4') {
+                targetW = srcW * 4;
+                targetH = srcH * 4;
+            } else if (state.scaleFactor === '1080') {
+                const aspect = srcW / srcH;
+                if (aspect >= 1) {
+                    targetW = 1920;
+                    targetH = Math.round(1920 / aspect);
+                } else {
+                    targetH = 1080;
+                    targetW = Math.round(1080 * aspect);
                 }
+            } else if (state.scaleFactor === '2160') {
+                const aspect = srcW / srcH;
+                if (aspect >= 1) {
+                    targetW = 3840;
+                    targetH = Math.round(3840 / aspect);
+                } else {
+                    targetH = 2160;
+                    targetW = Math.round(2160 * aspect);
+                }
+            }
 
-                const result = await response.json();
-                await stepProgress(85, 'Rendering 4K Reconstructed Output...');
+            let processed = false;
 
-                const aiImg = new Image();
-                await new Promise((resolve, reject) => {
-                    aiImg.onload = resolve;
-                    aiImg.onerror = reject;
-                    aiImg.src = result.image;
-                });
+            // --- PATH A: Local Hardware Server (Real-ESRGAN NCNN Vulkan on RTX 4060) ---
+            if (state.isCompanionOnline && state.engineBackend !== 'browser') {
+                try {
+                    progressStatus.textContent = 'Executing Real-ESRGAN on RTX 4060...';
+                    await stepProgress(30, 'Sending image to RTX 4060...');
 
-                const outW = aiImg.naturalWidth || aiImg.width;
-                const outH = aiImg.naturalHeight || aiImg.height;
+                    // Convert source image to data URL
+                    const srcCanvas = document.createElement('canvas');
+                    srcCanvas.width = srcW;
+                    srcCanvas.height = srcH;
+                    const srcCtx = srcCanvas.getContext('2d');
+                    srcCtx.drawImage(state.sourceImage, 0, 0);
+                    const base64Img = srcCanvas.toDataURL('image/png');
 
-                // Render "After" Canvas with true AI output
-                canvasAfter.width = outW;
-                canvasAfter.height = outH;
-                const ctxA = canvasAfter.getContext('2d');
-                ctxA.drawImage(aiImg, 0, 0);
+                    const modelName = selectAiModel ? selectAiModel.value : 'realesrgan-x4plus';
+                    const scaleNum = (state.scaleFactor === '2') ? 2 : 4;
+
+                    await stepProgress(60, `Deep Neural Synthesis (${modelName})...`);
+
+                    const response = await fetch('http://127.0.0.1:7860/upscale', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            image: base64Img,
+                            scale: scaleNum,
+                            model: modelName
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Companion server error: ${response.statusText}`);
+                    }
+
+                    const result = await response.json();
+                    await stepProgress(85, 'Rendering 4K Reconstructed Output...');
+
+                    const aiImg = new Image();
+                    await new Promise((resolve, reject) => {
+                        aiImg.onload = resolve;
+                        aiImg.onerror = reject;
+                        aiImg.src = result.image;
+                    });
+
+                    const outW = aiImg.naturalWidth || aiImg.width;
+                    const outH = aiImg.naturalHeight || aiImg.height;
+
+                    // Render "After" Canvas with true AI output
+                    canvasAfter.width = outW;
+                    canvasAfter.height = outH;
+                    const ctxA = canvasAfter.getContext('2d');
+                    ctxA.drawImage(aiImg, 0, 0);
+                    state.upscaledCanvas = canvasAfter;
+
+                    // Render "Before" Canvas with soft baseline original
+                    canvasBefore.width = outW;
+                    canvasBefore.height = outH;
+                    const ctxB = canvasBefore.getContext('2d');
+                    ctxB.imageSmoothingEnabled = true;
+                    ctxB.imageSmoothingQuality = 'low';
+                    ctxB.drawImage(state.sourceImage, 0, 0, outW, outH);
+
+                    await stepProgress(100, 'Complete!');
+                    metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${Math.round((outW * outH) / (srcW * srcH) * 10) / 10}× resolution)`;
+                    showToast('✨ Studio-Grade 4K AI Upscaled on RTX 4060!');
+                    processed = true;
+                } catch (err) {
+                    console.warn('Companion server failed, falling back to browser engine:', err);
+                    showToast('Companion error, using browser engine fallback');
+                }
+            }
+
+            // --- PATH B: In-Browser Super-Resolution Fallback ---
+            if (!processed) {
+                progressStatus.textContent = 'Running In-Browser Super-Resolution...';
+                await stepProgress(20, 'Directional Spline Tensor Expansion...');
+
+                // Step 1: Base high-quality scaling buffer
+                const workCanvas = document.createElement('canvas');
+                workCanvas.width = targetW;
+                workCanvas.height = targetH;
+                const workCtx = workCanvas.getContext('2d', { willReadFrequently: true });
+                workCtx.imageSmoothingEnabled = true;
+                workCtx.imageSmoothingQuality = 'high';
+                workCtx.drawImage(state.sourceImage, 0, 0, targetW, targetH);
+
+                await stepProgress(45, 'Edge Gradient Map & Line-Thinning...');
+                const imgData = workCtx.getImageData(0, 0, targetW, targetH);
+                
+                // Step 2: Advanced Directional & High-Pass Super-Resolution Filter
+                await stepProgress(70, 'Adaptive Neural De-noising & Micro-Contrast Enhancement...');
+                enhanceImageSuperResolution(imgData.data, targetW, targetH, state.sharpness, state.denoiseStrength);
+                workCtx.putImageData(imgData, 0, 0);
+
+                await stepProgress(90, 'Chrominance Reconstruction & Anti-Ringing Pass...');
+                await new Promise(r => setTimeout(r, 120));
+
+                // Set to "After" Canvas (Clarify AI Result)
+                canvasAfter.width = targetW;
+                canvasAfter.height = targetH;
+                const ctxAfter = canvasAfter.getContext('2d');
+                ctxAfter.drawImage(workCanvas, 0, 0);
                 state.upscaledCanvas = canvasAfter;
 
-                // Render "Before" Canvas with soft baseline original
-                canvasBefore.width = outW;
-                canvasBefore.height = outH;
+                // Set to "Before" Canvas (Original unenhanced image for true comparison)
+                canvasBefore.width = targetW;
+                canvasBefore.height = targetH;
                 const ctxB = canvasBefore.getContext('2d');
                 ctxB.imageSmoothingEnabled = true;
                 ctxB.imageSmoothingQuality = 'low';
-                ctxB.drawImage(state.sourceImage, 0, 0, outW, outH);
+                ctxB.drawImage(state.sourceImage, 0, 0, targetW, targetH);
 
                 await stepProgress(100, 'Complete!');
-                metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${Math.round((outW * outH) / (srcW * srcH) * 10) / 10}× resolution)`;
-                showToast(`✨ AI Upscaled via ${engineName}!`);
-                return;
-            } catch (err) {
-                console.warn('AI server failed, falling back to browser engine:', err);
-                showToast('AI server unreachable, using browser engine fallback');
+                metaDims.textContent = `${srcW}×${srcH} → ${targetW}×${targetH} (${Math.round((targetW * targetH) / (srcW * srcH) * 10) / 10}× resolution)`;
+                showToast(`Enhanced to ${targetW} × ${targetH}px`);
             }
-        }
-
-        // --- PATH B: In-Browser Super-Resolution Fallback ---
-        try {
-            progressStatus.textContent = 'Running In-Browser Super-Resolution...';
-            await stepProgress(20, 'Directional Spline Tensor Expansion...');
-
-            // Step 1: Base high-quality scaling buffer
-            const workCanvas = document.createElement('canvas');
-            workCanvas.width = targetW;
-            workCanvas.height = targetH;
-            const workCtx = workCanvas.getContext('2d', { willReadFrequently: true });
-            workCtx.imageSmoothingEnabled = true;
-            workCtx.imageSmoothingQuality = 'high';
-            workCtx.drawImage(state.sourceImage, 0, 0, targetW, targetH);
-
-            await stepProgress(45, 'Edge Gradient Map & Line-Thinning...');
-            const imgData = workCtx.getImageData(0, 0, targetW, targetH);
-            
-            // Step 2: Advanced Directional & High-Pass Super-Resolution Filter
-            await stepProgress(70, 'Adaptive Neural De-noising & Micro-Contrast Enhancement...');
-            enhanceImageSuperResolution(imgData.data, targetW, targetH, state.sharpness, state.denoiseStrength);
-            workCtx.putImageData(imgData, 0, 0);
-
-            await stepProgress(90, 'Chrominance Reconstruction & Anti-Ringing Pass...');
-            await new Promise(r => setTimeout(r, 120));
-
-            // Set to "After" Canvas (Clarify AI Result)
-            canvasAfter.width = targetW;
-            canvasAfter.height = targetH;
-            const ctxAfter = canvasAfter.getContext('2d');
-            ctxAfter.drawImage(workCanvas, 0, 0);
-            state.upscaledCanvas = canvasAfter;
-
-            // Set to "Before" Canvas (Original unenhanced image for true comparison)
-            canvasBefore.width = targetW;
-            canvasBefore.height = targetH;
-            const ctxB = canvasBefore.getContext('2d');
-            ctxB.imageSmoothingEnabled = true;
-            ctxB.imageSmoothingQuality = 'low';
-            ctxB.drawImage(state.sourceImage, 0, 0, targetW, targetH);
-
-            await stepProgress(100, 'Complete!');
-            metaDims.textContent = `${srcW}×${srcH} → ${targetW}×${targetH} (${Math.round((targetW * targetH) / (srcW * srcH) * 10) / 10}× resolution)`;
-            showToast(`Enhanced to ${targetW} × ${targetH}px`);
         } catch (err) {
             console.error(err);
             showToast('Error enhancing image');
