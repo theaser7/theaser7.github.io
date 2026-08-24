@@ -307,25 +307,25 @@ class QuantexGame {
 
         this.renderCategoryPills();
 
-        // Setup Card A
+        // Setup Card A (Hide value until player clicks)
         this.cardATitle.textContent = roundData.itemA.name;
         this.cardASubtitle.textContent = roundData.itemA.subtitle || category.unitLabel;
         this.cardAIcon.innerHTML = window.getQuantexIcon(roundData.itemA.icon || 'quantum_logo');
-        this.cardAValue.textContent = roundData.itemA.formatted;
+        this.cardAValue.textContent = '???';
         this.cardAValue.classList.remove('revealed');
         this.cardABadge.textContent = '';
         this.cardABadge.className = 'card-badge';
-        this.cardA.className = 'quantex-card';
+        this.cardA.className = 'comparison-card';
 
-        // Setup Card B
+        // Setup Card B (Hide value until player clicks)
         this.cardBTitle.textContent = roundData.itemB.name;
         this.cardBSubtitle.textContent = roundData.itemB.subtitle || category.unitLabel;
         this.cardBIcon.innerHTML = window.getQuantexIcon(roundData.itemB.icon || 'quantum_logo');
-        this.cardBValue.textContent = roundData.itemB.formatted;
+        this.cardBValue.textContent = '???';
         this.cardBValue.classList.remove('revealed');
         this.cardBBadge.textContent = '';
         this.cardBBadge.className = 'card-badge';
-        this.cardB.className = 'quantex-card';
+        this.cardB.className = 'comparison-card';
 
         this.isResolving = false;
     }
@@ -351,7 +351,9 @@ class QuantexGame {
             setTimeout(() => window.soundEngine.playWrong(), 100);
         }
 
-        // Reveal numbers & animation classes
+        // Reveal numbers & animation classes upon selection
+        this.cardAValue.textContent = roundData.itemA.formatted;
+        this.cardBValue.textContent = roundData.itemB.formatted;
         this.cardAValue.classList.add('revealed');
         this.cardBValue.classList.add('revealed');
 
