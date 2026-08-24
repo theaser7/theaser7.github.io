@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clarify &bull; AI Photo Upscaler & Enhancer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Header Bar -->
+    <header class="header">
+        <div class="header-left">
+            <a href="../../" class="btn-icon" title="Back to Hub">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </a>
+            <div class="brand-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#clarify-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <defs>
+                        <linearGradient id="clarify-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#6366f1" />
+                            <stop offset="100%" stop-color="#a855f7" />
+                        </linearGradient>
+                    </defs>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <polyline points="9 21 3 21 3 15"></polyline>
+                    <line x1="21" y1="3" x2="14" y2="10"></line>
+                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+                Clarify
+                <span class="brand-badge">AI 4K</span>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="accel-badge">
+                <span class="accel-dot"></span>
+                <span id="accel-text">WebGPU Ready</span>
+            </div>
+            <button class="btn-icon" id="btn-settings" title="Settings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero-section" id="hero-section">
+            <h1 class="hero-title">Super-Resolution &bull; Zero Telemetry</h1>
+            <p class="hero-subtitle">Upscale and restore photos up to 4K using in-browser neural image enhancement. 100% private & client-side.</p>
+        </section>
+
+        <!-- Dropzone Upload Area -->
+        <section class="dropzone" id="dropzone">
+            <div class="dropzone-icon-box">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+            </div>
+            <div class="dropzone-text-group">
+                <div class="dropzone-title">Drop your image here, or click to browse</div>
+                <div class="dropzone-sub">Supports PNG, JPG, WebP, AVIF &bull; Up to 50MB</div>
+            </div>
+            <div class="dropzone-hint-badge">Tip: You can also paste directly with Ctrl+V</div>
+            <input type="file" id="file-input" accept="image/*" style="display: none;">
+        </section>
+
+        <!-- Active Workspace (Hidden until image is loaded) -->
+        <section class="workspace" id="workspace" style="display: none;">
+            <!-- Left: Split-View Viewer Card -->
+            <div class="viewer-card">
+                <div class="viewer-header">
+                    <div class="image-meta-title">
+                        <span id="meta-filename">image.png</span>
+                        <span class="image-meta-dims" id="meta-dims">1920 × 1080</span>
+                    </div>
+                    <div class="viewer-toolbar">
+                        <button class="tool-btn" id="btn-zoom-in" title="Zoom In">+</button>
+                        <button class="tool-btn" id="btn-zoom-out" title="Zoom Out">&minus;</button>
+                        <button class="tool-btn" id="btn-zoom-reset" title="Reset View">1:1</button>
+                    </div>
+                </div>
+
+                <!-- Interactive Split Viewport -->
+                <div class="split-viewport" id="split-viewport">
+                    <div class="split-labels">
+                        <span class="split-tag tag-original">Original</span>
+                        <span class="split-tag tag-enhanced">Clarify AI</span>
+                    </div>
+
+                    <div class="canvas-transform-wrapper" id="transform-wrapper">
+                        <!-- Before (Original) Canvas Layer -->
+                        <canvas class="image-canvas-layer layer-before" id="canvas-before"></canvas>
+                        <!-- After (Upscaled) Canvas Layer -->
+                        <canvas class="image-canvas-layer layer-after" id="canvas-after"></canvas>
+                    </div>
+
+                    <!-- Draggable Divider Line & Handle -->
+                    <div class="split-divider-line" id="split-divider">
+                        <div class="split-handle" id="split-handle" title="Drag to compare">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="8 17 3 12 8 7"></polyline>
+                                <polyline points="16 7 21 12 16 17"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="zoom-pill" id="zoom-pill">100%</div>
+                </div>
+            </div>
+
+            <!-- Right: Control Panel Sidebar -->
+            <div class="panel-card">
+                <!-- Scale Factor Selection -->
+                <div>
+                    <div class="section-label">Upscale Factor</div>
+                    <div class="scale-options-grid">
+                        <button class="scale-btn active" data-scale="2">
+                            <span>2×</span>
+                            <span class="scale-btn-sub">Double Res</span>
+                        </button>
+                        <button class="scale-btn" data-scale="4">
+                            <span>4×</span>
+                            <span class="scale-btn-sub">Quad Super-Res</span>
+                        </button>
+                        <button class="scale-btn" data-scale="1080">
+                            <span>1080p</span>
+                            <span class="scale-btn-sub">Full HD Target</span>
+                        </button>
+                        <button class="scale-btn" data-scale="2160">
+                            <span>4K UHD</span>
+                            <span class="scale-btn-sub">3840×2160</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Enhancement Parameters -->
+                <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                    <div class="setting-row">
+                        <div class="setting-header-row">
+                            <span>Denoise Strength</span>
+                            <span class="setting-val-badge" id="val-denoise">25%</span>
+                        </div>
+                        <input type="range" class="range-input" id="input-denoise" min="0" max="100" value="25">
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-header-row">
+                            <span>Adaptive Sharpness</span>
+                            <span class="setting-val-badge" id="val-sharpness">40%</span>
+                        </div>
+                        <input type="range" class="range-input" id="input-sharpness" min="0" max="100" value="40">
+                    </div>
+                </div>
+
+                <!-- Processing Progress Box -->
+                <div class="progress-box" id="progress-box">
+                    <div class="progress-header">
+                        <span id="progress-status">Processing...</span>
+                        <span id="progress-pct">0%</span>
+                    </div>
+                    <div class="progress-bar-rail">
+                        <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                    </div>
+                </div>
+
+                <!-- Main Action Button -->
+                <button class="btn-primary" id="btn-upscale">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    Upscale Image
+                </button>
+
+                <!-- Export & Sharing Section -->
+                <div class="export-section">
+                    <div class="section-label">Export Options</div>
+                    <div class="format-pills">
+                        <button class="format-pill active" data-format="png">PNG</button>
+                        <button class="format-pill" data-format="webp">WebP</button>
+                        <button class="format-pill" data-format="jpeg">JPEG</button>
+                    </div>
+
+                    <button class="btn-secondary" id="btn-download">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download Image
+                    </button>
+
+                    <button class="btn-secondary" id="btn-copy">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy to Clipboard
+                    </button>
+
+                    <button class="btn-secondary" id="btn-new-image" style="margin-top: 0.25rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Open Another Image
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="modal-settings">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">Clarify Settings</h2>
+                <button class="modal-close" id="close-settings">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="select-engine">Processing Engine</label>
+                <select class="form-input" id="select-engine">
+                    <option value="browser">100% In-Browser (WebGPU / WebGL &bull; Private)</option>
+                    <option value="api">Custom Cloud AI API (BYOK - Bring Your Own Key)</option>
+                </select>
+                <span class="form-hint">Local processing is 100% free, private, and runs directly on your GPU/CPU.</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="input-api-key">Custom API Key (Optional)</label>
+                <input type="password" class="form-input" id="input-api-key" placeholder="Enter API key for cloud provider...">
+                <span class="form-hint">Stored exclusively in your browser's localStorage. Never sent to any analytics.</span>
+            </div>
+
+            <button class="btn-primary" id="btn-save-settings">Save Settings</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
