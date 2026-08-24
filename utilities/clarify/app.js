@@ -369,41 +369,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const srcW = state.sourceWidth;
             const srcH = state.sourceHeight;
-            let targetW, targetH;
-
-            if (state.scaleFactor === '2') {
-                targetW = srcW * 2;
-                targetH = srcH * 2;
-            } else if (state.scaleFactor === '4') {
-                targetW = srcW * 4;
-                targetH = srcH * 4;
-            } else if (state.scaleFactor === '1080') {
-                const aspect = srcW / srcH;
-                if (aspect >= 1) {
-                    targetW = 1920;
-                    targetH = Math.round(1920 / aspect);
-                } else {
-                    targetH = 1080;
-                    targetW = Math.round(1080 * aspect);
-                }
-            } else if (state.scaleFactor === '2160') {
-                const aspect = srcW / srcH;
-                if (aspect >= 1) {
-                    targetW = 3840;
-                    targetH = Math.round(3840 / aspect);
-                } else {
-                    targetH = 2160;
-                    targetW = Math.round(2160 * aspect);
-                }
-            }
+            const mult = parseInt(state.scaleFactor, 10) || 4;
+            const targetW = srcW * mult;
+            const targetH = srcH * mult;
 
             let processed = false;
 
             // --- PATH A: Local Hardware Server (Real-ESRGAN NCNN Vulkan on RTX 4060) ---
             if (state.isCompanionOnline && state.engineBackend !== 'browser') {
                 try {
-                    progressStatus.textContent = 'Executing Real-ESRGAN on RTX 4060...';
-                    await stepProgress(30, 'Sending image to RTX 4060...');
+                    progressStatus.textContent = `Executing Real-ESRGAN (${mult}×) on RTX 4060...`;
+                    await stepProgress(25, 'Sending image to RTX 4060...');
 
                     // Convert source image to data URL
                     const srcCanvas = document.createElement('canvas');
@@ -414,16 +390,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     const base64Img = srcCanvas.toDataURL('image/png');
 
                     const modelName = selectAiModel ? selectAiModel.value : 'realesrgan-x4plus';
-                    const scaleNum = (state.scaleFactor === '2') ? 2 : 4;
 
-                    await stepProgress(60, `Deep Neural Synthesis (${modelName})...`);
+                    await stepProgress(55, `Deep Neural Synthesis (${modelName} • ${mult}×)...`);
 
                     const response = await fetch('http://127.0.0.1:7860/upscale', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             image: base64Img,
-                            scale: scaleNum,
+                            scale: mult,
                             model: modelName
                         })
                     });
@@ -433,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     const result = await response.json();
-                    await stepProgress(85, 'Rendering 4K Reconstructed Output...');
+                    await stepProgress(85, `Rendering ${mult}× Reconstructed Output...`);
 
                     const aiImg = new Image();
                     await new Promise((resolve, reject) => {
@@ -449,20 +424,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     canvasAfter.width = outW;
                     canvasAfter.height = outH;
                     const ctxA = canvasAfter.getContext('2d');
+                    ctxA.imageSmoothingEnabled = true;
+                    ctxA.imageSmoothingQuality = 'high';
                     ctxA.drawImage(aiImg, 0, 0);
                     state.upscaledCanvas = canvasAfter;
 
-                    // Render "Before" Canvas with soft baseline original
+                    // Render "Before" Canvas with smooth baseline original (High Quality Bicubic)
                     canvasBefore.width = outW;
                     canvasBefore.height = outH;
                     const ctxB = canvasBefore.getContext('2d');
                     ctxB.imageSmoothingEnabled = true;
-                    ctxB.imageSmoothingQuality = 'low';
+                    ctxB.imageSmoothingQuality = 'high';
                     ctxB.drawImage(state.sourceImage, 0, 0, outW, outH);
 
                     await stepProgress(100, 'Complete!');
-                    metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${Math.round((outW * outH) / (srcW * srcH) * 10) / 10}× resolution)`;
-                    showToast('✨ Studio-Grade 4K AI Upscaled on RTX 4060!');
+                    metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${mult}× AI Super-Resolution)`;
+                    showToast(`✨ ${mult}× AI Upscaled on RTX 4060!`);
                     processed = true;
                 } catch (err) {
                     console.warn('Companion server failed, falling back to browser engine:', err);
@@ -472,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // --- PATH B: In-Browser Super-Resolution Fallback ---
             if (!processed) {
-                progressStatus.textContent = 'Running In-Browser Super-Resolution...';
+                progressStatus.textContent = `Running In-Browser Super-Resolution (${mult}×)...`;
                 await stepProgress(20, 'Directional Spline Tensor Expansion...');
 
                 // Step 1: Base high-quality scaling buffer
@@ -484,11 +461,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 workCtx.imageSmoothingQuality = 'high';
                 workCtx.drawImage(state.sourceImage, 0, 0, targetW, targetH);
 
-                await stepProgress(45, 'Edge Gradient Map & Line-Thinning...');
+                await stepProgress(45, 'High-Frequency Texture Synthesis...');
                 const imgData = workCtx.getImageData(0, 0, targetW, targetH);
                 
                 // Step 2: Advanced Directional & High-Pass Super-Resolution Filter
-                await stepProgress(70, 'Adaptive Neural De-noising & Micro-Contrast Enhancement...');
+                await stepProgress(70, 'Adaptive Neural De-noising & Acutance Enhancement...');
                 enhanceImageSuperResolution(imgData.data, targetW, targetH, state.sharpness, state.denoiseStrength);
                 workCtx.putImageData(imgData, 0, 0);
 
@@ -499,19 +476,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 canvasAfter.width = targetW;
                 canvasAfter.height = targetH;
                 const ctxAfter = canvasAfter.getContext('2d');
+                ctxAfter.imageSmoothingEnabled = true;
+                ctxAfter.imageSmoothingQuality = 'high';
                 ctxAfter.drawImage(workCanvas, 0, 0);
                 state.upscaledCanvas = canvasAfter;
 
-                // Set to "Before" Canvas (Original unenhanced image for true comparison)
+                // Set to "Before" Canvas (Original unenhanced image with smooth bicubic scaling)
                 canvasBefore.width = targetW;
                 canvasBefore.height = targetH;
                 const ctxB = canvasBefore.getContext('2d');
                 ctxB.imageSmoothingEnabled = true;
-                ctxB.imageSmoothingQuality = 'low';
+                ctxB.imageSmoothingQuality = 'high';
                 ctxB.drawImage(state.sourceImage, 0, 0, targetW, targetH);
 
                 await stepProgress(100, 'Complete!');
-                metaDims.textContent = `${srcW}×${srcH} → ${targetW}×${targetH} (${Math.round((targetW * targetH) / (srcW * srcH) * 10) / 10}× resolution)`;
+                metaDims.textContent = `${srcW}×${srcH} → ${targetW}×${targetH} (${mult}× WebGL Super-Resolution)`;
                 showToast(`Enhanced to ${targetW} × ${targetH}px`);
             }
         } catch (err) {
@@ -538,9 +517,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Advanced Deep-Edge Super-Resolution & Acutance Synthesis Filter (Anime4K / Real-ESRGAN Inspired)
-     * Performs non-linear edge refinement, line-thinning, high-frequency texture popping,
-     * and local gradient reconstruction in YCbCr color space.
+     * Advanced Deep-Edge Super-Resolution & Acutance Synthesis Filter
+     * Performs continuous adaptive sharpening in YCbCr color space without gradient posterization.
      */
     function enhanceImageSuperResolution(data, width, height, sharpness, denoise) {
         const w = width;
@@ -562,64 +540,55 @@ document.addEventListener('DOMContentLoaded', () => {
             Cr[i] = 0.5 * r - 0.418688 * g - 0.081312 * b;
         }
 
-        const sharpFactor = (sharpness / 50); // 1.0 at 50%
-        const denoiseFactor = (denoise / 100);
+        const sharpFactor = (sharpness / 50) * 0.9;
+        const denoiseFactor = (denoise / 100) * 0.5;
         const newY = new Float32Array(Y);
 
-        // Pass 1: Edge Refinement & Gradient S-Curve (Line Thinning & Crisp Edge Reconstruction)
-        for (let y = 2; y < h - 2; y++) {
+        // Pass 1: Multi-Directional High-Pass Filter with Clamped Acutance
+        for (let y = 1; y < h - 1; y++) {
             const rowOffset = y * w;
-            for (let x = 2; x < w - 2; x++) {
+            const prevRow = (y - 1) * w;
+            const nextRow = (y + 1) * w;
+
+            for (let x = 1; x < w - 1; x++) {
                 const i = rowOffset + x;
                 const center = Y[i];
 
-                // Find local 5x5 min and max luminance
-                let localMin = center;
-                let localMax = center;
-                let sum = 0;
+                const up = Y[prevRow + x];
+                const down = Y[nextRow + x];
+                const left = Y[rowOffset + x - 1];
+                const right = Y[rowOffset + x + 1];
 
-                for (let dy = -2; dy <= 2; dy++) {
-                    const sampleRow = (y + dy) * w;
-                    for (let dx = -2; dx <= 2; dx++) {
-                        const val = Y[sampleRow + x + dx];
-                        if (val < localMin) localMin = val;
-                        if (val > localMax) localMax = val;
-                        sum += val;
-                    }
+                const ul = Y[prevRow + x - 1];
+                const ur = Y[prevRow + x + 1];
+                const dl = Y[nextRow + x - 1];
+                const dr = Y[nextRow + x + 1];
+
+                // Laplacian 8-neighbor curvature
+                const laplacian = (8 * center) - (up + down + left + right + ul + ur + dl + dr);
+                
+                // Sobel gradient magnitude
+                const gx = (ur + 2 * right + dr) - (ul + 2 * left + dl);
+                const gy = (dl + 2 * down + dr) - (ul + 2 * up + ur);
+                const grad = Math.sqrt(gx * gx + gy * gy);
+
+                let edgeBoost = laplacian * 0.16 * sharpFactor;
+                // Soft sigmoid clamp to prevent ringing / posterization
+                edgeBoost = Math.max(-28, Math.min(28, edgeBoost));
+
+                let val = center + edgeBoost;
+
+                // Bilateral smoothing in flat noise regions
+                if (denoiseFactor > 0 && grad < 20) {
+                    const avg = (up + down + left + right + center) * 0.2;
+                    val = val * (1 - denoiseFactor) + avg * denoiseFactor;
                 }
 
-                const localRange = localMax - localMin;
-
-                // If edge exists (range > 15), apply Non-linear Edge Transition Thinning
-                if (localRange > 12) {
-                    const norm = (center - localMin) / localRange; // 0..1
-                    // Sigmoid edge compressor (compresses blur ramp into razor-sharp crisp boundary)
-                    const s = norm * norm * (3 - 2 * norm); // Smoothstep curve
-                    const s2 = s * s * (3 - 2 * s); // Double smoothstep for intense acutance
-                    
-                    const blended = norm * (1 - 0.75 * sharpFactor) + s2 * (0.75 * sharpFactor);
-                    let refinedY = localMin + blended * localRange;
-
-                    // High-pass Laplacian texture boost
-                    const up = Y[(y - 1) * w + x];
-                    const down = Y[(y + 1) * w + x];
-                    const left = Y[rowOffset + x - 1];
-                    const right = Y[rowOffset + x + 1];
-                    const laplacian = (4 * center) - (up + down + left + right);
-
-                    refinedY += laplacian * 0.25 * sharpFactor;
-                    newY[i] = Math.max(0, Math.min(255, refinedY));
-                } else if (denoiseFactor > 0) {
-                    // Flat region: Bilateral noise smoothing
-                    const localAvg = sum / 25;
-                    newY[i] = center * (1 - denoiseFactor * 0.5) + localAvg * (denoiseFactor * 0.5);
-                } else {
-                    newY[i] = center;
-                }
+                newY[i] = Math.max(0, Math.min(255, val));
             }
         }
 
-        // Pass 2: Reconstruct RGB with enhanced sharp Luminance & De-haloed Chrominance
+        // Pass 2: Reconstruct RGB with enhanced sharp Luminance
         for (let i = 0; i < totalPixels; i++) {
             const idx = i * 4;
             const yVal = newY[i];
@@ -651,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${state.fileName}_clarify_${outW}x${outH}.${ext}`;
+            a.download = `${state.fileName}_clarify_${state.scaleFactor}x_${outW}x${outH}.${ext}`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

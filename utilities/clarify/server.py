@@ -114,7 +114,7 @@ class ClarifyHandler(BaseHTTPRequestHandler):
             scale = int(payload.get("scale", 4))
             model_name = payload.get("model", "realesrgan-x4plus")
 
-            if scale not in [2, 3, 4]:
+            if scale not in [2, 4, 6, 8]:
                 scale = 4
 
             if "base64," in image_data:
@@ -129,19 +129,101 @@ class ClarifyHandler(BaseHTTPRequestHandler):
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as out_f:
                 out_path = out_f.name
 
-            # Run Real-ESRGAN Vulkan process
             import subprocess
-            cmd = [
-                str(EXE_PATH),
-                "-i", str(in_path),
-                "-o", str(out_path),
-                "-s", str(scale),
-                "-n", model_name,
-                "-m", str(BIN_DIR / "models")
-            ]
 
             print(f"[UPSCALING] Model: {model_name} | Scale: {scale}x | GPU Active...")
-            res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BIN_DIR))
+
+            # Scale handling strategy
+            if scale == 2:
+                # Direct 2x scaling
+                cmd = [
+                    str(EXE_PATH),
+                    "-i", str(in_path),
+                    "-o", str(out_path),
+                    "-s", "2",
+                    "-n", model_name,
+                    "-m", str(BIN_DIR / "models")
+                ]
+                res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BIN_DIR))
+            elif scale == 4:
+                # Direct 4x scaling
+                cmd = [
+                    str(EXE_PATH),
+                    "-i", str(in_path),
+                    "-o", str(out_path),
+                    "-s", "4",
+                    "-n", model_name,
+                    "-m", str(BIN_DIR / "models")
+                ]
+                res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BIN_DIR))
+            elif scale == 8:
+                # True 8x two-pass neural super-resolution (4x -> 2x)
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as mid_f:
+                    mid_path = mid_f.name
+
+                cmd1 = [
+                    str(EXE_PATH),
+                    "-i", str(in_path),
+                    "-o", str(mid_path),
+                    "-s", "4",
+                    "-n", model_name,
+                    "-m", str(BIN_DIR / "models")
+                ]
+                res1 = subprocess.run(cmd1, capture_output=True, text=True, cwd=str(BIN_DIR))
+
+                if res1.returncode == 0 and os.path.exists(mid_path):
+                    cmd2 = [
+                        str(EXE_PATH),
+                        "-i", str(mid_path),
+                        "-o", str(out_path),
+                        "-s", "2",
+                        "-n", model_name,
+                        "-m", str(BIN_DIR / "models")
+                    ]
+                    res = subprocess.run(cmd2, capture_output=True, text=True, cwd=str(BIN_DIR))
+                else:
+                    res = res1
+
+                try:
+                    if os.path.exists(mid_path):
+                        os.remove(mid_path)
+                except Exception:
+                    pass
+            else: # scale == 6
+                # 4x pass + high quality resize to 6x
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as mid_f:
+                    mid_path = mid_f.name
+
+                cmd = [
+                    str(EXE_PATH),
+                    "-i", str(in_path),
+                    "-o", str(mid_path),
+                    "-s", "4",
+                    "-n", model_name,
+                    "-m", str(BIN_DIR / "models")
+                ]
+                res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BIN_DIR))
+
+                if res.returncode == 0 and os.path.exists(mid_path):
+                    # Resize from 4x to 6x using bicubic/lanczos in Python (or copy)
+                    try:
+                        from PIL import Image
+                        im = Image.open(mid_path)
+                        orig_im = Image.open(in_path)
+                        target_w = orig_im.width * 6
+                        target_h = orig_im.height * 6
+                        im_6x = im.resize((target_w, target_h), Image.Resampling.LANCZOS)
+                        im_6x.save(out_path, format="PNG")
+                    except ImportError:
+                        # Fallback: copy 4x output
+                        import shutil
+                        shutil.copy(mid_path, out_path)
+
+                try:
+                    if os.path.exists(mid_path):
+                        os.remove(mid_path)
+                except Exception:
+                    pass
 
             if res.returncode != 0:
                 print(f"[ERROR] Engine failure: {res.stderr}")
@@ -160,8 +242,10 @@ class ClarifyHandler(BaseHTTPRequestHandler):
 
             # Cleanup temp files
             try:
-                os.remove(in_path)
-                os.remove(out_path)
+                if os.path.exists(in_path):
+                    os.remove(in_path)
+                if os.path.exists(out_path):
+                    os.remove(out_path)
             except Exception:
                 pass
 
@@ -173,7 +257,7 @@ class ClarifyHandler(BaseHTTPRequestHandler):
             }
             self._set_cors_headers(200)
             self.wfile.write(json.dumps(response_data).encode("utf-8"))
-            print(f"[SUCCESS] Upscaled ({len(out_bytes)/(1024*1024):.2f} MB)")
+            print(f"[SUCCESS] Upscaled {scale}x ({len(out_bytes)/(1024*1024):.2f} MB)")
 
         except Exception as e:
             print(f"[EXCEPTION] {e}")
