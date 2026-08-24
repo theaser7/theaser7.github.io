@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ctxB.drawImage(state.sourceImage, 0, 0, outW, outH);
 
                     await stepProgress(100, 'Complete!');
-                    metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${mult}× AI Super-Resolution)`;
+                    metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${mult}× resolution)`;
                     showToast(`✨ ${mult}× AI Upscaled on RTX 4060!`);
                     processed = true;
                 } catch (err) {
@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctxB.drawImage(state.sourceImage, 0, 0, targetW, targetH);
 
                 await stepProgress(100, 'Complete!');
-                metaDims.textContent = `${srcW}×${srcH} → ${targetW}×${targetH} (${mult}× WebGL Super-Resolution)`;
+                metaDims.textContent = `${srcW}×${srcH} → ${targetW}×${targetH} (${mult}× resolution)`;
                 showToast(`Enhanced to ${targetW} × ${targetH}px`);
             }
         } catch (err) {
