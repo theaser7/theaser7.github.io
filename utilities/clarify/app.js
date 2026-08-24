@@ -14,8 +14,11 @@
         upscaledCanvas: null,
         splitPosition: 50, // % (0..100)
         apiKey: localStorage.getItem('clarify_api_key') || '',
+        cloudUrl: localStorage.getItem('clarify_cloud_url') || '',
         engineBackend: localStorage.getItem('clarify_engine') || 'auto',
-        isCompanionOnline: false
+        activeEngine: 'browser', // 'local', 'cloud', 'browser'
+        isCompanionOnline: false,
+        isCloudOnline: false
     };
 
     // --- DOM Elements ---
@@ -55,19 +58,21 @@
     const btnSettings = document.getElementById('btn-settings');
     const modalSettings = document.getElementById('modal-settings');
     const closeSettings = document.getElementById('close-settings');
+    const inputCloudUrl = document.getElementById('input-cloud-url');
     const inputApiKey = document.getElementById('input-api-key');
     const selectEngine = document.getElementById('select-engine');
     const btnSaveSettings = document.getElementById('btn-save-settings');
     const companionStatusPill = document.getElementById('companion-status-pill');
 
-    // --- Companion Server Health Check & Detection ---
+    // --- 3-Tier Server Health Check & Detection (Local RTX 4060 -> Cloud AI -> Browser) ---
     async function checkCompanionServer() {
         const accelText = document.getElementById('accel-text');
         const accelDot = document.querySelector('.accel-dot');
 
+        // 1. Try Local Companion Server (RTX 4060)
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 1200);
+            const timeoutId = setTimeout(() => controller.abort(), 900);
 
             const res = await fetch('http://127.0.0.1:7860/health', {
                 method: 'GET',
@@ -76,8 +81,8 @@
             clearTimeout(timeoutId);
 
             if (res.ok) {
-                const data = await res.json();
                 state.isCompanionOnline = true;
+                state.activeEngine = 'local';
                 if (accelText) accelText.textContent = 'RTX 4060 Engine Active';
                 if (accelDot) {
                     accelDot.style.background = '#22c55e';
@@ -90,11 +95,44 @@
                 }
                 return;
             }
-        } catch (e) {
-            // Server offline
-        }
+        } catch (e) {}
 
         state.isCompanionOnline = false;
+
+        // 2. Try Cloud AI Server (Hugging Face / Remote)
+        if (state.cloudUrl) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                const cloudHealth = state.cloudUrl.replace(/\/$/, '') + '/health';
+
+                const res = await fetch(cloudHealth, {
+                    method: 'GET',
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (res.ok) {
+                    state.isCloudOnline = true;
+                    state.activeEngine = 'cloud';
+                    if (accelText) accelText.textContent = 'Cloud AI Server Active';
+                    if (accelDot) {
+                        accelDot.style.background = '#a855f7';
+                        accelDot.style.boxShadow = '0 0 10px #a855f7';
+                    }
+                    if (companionStatusPill) {
+                        companionStatusPill.textContent = 'Cloud Active (Remote)';
+                        companionStatusPill.style.background = 'rgba(168, 85, 247, 0.18)';
+                        companionStatusPill.style.color = '#c084fc';
+                    }
+                    return;
+                }
+            } catch (e) {}
+        }
+
+        // 3. Fallback: Browser WebGL Engine
+        state.isCloudOnline = false;
+        state.activeEngine = 'browser';
         if (accelText) accelText.textContent = 'Browser Engine (WebGL)';
         if (accelDot) {
             accelDot.style.background = '#facc15';
@@ -387,11 +425,16 @@
             }
         }
 
-        // --- PATH A: Companion Server (Real-ESRGAN NCNN Vulkan on RTX 4060) ---
-        if (state.isCompanionOnline && state.engineBackend !== 'browser') {
+        // --- PATH A: Hardware / Cloud AI Engine (Real-ESRGAN NCNN Vulkan) ---
+        const useAiServer = (state.activeEngine === 'local' || state.activeEngine === 'cloud') && state.engineBackend !== 'browser';
+        if (useAiServer) {
             try {
-                progressStatus.textContent = 'Executing Real-ESRGAN Vulkan on RTX 4060...';
-                await stepProgress(30, 'Sending image to RTX 4060...');
+                const isLocal = state.activeEngine === 'local';
+                const endpoint = isLocal ? 'http://127.0.0.1:7860/upscale' : `${state.cloudUrl.replace(/\/$/, '')}/upscale`;
+                const engineName = isLocal ? 'RTX 4060 (Local)' : 'Cloud AI Engine';
+
+                progressStatus.textContent = `Executing Real-ESRGAN on ${engineName}...`;
+                await stepProgress(30, `Sending image to ${engineName}...`);
 
                 // Convert source image to data URL
                 const srcCanvas = document.createElement('canvas');
@@ -406,9 +449,12 @@
 
                 await stepProgress(60, `Deep Neural Synthesis (${modelName})...`);
 
-                const response = await fetch('http://127.0.0.1:7860/upscale', {
+                const headers = { 'Content-Type': 'application/json' };
+                if (state.apiKey) headers['Authorization'] = `Bearer ${state.apiKey}`;
+
+                const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: headers,
                     body: JSON.stringify({
                         image: base64Img,
                         scale: scaleNum,
@@ -417,7 +463,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Companion server error: ${response.statusText}`);
+                    throw new Error(`AI server error: ${response.statusText}`);
                 }
 
                 const result = await response.json();
@@ -450,11 +496,11 @@
 
                 await stepProgress(100, 'Complete!');
                 metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${Math.round((outW * outH) / (srcW * srcH) * 10) / 10}× resolution)`;
-                showToast(`✨ Studio-Grade 4K AI Upscaled on RTX 4060!`);
+                showToast(`✨ AI Upscaled via ${engineName}!`);
                 return;
             } catch (err) {
-                console.warn('Companion server failed, falling back to browser engine:', err);
-                showToast('Companion error, using browser engine fallback');
+                console.warn('AI server failed, falling back to browser engine:', err);
+                showToast('AI server unreachable, using browser engine fallback');
             }
         }
 
@@ -666,8 +712,9 @@
 
     // --- Settings Modal ---
     btnSettings.addEventListener('click', () => {
-        inputApiKey.value = state.apiKey;
-        selectEngine.value = state.engineBackend;
+        if (inputCloudUrl) inputCloudUrl.value = state.cloudUrl;
+        if (inputApiKey) inputApiKey.value = state.apiKey;
+        if (selectEngine) selectEngine.value = state.engineBackend;
         modalSettings.classList.add('open');
     });
 
@@ -680,11 +727,20 @@
     });
 
     btnSaveSettings.addEventListener('click', () => {
-        state.apiKey = inputApiKey.value.trim();
-        state.engineBackend = selectEngine.value;
-        localStorage.setItem('clarify_api_key', state.apiKey);
-        localStorage.setItem('clarify_engine', state.engineBackend);
+        if (inputCloudUrl) {
+            state.cloudUrl = inputCloudUrl.value.trim().replace(/\/$/, '');
+            localStorage.setItem('clarify_cloud_url', state.cloudUrl);
+        }
+        if (inputApiKey) {
+            state.apiKey = inputApiKey.value.trim();
+            localStorage.setItem('clarify_api_key', state.apiKey);
+        }
+        if (selectEngine) {
+            state.engineBackend = selectEngine.value;
+            localStorage.setItem('clarify_engine', state.engineBackend);
+        }
         modalSettings.classList.remove('open');
         showToast('Settings saved');
+        checkCompanionServer();
     });
 });
