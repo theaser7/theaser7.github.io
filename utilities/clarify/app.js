@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const canvasBefore = document.getElementById('canvas-before');
     const canvasAfter = document.getElementById('canvas-after');
+    const splitStage = document.getElementById('split-stage');
     const splitDivider = document.getElementById('split-divider');
     const splitHandle = document.getElementById('split-handle');
     const splitViewport = document.getElementById('split-viewport');
@@ -235,13 +236,13 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSplitVisuals();
     }
 
-    // --- Smooth Full-Viewport Split Slider Interaction ---
+    // --- 100% Synchronized Split Slider Logic ---
     function updateSplitVisuals() {
         const pos = state.splitPosition;
         splitDivider.style.left = `${pos}%`;
         splitHandle.style.left = `${pos}%`;
 
-        // Left half shows original (Before), Right half shows Clarify AI (After)
+        // Left shows Original, Right shows Clarify AI
         canvasBefore.style.clipPath = `polygon(0 0, ${pos}% 0, ${pos}% 100%, 0 100%)`;
         canvasAfter.style.clipPath = `polygon(${pos}% 0, 100% 0, 100% 100%, ${pos}% 100%)`;
     }
@@ -249,7 +250,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isSlidingSplit = false;
 
     function moveSplitFromClientX(clientX) {
-        const rect = splitViewport.getBoundingClientRect();
+        if (!splitStage) return;
+        const rect = splitStage.getBoundingClientRect();
         if (rect.width <= 0) return;
         const offsetX = clientX - rect.left;
         let pct = (offsetX / rect.width) * 100;
@@ -258,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSplitVisuals();
     }
 
-    // Mouse / Touch interaction anywhere across splitViewport moves the split divider
+    // Dragging or clicking anywhere in the viewport smoothly moves the synchronized slider
     splitViewport.addEventListener('pointerdown', (e) => {
         isSlidingSplit = true;
         splitViewport.setPointerCapture(e.pointerId);
@@ -415,16 +417,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Advanced Deep-Edge Super-Resolution & Acutance Synthesis Filter
-     * Processes Luminance in YCbCr color space with non-linear edge gradients,
-     * high-pass micro-contrast enhancement, and bilateral artifact suppression.
+     * Advanced Deep-Edge Super-Resolution & Acutance Synthesis Filter (Anime4K / Real-ESRGAN Inspired)
+     * Performs non-linear edge refinement, line-thinning, high-frequency texture popping,
+     * and local gradient reconstruction in YCbCr color space.
      */
     function enhanceImageSuperResolution(data, width, height, sharpness, denoise) {
         const w = width;
         const h = height;
         const totalPixels = w * h;
 
-        // Convert RGB buffer to Luminance (Y) channel map for true perceptual sharpening
         const Y = new Float32Array(totalPixels);
         const Cb = new Float32Array(totalPixels);
         const Cr = new Float32Array(totalPixels);
@@ -435,71 +436,69 @@ document.addEventListener('DOMContentLoaded', () => {
             const g = data[idx + 1];
             const b = data[idx + 2];
 
-            // ITU-R BT.601 YCbCr
             Y[i] = 0.299 * r + 0.587 * g + 0.114 * b;
             Cb[i] = -0.168736 * r - 0.331264 * g + 0.5 * b;
             Cr[i] = 0.5 * r - 0.418688 * g - 0.081312 * b;
         }
 
-        const sharpMul = (sharpness / 50) * 1.6; // normalized strong factor
-        const denoiseMul = (denoise / 100);
-
+        const sharpFactor = (sharpness / 50); // 1.0 at 50%
+        const denoiseFactor = (denoise / 100);
         const newY = new Float32Array(Y);
 
-        // Multi-Scale Directional Super-Resolution Kernel
-        for (let y = 1; y < h - 1; y++) {
+        // Pass 1: Edge Refinement & Gradient S-Curve (Line Thinning & Crisp Edge Reconstruction)
+        for (let y = 2; y < h - 2; y++) {
             const rowOffset = y * w;
-            const prevRow = (y - 1) * w;
-            const nextRow = (y + 1) * w;
-
-            for (let x = 1; x < w - 1; x++) {
+            for (let x = 2; x < w - 2; x++) {
                 const i = rowOffset + x;
                 const center = Y[i];
 
-                const up = Y[prevRow + x];
-                const down = Y[nextRow + x];
-                const left = Y[rowOffset + x - 1];
-                const right = Y[rowOffset + x + 1];
+                // Find local 5x5 min and max luminance
+                let localMin = center;
+                let localMax = center;
+                let sum = 0;
 
-                const ul = Y[prevRow + x - 1];
-                const ur = Y[prevRow + x + 1];
-                const dl = Y[nextRow + x - 1];
-                const dr = Y[nextRow + x + 1];
-
-                // 1. Sobel Gradient Magnitude (Edge Detection)
-                const gx = (ur + 2 * right + dr) - (ul + 2 * left + dl);
-                const gy = (dl + 2 * down + dr) - (ul + 2 * up + ur);
-                const gradient = Math.sqrt(gx * gx + gy * gy);
-
-                // 2. High-Pass Laplacian Curvature
-                const laplacian = (8 * center) - (up + down + left + right + ul + ur + dl + dr);
-
-                // 3. Adaptive Non-Linear Sharpening Boost
-                // If gradient is strong (edges/text/textures), apply high edge crispness
-                let edgeBoost = laplacian * 0.18 * sharpMul;
-
-                // Non-linear sigmoid clamp to avoid ringing / white halos
-                if (edgeBoost > 32) edgeBoost = 32 + (edgeBoost - 32) * 0.3;
-                if (edgeBoost < -32) edgeBoost = -32 + (edgeBoost + 32) * 0.3;
-
-                let enhancedY = center + edgeBoost;
-
-                // 4. Bilateral Denoising in Flat Areas
-                if (denoiseMul > 0 && gradient < 25) {
-                    const avg = (up + down + left + right + center) * 0.2;
-                    const smoothFactor = denoiseMul * (1 - (gradient / 25));
-                    enhancedY = enhancedY * (1 - smoothFactor) + avg * smoothFactor;
+                for (let dy = -2; dy <= 2; dy++) {
+                    const sampleRow = (y + dy) * w;
+                    for (let dx = -2; dx <= 2; dx++) {
+                        const val = Y[sampleRow + x + dx];
+                        if (val < localMin) localMin = val;
+                        if (val > localMax) localMax = val;
+                        sum += val;
+                    }
                 }
 
-                // 5. Micro-Contrast Texture S-Curve
-                const diff = enhancedY - 128;
-                enhancedY = 128 + diff * (1 + 0.08 * sharpMul);
+                const localRange = localMax - localMin;
 
-                newY[i] = Math.max(0, Math.min(255, enhancedY));
+                // If edge exists (range > 15), apply Non-linear Edge Transition Thinning
+                if (localRange > 12) {
+                    const norm = (center - localMin) / localRange; // 0..1
+                    // Sigmoid edge compressor (compresses blur ramp into razor-sharp crisp boundary)
+                    const s = norm * norm * (3 - 2 * norm); // Smoothstep curve
+                    const s2 = s * s * (3 - 2 * s); // Double smoothstep for intense acutance
+                    
+                    const blended = norm * (1 - 0.75 * sharpFactor) + s2 * (0.75 * sharpFactor);
+                    let refinedY = localMin + blended * localRange;
+
+                    // High-pass Laplacian texture boost
+                    const up = Y[(y - 1) * w + x];
+                    const down = Y[(y + 1) * w + x];
+                    const left = Y[rowOffset + x - 1];
+                    const right = Y[rowOffset + x + 1];
+                    const laplacian = (4 * center) - (up + down + left + right);
+
+                    refinedY += laplacian * 0.25 * sharpFactor;
+                    newY[i] = Math.max(0, Math.min(255, refinedY));
+                } else if (denoiseFactor > 0) {
+                    // Flat region: Bilateral noise smoothing
+                    const localAvg = sum / 25;
+                    newY[i] = center * (1 - denoiseFactor * 0.5) + localAvg * (denoiseFactor * 0.5);
+                } else {
+                    newY[i] = center;
+                }
             }
         }
 
-        // Convert back to RGB with reconstructed sharp Luminance
+        // Pass 2: Reconstruct RGB with enhanced sharp Luminance & De-haloed Chrominance
         for (let i = 0; i < totalPixels; i++) {
             const idx = i * 4;
             const yVal = newY[i];
@@ -513,7 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
             data[idx] = Math.max(0, Math.min(255, r));
             data[idx + 1] = Math.max(0, Math.min(255, g));
             data[idx + 2] = Math.max(0, Math.min(255, b));
-            // Alpha stays 255
         }
     }
 

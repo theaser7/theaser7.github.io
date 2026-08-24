@@ -90,23 +90,25 @@
 
                 <!-- Interactive Split Viewport -->
                 <div class="split-viewport" id="split-viewport" title="Drag anywhere to compare Before / After">
-                    <div class="split-labels">
-                        <span class="split-tag tag-original">Original</span>
-                        <span class="split-tag tag-enhanced">Clarify AI</span>
-                    </div>
+                    <div class="split-stage" id="split-stage">
+                        <div class="split-labels">
+                            <span class="split-tag tag-original">Original</span>
+                            <span class="split-tag tag-enhanced">Clarify AI</span>
+                        </div>
 
-                    <!-- Before (Original) Canvas Layer -->
-                    <canvas class="image-canvas-layer layer-before" id="canvas-before"></canvas>
-                    <!-- After (Upscaled) Canvas Layer -->
-                    <canvas class="image-canvas-layer layer-after" id="canvas-after"></canvas>
+                        <!-- Before (Original) Canvas Layer -->
+                        <canvas class="image-canvas-layer layer-before" id="canvas-before"></canvas>
+                        <!-- After (Upscaled) Canvas Layer -->
+                        <canvas class="image-canvas-layer layer-after" id="canvas-after"></canvas>
 
-                    <!-- Draggable Divider Line & Handle -->
-                    <div class="split-divider-line" id="split-divider">
-                        <div class="split-handle" id="split-handle" title="Drag to compare">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="8 17 3 12 8 7"></polyline>
-                                <polyline points="16 7 21 12 16 17"></polyline>
-                            </svg>
+                        <!-- Draggable Divider Line & Handle (inside stage) -->
+                        <div class="split-divider-line" id="split-divider">
+                            <div class="split-handle" id="split-handle" title="Drag to compare">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="8 17 3 12 8 7"></polyline>
+                                    <polyline points="16 7 21 12 16 17"></polyline>
+                                </svg>
+                            </div>
                         </div>
                     </div>
                 </div>
