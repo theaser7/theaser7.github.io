@@ -539,29 +539,18 @@ function updateSoundUI() {
     }
 }
 
-// --- Interactive Dual-Thumb Range Slider & Random Length Config ---
+// --- Interactive Dual Drum / Wheel Range Picker [ MIN ] - [ MAX ] ---
 const TICKS = [4, 5, 6, 7, 8, 9, 10, 11]; // 11 represents 11+
+const ITEM_HEIGHT = 56;
 let tempMin = state.rndMin;
 let tempMax = state.rndMax;
-
-function getTickPercent(val) {
-    const idx = TICKS.indexOf(val);
-    if (idx === -1) return 0;
-    return (idx / (TICKS.length - 1)) * 100;
-}
-
-function getValFromPercent(pct) {
-    const clamped = Math.max(0, Math.min(100, pct));
-    const rawIdx = Math.round((clamped / 100) * (TICKS.length - 1));
-    return TICKS[rawIdx];
-}
 
 function updateRangeModalLocalization() {
     const isRu = state.lang === 'RU';
     const title = document.getElementById('rnd-range-title');
     const subtitle = document.getElementById('rnd-range-subtitle');
-    const lblMin = document.getElementById('lbl-min-len');
-    const lblMax = document.getElementById('lbl-max-len');
+    const lblMin = document.getElementById('lbl-drum-min');
+    const lblMax = document.getElementById('lbl-drum-max');
     const lblPresets = document.getElementById('lbl-presets');
     const btnSaveText = document.getElementById('btn-save-range-text');
 
@@ -579,34 +568,68 @@ function updateRangeModalLocalization() {
     });
 }
 
+function renderDrumWheel(colType, currentVal) {
+    const track = document.getElementById(`drum-track-${colType}`);
+    const viewport = document.getElementById(`drum-viewport-${colType}`);
+    if (!track || !viewport) return;
+
+    const curIdx = TICKS.indexOf(currentVal);
+    track.innerHTML = '';
+
+    TICKS.forEach((val, idx) => {
+        const item = document.createElement('div');
+        item.className = 'drum-item';
+        item.textContent = val === 11 ? '11+' : val;
+        item.dataset.index = idx;
+        item.dataset.val = val;
+
+        const dist = Math.abs(idx - curIdx);
+        if (dist === 0) {
+            item.classList.add('active');
+        } else if (dist === 1) {
+            item.classList.add('neighbor');
+        } else {
+            item.classList.add('distant');
+        }
+
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setDrumValue(colType, val);
+        });
+
+        track.appendChild(item);
+    });
+
+    const targetY = ITEM_HEIGHT - curIdx * ITEM_HEIGHT;
+    track.style.transform = `translateY(${targetY}px)`;
+    viewport.setAttribute('aria-valuenow', currentVal);
+}
+
+function setDrumValue(colType, val, playAudio = true) {
+    if (colType === 'min') {
+        tempMin = val;
+        if (tempMin > tempMax) {
+            tempMax = tempMin;
+        }
+    } else {
+        tempMax = val;
+        if (tempMax < tempMin) {
+            tempMin = tempMax;
+        }
+    }
+    if (playAudio && sounds.playTick) sounds.playTick();
+    renderAxisUI();
+}
+
 function renderAxisUI() {
-    const ticksContainer = document.getElementById('range-scale-ticks');
-    const trackActive = document.getElementById('range-track-active');
-    const valMin = document.getElementById('val-min-len');
-    const valMax = document.getElementById('val-max-len');
-    const tooltipMin = document.getElementById('tooltip-min');
-    const tooltipMax = document.getElementById('tooltip-max');
-    const countBadge = document.getElementById('val-range-count');
-    const thumbMin = document.getElementById('thumb-min');
-    const thumbMax = document.getElementById('thumb-max');
-
-    if (!ticksContainer || !trackActive || !thumbMin || !thumbMax) return;
-
-    const minVal = Math.min(tempMin, tempMax);
-    const maxVal = Math.max(tempMin, tempMax);
-
-    const minLabel = minVal === 11 ? '11+' : minVal;
-    const maxLabel = maxVal === 11 ? '11+' : maxVal;
-
-    if (valMin) valMin.textContent = minLabel;
-    if (valMax) valMax.textContent = maxLabel;
-    if (tooltipMin) tooltipMin.textContent = minLabel;
-    if (tooltipMax) tooltipMax.textContent = maxLabel;
+    renderDrumWheel('min', tempMin);
+    renderDrumWheel('max', tempMax);
 
     // Range length count
-    const minIdx = TICKS.indexOf(minVal);
-    const maxIdx = TICKS.indexOf(maxVal);
+    const minIdx = TICKS.indexOf(tempMin);
+    const maxIdx = TICKS.indexOf(tempMax);
     const totalSelected = (maxIdx >= 0 && minIdx >= 0) ? (maxIdx - minIdx + 1) : 1;
+    const countBadge = document.getElementById('val-range-count');
 
     if (countBadge) {
         if (state.lang === 'RU') {
@@ -617,72 +640,11 @@ function renderAxisUI() {
         }
     }
 
-    const minPct = getTickPercent(minVal);
-    const maxPct = getTickPercent(maxVal);
-
-    // Update active track bar
-    trackActive.style.left = `calc(16px + (100% - 32px) * ${minPct / 100})`;
-    trackActive.style.width = `calc((100% - 32px) * ${(maxPct - minPct) / 100})`;
-
-    // Update thumb positions
-    thumbMin.style.left = `calc(16px + (100% - 32px) * ${minPct / 100})`;
-    thumbMax.style.left = `calc(16px + (100% - 32px) * ${maxPct / 100})`;
-
-    thumbMin.setAttribute('aria-valuenow', minVal);
-    thumbMax.setAttribute('aria-valuenow', maxVal);
-
-    // Render scale ticks
-    ticksContainer.innerHTML = '';
-    TICKS.forEach((t) => {
-        const tickBtn = document.createElement('button');
-        tickBtn.className = 'scale-tick-btn';
-        const pct = getTickPercent(t);
-        tickBtn.style.left = `calc(16px + (100% - 32px) * ${pct / 100})`;
-
-        if (t >= minVal && t <= maxVal) {
-            tickBtn.classList.add('in-range');
-        }
-        if (t === minVal || t === maxVal) {
-            tickBtn.classList.add('is-bound');
-        }
-
-        const mark = document.createElement('div');
-        mark.className = 'scale-tick-mark';
-
-        const label = document.createElement('span');
-        label.className = 'scale-tick-label';
-        label.textContent = t === 11 ? '11+' : t;
-
-        tickBtn.appendChild(mark);
-        tickBtn.appendChild(label);
-
-        tickBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (t < minVal) {
-                tempMin = t;
-            } else if (t > maxVal) {
-                tempMax = t;
-            } else {
-                const distMin = Math.abs(t - minVal);
-                const distMax = Math.abs(t - maxVal);
-                if (distMin <= distMax) {
-                    tempMin = t;
-                } else {
-                    tempMax = t;
-                }
-            }
-            if (sounds.playTick) sounds.playTick();
-            renderAxisUI();
-        });
-
-        ticksContainer.appendChild(tickBtn);
-    });
-
     // Update Preset Chips Active state
     document.querySelectorAll('.preset-chip').forEach(chip => {
         const pMin = parseInt(chip.dataset.min, 10);
         const pMax = parseInt(chip.dataset.max, 10);
-        if (pMin === minVal && pMax === maxVal) {
+        if (pMin === tempMin && pMax === tempMax) {
             chip.classList.add('active');
         } else {
             chip.classList.remove('active');
@@ -692,133 +654,81 @@ function renderAxisUI() {
     updateRangeModalLocalization();
 }
 
-// Attach Drag & Interaction Listeners to Thumbs
+// Attach Drag, Wheel & Keyboard Listeners to Wheels
 function initDraggableHandles() {
-    const container = document.getElementById('range-track-container');
-    const thumbMin = document.getElementById('thumb-min');
-    const thumbMax = document.getElementById('thumb-max');
-    if (!container || !thumbMin || !thumbMax) return;
+    ['min', 'max'].forEach(colType => {
+        const viewport = document.getElementById(`drum-viewport-${colType}`);
+        const track = document.getElementById(`drum-track-${colType}`);
+        if (!viewport || !track) return;
 
-    let activeDrag = null; // 'min' or 'max'
+        // Mouse Wheel scrolling
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const curVal = colType === 'min' ? tempMin : tempMax;
+            const curIdx = TICKS.indexOf(curVal);
+            if (e.deltaY > 0) {
+                if (curIdx < TICKS.length - 1) {
+                    setDrumValue(colType, TICKS[curIdx + 1]);
+                }
+            } else if (e.deltaY < 0) {
+                if (curIdx > 0) {
+                    setDrumValue(colType, TICKS[curIdx - 1]);
+                }
+            }
+        }, { passive: false });
 
-    function handlePointerDown(handleType, e) {
-        e.preventDefault();
-        e.stopPropagation();
-        activeDrag = handleType;
-        if (handleType === 'min') thumbMin.classList.add('dragging');
-        if (handleType === 'max') thumbMax.classList.add('dragging');
-        
-        if (e.target.setPointerCapture) {
-            e.target.setPointerCapture(e.pointerId);
+        // Touch & Pointer Dragging
+        let isDragging = false;
+        let startY = 0;
+        let startTranslateY = 0;
+
+        viewport.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            startY = e.clientY;
+            const curVal = colType === 'min' ? tempMin : tempMax;
+            const curIdx = TICKS.indexOf(curVal);
+            startTranslateY = ITEM_HEIGHT - curIdx * ITEM_HEIGHT;
+            track.classList.add('dragging');
+
+            if (viewport.setPointerCapture) {
+                viewport.setPointerCapture(e.pointerId);
+            }
+        });
+
+        viewport.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            const deltaY = e.clientY - startY;
+            const currentY = startTranslateY + deltaY;
+            track.style.transform = `translateY(${currentY}px)`;
+        });
+
+        function onPointerEnd(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            track.classList.remove('dragging');
+            const deltaY = e.clientY - startY;
+            const finalY = startTranslateY + deltaY;
+            
+            let targetIdx = Math.round((ITEM_HEIGHT - finalY) / ITEM_HEIGHT);
+            targetIdx = Math.max(0, Math.min(TICKS.length - 1, targetIdx));
+            setDrumValue(colType, TICKS[targetIdx]);
         }
 
-        window.addEventListener('pointermove', onPointerMove);
-        window.addEventListener('pointerup', onPointerUp);
-        window.addEventListener('pointercancel', onPointerUp);
-    }
+        viewport.addEventListener('pointerup', onPointerEnd);
+        viewport.addEventListener('pointercancel', onPointerEnd);
 
-    function onPointerMove(e) {
-        if (!activeDrag) return;
-        const rect = container.getBoundingClientRect();
-        const padding = 16;
-        const trackWidth = rect.width - padding * 2;
-        if (trackWidth <= 0) return;
-
-        const offsetX = e.clientX - rect.left - padding;
-        const pct = (offsetX / trackWidth) * 100;
-        const val = getValFromPercent(pct);
-
-        let changed = false;
-        if (activeDrag === 'min') {
-            const clamped = Math.min(val, tempMax);
-            if (clamped !== tempMin) {
-                tempMin = clamped;
-                changed = true;
+        // Keyboard navigation (Up/Down)
+        viewport.addEventListener('keydown', (e) => {
+            const curVal = colType === 'min' ? tempMin : tempMax;
+            const curIdx = TICKS.indexOf(curVal);
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (curIdx > 0) setDrumValue(colType, TICKS[curIdx - 1]);
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (curIdx < TICKS.length - 1) setDrumValue(colType, TICKS[curIdx + 1]);
             }
-        } else if (activeDrag === 'max') {
-            const clamped = Math.max(val, tempMin);
-            if (clamped !== tempMax) {
-                tempMax = clamped;
-                changed = true;
-            }
-        }
-
-        if (changed) {
-            if (sounds.playTick) sounds.playTick();
-            renderAxisUI();
-        }
-    }
-
-    function onPointerUp(e) {
-        if (!activeDrag) return;
-        activeDrag = null;
-        thumbMin.classList.remove('dragging');
-        thumbMax.classList.remove('dragging');
-        window.removeEventListener('pointermove', onPointerMove);
-        window.removeEventListener('pointerup', onPointerUp);
-        window.removeEventListener('pointercancel', onPointerUp);
-    }
-
-    thumbMin.addEventListener('pointerdown', (e) => handlePointerDown('min', e));
-    thumbMax.addEventListener('pointerdown', (e) => handlePointerDown('max', e));
-
-    // Keyboard navigation for accessibility
-    thumbMin.addEventListener('keydown', (e) => {
-        const curIdx = TICKS.indexOf(tempMin);
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-            if (curIdx > 0) {
-                tempMin = TICKS[curIdx - 1];
-                if (sounds.playTick) sounds.playTick();
-                renderAxisUI();
-            }
-        } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-            if (TICKS[curIdx + 1] <= tempMax) {
-                tempMin = TICKS[curIdx + 1];
-                if (sounds.playTick) sounds.playTick();
-                renderAxisUI();
-            }
-        }
-    });
-
-    thumbMax.addEventListener('keydown', (e) => {
-        const curIdx = TICKS.indexOf(tempMax);
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-            if (TICKS[curIdx - 1] >= tempMin) {
-                tempMax = TICKS[curIdx - 1];
-                if (sounds.playTick) sounds.playTick();
-                renderAxisUI();
-            }
-        } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-            if (curIdx < TICKS.length - 1) {
-                tempMax = TICKS[curIdx + 1];
-                if (sounds.playTick) sounds.playTick();
-                renderAxisUI();
-            }
-        }
-    });
-
-    // Clicking track moves closest thumb
-    container.addEventListener('click', (e) => {
-        if (e.target.closest('.range-thumb')) return;
-        const rect = container.getBoundingClientRect();
-        const padding = 16;
-        const trackWidth = rect.width - padding * 2;
-        if (trackWidth <= 0) return;
-
-        const offsetX = e.clientX - rect.left - padding;
-        const pct = (offsetX / trackWidth) * 100;
-        const val = getValFromPercent(pct);
-
-        const distMin = Math.abs(val - tempMin);
-        const distMax = Math.abs(val - tempMax);
-
-        if (distMin < distMax) {
-            tempMin = Math.min(val, tempMax);
-        } else {
-            tempMax = Math.max(val, tempMin);
-        }
-        if (sounds.playTick) sounds.playTick();
-        renderAxisUI();
+        });
     });
 }
 
