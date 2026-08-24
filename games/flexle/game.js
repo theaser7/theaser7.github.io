@@ -183,13 +183,11 @@ function startNewGame() {
     let chosenLen = state.wordLength;
 
     if (state.isRandomLength) {
-        // Pick random length from [rndMin .. rndMax]
         const minL = Math.min(state.rndMin, state.rndMax);
         const maxL = Math.max(state.rndMin, state.rndMax);
         const rolled = Math.floor(Math.random() * (maxL - minL + 1)) + minL;
 
         if (rolled >= 11) {
-            // Pick long word
             const xlDict = (DICTIONARY[state.lang] && DICTIONARY[state.lang]["11+"]) || [];
             if (xlDict.length > 0) {
                 state.targetWord = xlDict[Math.floor(Math.random() * xlDict.length)].toUpperCase();
@@ -208,7 +206,6 @@ function startNewGame() {
             }
         }
     } else if (state.isXLMode) {
-        // Pick random long word from 11+
         const xlDict = (DICTIONARY[state.lang] && DICTIONARY[state.lang]["11+"]) || [];
         if (xlDict.length > 0) {
             state.targetWord = xlDict[Math.floor(Math.random() * xlDict.length)].toUpperCase();
@@ -259,7 +256,6 @@ function renderBoard() {
     board.innerHTML = '';
     board.style.gridTemplateRows = `repeat(${state.maxAttempts}, 1fr)`;
 
-    // Calculate adaptive tile size based on letter count
     let tileSize = 48;
     let fontSize = 1.4;
 
@@ -543,16 +539,28 @@ function updateSoundUI() {
     }
 }
 
-// --- Interactive Number Axis Visualizer ---
+// --- Interactive Draggable Bracket Range Sliders ---
 const TICKS = [4, 5, 6, 7, 8, 9, 10, 11]; // 11 represents 11+
 let tempMin = state.rndMin;
 let tempMax = state.rndMax;
-let clickStep = 0; // 0 = next click sets min, 1 = sets max
+
+function getTickPercent(val) {
+    const idx = TICKS.indexOf(val);
+    return (idx / (TICKS.length - 1)) * 100;
+}
+
+function getValFromPercent(pct) {
+    const clamped = Math.max(0, Math.min(100, pct));
+    const rawIdx = Math.round((clamped / 100) * (TICKS.length - 1));
+    return TICKS[rawIdx];
+}
 
 function renderAxisUI() {
     const ticksContainer = document.getElementById('axis-ticks');
     const highlight = document.getElementById('axis-highlight');
     const displayText = document.getElementById('range-display-text');
+    const handleMin = document.getElementById('handle-min');
+    const handleMax = document.getElementById('handle-max');
     if (!ticksContainer) return;
 
     ticksContainer.innerHTML = '';
@@ -563,11 +571,14 @@ function renderAxisUI() {
     const maxLabel = maxVal === 11 ? '11+' : maxVal;
     displayText.textContent = `[ ${minLabel} … ${maxLabel} ]`;
 
-    TICKS.forEach((t, idx) => {
-        const btn = document.createElement('button');
-        btn.className = 'axis-tick-btn';
+    TICKS.forEach((t) => {
+        const tickElem = document.createElement('div');
+        tickElem.className = 'axis-tick';
+        const pct = getTickPercent(t);
+        tickElem.style.left = `${pct}%`;
+
         if (t >= minVal && t <= maxVal) {
-            btn.classList.add('in-range');
+            tickElem.classList.add('in-range');
         }
 
         const mark = document.createElement('div');
@@ -576,48 +587,89 @@ function renderAxisUI() {
         const label = document.createElement('span');
         label.textContent = t === 11 ? '11+' : t;
 
-        // Add visual bracket indicator
-        if (t === minVal && t === maxVal) {
-            label.textContent = `[${label.textContent}]`;
-        } else if (t === minVal) {
-            label.textContent = `[ ${label.textContent}`;
-        } else if (t === maxVal) {
-            label.textContent = `${label.textContent} ]`;
-        }
-
-        btn.appendChild(mark);
-        btn.appendChild(label);
-
-        btn.addEventListener('click', () => {
-            if (clickStep === 0) {
-                tempMin = t;
-                tempMax = Math.max(t, tempMax);
-                clickStep = 1;
-            } else {
-                if (t < tempMin) {
-                    tempMax = tempMin;
-                    tempMin = t;
-                } else {
-                    tempMax = t;
-                }
-                clickStep = 0;
-            }
-            renderAxisUI();
-        });
-
-        ticksContainer.appendChild(btn);
+        tickElem.appendChild(mark);
+        tickElem.appendChild(label);
+        ticksContainer.appendChild(tickElem);
     });
 
-    // Update Highlight bar position
-    const minIdx = TICKS.indexOf(minVal);
-    const maxIdx = TICKS.indexOf(maxVal);
-    const totalTicks = TICKS.length - 1;
+    const minPct = getTickPercent(minVal);
+    const maxPct = getTickPercent(maxVal);
 
-    const leftPercent = (minIdx / totalTicks) * 100;
-    const widthPercent = ((maxIdx - minIdx) / totalTicks) * 100;
+    // Update Handles Position
+    handleMin.style.left = `calc(16px + (100% - 32px) * ${minPct / 100})`;
+    handleMax.style.left = `calc(16px + (100% - 32px) * ${maxPct / 100})`;
 
-    highlight.style.left = `calc(${leftPercent}% + 10px)`;
-    highlight.style.width = `calc(${widthPercent}% - 0px)`;
+    // Update Highlight bar
+    highlight.style.left = `calc(16px + (100% - 32px) * ${minPct / 100})`;
+    highlight.style.width = `calc((100% - 32px) * ${(maxPct - minPct) / 100})`;
+}
+
+// Attach Drag Listeners to Handles
+function initDraggableHandles() {
+    const wrapper = document.getElementById('axis-track-wrapper');
+    const handleMin = document.getElementById('handle-min');
+    const handleMax = document.getElementById('handle-max');
+    if (!wrapper || !handleMin || !handleMax) return;
+
+    let activeDrag = null; // 'min' or 'max'
+
+    function handlePointerDown(handleType, e) {
+        e.preventDefault();
+        activeDrag = handleType;
+        if (handleType === 'min') handleMin.classList.add('dragging');
+        if (handleType === 'max') handleMax.classList.add('dragging');
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+    }
+
+    function onPointerMove(e) {
+        if (!activeDrag) return;
+        const rect = wrapper.getBoundingClientRect();
+        const padding = 16;
+        const trackWidth = rect.width - padding * 2;
+        const offsetX = e.clientX - rect.left - padding;
+        const pct = (offsetX / trackWidth) * 100;
+        const val = getValFromPercent(pct);
+
+        if (activeDrag === 'min') {
+            tempMin = Math.min(val, tempMax);
+        } else if (activeDrag === 'max') {
+            tempMax = Math.max(val, tempMin);
+        }
+        renderAxisUI();
+    }
+
+    function onPointerUp() {
+        activeDrag = null;
+        handleMin.classList.remove('dragging');
+        handleMax.classList.remove('dragging');
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+    }
+
+    handleMin.addEventListener('pointerdown', (e) => handlePointerDown('min', e));
+    handleMax.addEventListener('pointerdown', (e) => handlePointerDown('max', e));
+
+    // Clicking anywhere on track moves closest handle
+    wrapper.addEventListener('click', (e) => {
+        if (e.target === handleMin || e.target === handleMax) return;
+        const rect = wrapper.getBoundingClientRect();
+        const padding = 16;
+        const trackWidth = rect.width - padding * 2;
+        const offsetX = e.clientX - rect.left - padding;
+        const pct = (offsetX / trackWidth) * 100;
+        const val = getValFromPercent(pct);
+
+        const distMin = Math.abs(val - tempMin);
+        const distMax = Math.abs(val - tempMax);
+
+        if (distMin < distMax) {
+            tempMin = Math.min(val, tempMax);
+        } else {
+            tempMax = Math.max(val, tempMin);
+        }
+        renderAxisUI();
+    });
 }
 
 // Physical Keyboard Listener
@@ -668,6 +720,7 @@ window.addEventListener('keydown', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     initBackground();
     updateSoundUI();
+    initDraggableHandles();
 
     // Hide preloader smoothly
     setTimeout(() => {
@@ -725,7 +778,6 @@ document.addEventListener('DOMContentLoaded', () => {
     btnOpenRange.addEventListener('click', () => {
         tempMin = state.rndMin;
         tempMax = state.rndMax;
-        clickStep = 0;
         renderAxisUI();
         modalRndRange.classList.add('open');
     });
@@ -751,7 +803,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modalRndRange.classList.remove('open');
         showToast(`Random range: [ ${state.rndMin} … ${state.rndMax === 11 ? '11+' : state.rndMax} ]`);
         
-        // If already in Random mode, trigger new game with updated range
         if (state.isRandomLength && !state.hasStarted) {
             startNewGame();
         }

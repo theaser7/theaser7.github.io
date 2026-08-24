@@ -508,7 +508,7 @@
             border: 1px solid var(--card-border);
             border-radius: 16px;
             width: 100%;
-            max-width: 440px;
+            max-width: 450px;
             padding: 1.75rem;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
             display: flex;
@@ -553,10 +553,9 @@
             color: var(--text-secondary);
         }
 
-        /* Interactive Number Axis for Random Range */
+        /* Interactive Draggable Bracket Sliders */
         .axis-container {
-            margin: 1rem 0;
-            padding: 1.5rem 0.5rem 1rem;
+            margin: 0.5rem 0;
             display: flex;
             flex-direction: column;
             gap: 1.25rem;
@@ -566,98 +565,111 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 800;
             color: var(--accent);
             text-align: center;
             background: rgba(99, 102, 241, 0.1);
             border: 1px solid rgba(99, 102, 241, 0.2);
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
         }
 
         .axis-track-wrapper {
             position: relative;
-            padding: 20px 8px;
+            height: 90px;
             user-select: none;
+            touch-action: none;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
         }
 
         .axis-line {
             position: absolute;
-            top: 50%;
-            left: 10px;
-            right: 10px;
+            left: 16px;
+            right: 16px;
             height: 4px;
             background: #2e3446;
-            transform: translateY(-50%);
             border-radius: 2px;
+            pointer-events: none;
         }
 
         .axis-highlight {
             position: absolute;
-            top: 50%;
             height: 4px;
             background: var(--accent);
-            transform: translateY(-50%);
             border-radius: 2px;
-            box-shadow: 0 0 10px var(--accent);
+            box-shadow: 0 0 12px var(--accent);
+            pointer-events: none;
         }
 
         .axis-ticks {
-            position: relative;
+            position: absolute;
+            left: 16px;
+            right: 16px;
             display: flex;
             justify-content: space-between;
-            z-index: 2;
+            pointer-events: none;
         }
 
-        .axis-tick-btn {
-            background: none;
-            border: none;
+        .axis-tick {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 8px;
-            cursor: pointer;
             color: var(--text-secondary);
             font-weight: 700;
             font-size: 0.85rem;
-            transition: all 0.15s ease;
+            transform: translateX(-50%);
+            position: absolute;
         }
 
-        .axis-tick-btn:hover {
+        .axis-tick.in-range {
             color: #fff;
         }
 
         .axis-tick-mark {
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: #2e3446;
-            border: 2px solid var(--card-bg);
             transition: all 0.15s ease;
         }
 
-        .axis-tick-btn.in-range .axis-tick-mark {
+        .axis-tick.in-range .axis-tick-mark {
             background: var(--accent);
             box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
         }
 
-        .axis-tick-btn.in-range {
-            color: #fff;
+        /* Bracket Handles */
+        .drag-handle {
+            position: absolute;
+            width: 32px;
+            height: 48px;
+            background: #1e2230;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            transform: translate(-50%, -50%);
+            top: 50%;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), 0 0 12px rgba(99, 102, 241, 0.5);
+            transition: border-color 0.15s ease, transform 0.1s ease;
         }
 
-        .axis-bracket {
-            position: absolute;
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: #ffffff;
-            text-shadow: 0 0 10px var(--accent);
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-            transition: left 0.15s ease, right 0.15s ease;
-            z-index: 3;
-            line-height: 1;
+        .drag-handle:active, .drag-handle.dragging {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.15);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8), 0 0 18px var(--accent);
         }
 
         .range-quick-presets {
@@ -870,21 +882,21 @@
             </div>
             
             <div class="axis-values">
-                <span>Range:</span>
+                <span>Active Range:</span>
                 <span id="range-display-text">[ 5 &hellip; 10 ]</span>
             </div>
 
-            <!-- Number Axis Visualizer -->
+            <!-- Number Axis Visualizer with Draggable Bracket Handles -->
             <div class="axis-track-wrapper" id="axis-track-wrapper">
                 <div class="axis-line"></div>
                 <div class="axis-highlight" id="axis-highlight"></div>
-                <div class="axis-ticks" id="axis-ticks">
-                    <!-- Dynamic Ticks 4, 5, 6, 7, 8, 9, 10, 11+ -->
-                </div>
+                <div class="axis-ticks" id="axis-ticks"></div>
+                <div class="drag-handle" id="handle-min" title="Drag Min">[</div>
+                <div class="drag-handle" id="handle-max" title="Drag Max">]</div>
             </div>
 
             <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
-                Click any two points on the axis to set your [ MIN &hellip; MAX ] bounds
+                Drag the [ and ] bracket sliders or tap on any point along the axis
             </div>
 
             <div class="range-quick-presets">
