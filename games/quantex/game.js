@@ -1,13 +1,16 @@
 /**
  * Quantex Game Engine
- * Cyberpunk More/Less Comparison Game (100% Vector Icons & Procedural Cyber Audio)
+ * Cyberpunk More/Less Comparison Game (100% Live Open Data Feeds, Vector Icons & Procedural Cyber Audio)
  */
 
 class QuantexGame {
     constructor() {
-        this.categories = QUANTEX_DATASET.categories;
         this.questionsPerCategory = 5;
-        this.totalCategories = this.categories.length;
+        this.categories = (window.liveFeedEngine && window.liveFeedEngine.categories.length === 5)
+            ? window.liveFeedEngine.categories
+            : (typeof QUANTEX_DATASET !== "undefined" ? QUANTEX_DATASET.categories : []);
+
+        this.totalCategories = 5;
         this.totalQuestions = this.totalCategories * this.questionsPerCategory;
 
         this.currentCategoryIndex = 0;
@@ -22,6 +25,7 @@ class QuantexGame {
 
         this.initDOMElements();
         this.initEventListeners();
+        this.initLiveFeed();
     }
 
     initDOMElements() {
@@ -30,6 +34,11 @@ class QuantexGame {
         this.gameScreen = document.getElementById('game-screen');
         this.transitionScreen = document.getElementById('transition-screen');
         this.resultsScreen = document.getElementById('results-screen');
+
+        // Live Feed UI
+        this.liveBeacon = document.getElementById('live-feed-beacon');
+        this.liveStatusText = document.getElementById('live-status-text');
+        this.btnSyncFeed = document.getElementById('btn-sync-feed');
 
         // Game UI
         this.categoryBadge = document.getElementById('category-badge');
@@ -79,6 +88,32 @@ class QuantexGame {
         this.toastShare = document.getElementById('toast-share');
     }
 
+    initLiveFeed() {
+        if (window.liveFeedEngine) {
+            window.liveFeedEngine.onUpdate(({ status, details, categories }) => {
+                if (this.liveStatusText) {
+                    this.liveStatusText.textContent = details;
+                }
+                if (this.liveBeacon) {
+                    if (status === 'READY') {
+                        this.liveBeacon.classList.remove('syncing');
+                        this.liveBeacon.classList.add('synced');
+                    } else {
+                        this.liveBeacon.classList.remove('synced');
+                        this.liveBeacon.classList.add('syncing');
+                    }
+                }
+                if (categories && categories.length === 5) {
+                    this.categories = categories;
+                    this.totalCategories = categories.length;
+                    this.totalQuestions = this.totalCategories * this.questionsPerCategory;
+                }
+            });
+
+            window.liveFeedEngine.loadAllLiveFeeds();
+        }
+    }
+
     initEventListeners() {
         this.btnStart.addEventListener('click', () => {
             window.soundEngine.playClick();
@@ -100,6 +135,20 @@ class QuantexGame {
             this.updateMuteButton(isMuted);
         });
         this.updateMuteButton(window.soundEngine.isMuted);
+
+        if (this.btnSyncFeed) {
+            this.btnSyncFeed.addEventListener('click', async () => {
+                window.soundEngine.playClick();
+                if (this.btnSyncFeed) this.btnSyncFeed.classList.add('rotating');
+                if (window.liveFeedEngine) {
+                    await window.liveFeedEngine.loadAllLiveFeeds(true);
+                    window.soundEngine.playSyncSuccess();
+                }
+                setTimeout(() => {
+                    if (this.btnSyncFeed) this.btnSyncFeed.classList.remove('rotating');
+                }, 800);
+            });
+        }
 
         if (this.btnHelp && this.modalHelp) {
             this.btnHelp.addEventListener('click', () => {
@@ -168,6 +217,10 @@ class QuantexGame {
     }
 
     startNewGame() {
+        if (window.liveFeedEngine && window.liveFeedEngine.categories.length === 5) {
+            this.categories = window.liveFeedEngine.categories;
+        }
+
         this.currentCategoryIndex = 0;
         this.currentQuestionIndex = 0;
         this.overallScore = 0;
@@ -254,26 +307,25 @@ class QuantexGame {
 
         this.renderCategoryPills();
 
-        // Reset Card States
-        [this.cardA, this.cardB].forEach(card => {
-            card.classList.remove('selected-winner', 'selected-loser', 'reveal-higher', 'reveal-lower', 'disabled');
-        });
-
-        // Set Card A content
+        // Setup Card A
         this.cardATitle.textContent = roundData.itemA.name;
-        this.cardASubtitle.textContent = roundData.itemA.subtitle;
-        this.cardAIcon.innerHTML = window.getQuantexIcon(roundData.itemA.icon || category.icon);
-        this.cardAValue.textContent = '???';
+        this.cardASubtitle.textContent = roundData.itemA.subtitle || category.unitLabel;
+        this.cardAIcon.innerHTML = window.getQuantexIcon(roundData.itemA.icon || 'quantum_logo');
+        this.cardAValue.textContent = roundData.itemA.formatted;
         this.cardAValue.classList.remove('revealed');
-        this.cardABadge.textContent = 'TARGET ALPHA [ 1 ]';
+        this.cardABadge.textContent = '';
+        this.cardABadge.className = 'card-badge';
+        this.cardA.className = 'quantex-card';
 
-        // Set Card B content
+        // Setup Card B
         this.cardBTitle.textContent = roundData.itemB.name;
-        this.cardBSubtitle.textContent = roundData.itemB.subtitle;
-        this.cardBIcon.innerHTML = window.getQuantexIcon(roundData.itemB.icon || category.icon);
-        this.cardBValue.textContent = '???';
+        this.cardBSubtitle.textContent = roundData.itemB.subtitle || category.unitLabel;
+        this.cardBIcon.innerHTML = window.getQuantexIcon(roundData.itemB.icon || 'quantum_logo');
+        this.cardBValue.textContent = roundData.itemB.formatted;
         this.cardBValue.classList.remove('revealed');
-        this.cardBBadge.textContent = 'TARGET BETA [ 2 ]';
+        this.cardBBadge.textContent = '';
+        this.cardBBadge.className = 'card-badge';
+        this.cardB.className = 'quantex-card';
 
         this.isResolving = false;
     }
@@ -282,55 +334,65 @@ class QuantexGame {
         if (this.isResolving || this.state !== 'PLAYING') return;
         this.isResolving = true;
 
+        window.soundEngine.playClick();
+        window.soundEngine.playReveal();
+
         const roundData = this.gameRounds[this.currentCategoryIndex][this.currentQuestionIndex];
         const isCorrect = (selectedIndex === roundData.higherIndex);
 
-        const chosenCard = selectedIndex === 0 ? this.cardA : this.cardB;
-        const otherCard = selectedIndex === 0 ? this.cardB : this.cardA;
-
-        // Reveal Values with shimmer sound
-        window.soundEngine.playReveal();
-        this.cardAValue.textContent = roundData.itemA.formatted;
-        this.cardBValue.textContent = roundData.itemB.formatted;
-        this.cardAValue.classList.add('revealed');
-        this.cardBValue.classList.add('revealed');
-
+        // Update score & tracking
         if (isCorrect) {
-            setTimeout(() => window.soundEngine.playCorrect(), 80);
             this.overallScore++;
             this.categoryScores[this.currentCategoryIndex]++;
             this.resultsMatrix[this.currentCategoryIndex].push(true);
-
-            chosenCard.classList.add('selected-winner');
-            otherCard.classList.add('reveal-lower');
+            setTimeout(() => window.soundEngine.playCorrect(), 100);
         } else {
-            setTimeout(() => window.soundEngine.playWrong(), 80);
             this.resultsMatrix[this.currentCategoryIndex].push(false);
-
-            chosenCard.classList.add('selected-loser');
-            otherCard.classList.add('reveal-higher');
+            setTimeout(() => window.soundEngine.playWrong(), 100);
         }
 
-        this.scoreDisplay.textContent = `SCORE: ${this.overallScore} / ${this.totalQuestions}`;
+        // Reveal numbers & animation classes
+        this.cardAValue.classList.add('revealed');
+        this.cardBValue.classList.add('revealed');
 
-        this.cardA.classList.add('disabled');
-        this.cardB.classList.add('disabled');
+        if (roundData.higherIndex === 0) {
+            this.cardABadge.textContent = 'GREATER';
+            this.cardABadge.classList.add('badge-higher');
+            this.cardBBadge.textContent = 'LESS';
+            this.cardBBadge.classList.add('badge-lower');
+        } else {
+            this.cardBBadge.textContent = 'GREATER';
+            this.cardBBadge.classList.add('badge-higher');
+            this.cardABadge.textContent = 'LESS';
+            this.cardABadge.classList.add('badge-lower');
+        }
 
+        if (selectedIndex === 0) {
+            this.cardA.classList.add(isCorrect ? 'card-correct' : 'card-wrong');
+            this.cardB.classList.add('card-dimmed');
+        } else {
+            this.cardB.classList.add(isCorrect ? 'card-correct' : 'card-wrong');
+            this.cardA.classList.add('card-dimmed');
+        }
+
+        // Transition delay
         setTimeout(() => {
-            this.advanceNext();
-        }, 1500);
+            this.advanceGame();
+        }, 1600);
     }
 
-    advanceNext() {
-        if (this.currentQuestionIndex < this.questionsPerCategory - 1) {
-            this.currentQuestionIndex++;
-            this.renderQuestion();
-        } else {
+    advanceGame() {
+        this.currentQuestionIndex++;
+
+        // End of category
+        if (this.currentQuestionIndex >= this.questionsPerCategory) {
             if (this.currentCategoryIndex < this.totalCategories - 1) {
                 this.showCategoryTransition();
             } else {
-                this.showFinalResults();
+                this.finishGame();
             }
+        } else {
+            this.renderQuestion();
         }
     }
 
@@ -338,14 +400,14 @@ class QuantexGame {
         this.state = 'TRANSITION';
         window.soundEngine.playCategoryComplete();
 
-        const finishedCat = this.categories[this.currentCategoryIndex];
-        const catScore = this.categoryScores[this.currentCategoryIndex];
+        const completedCat = this.categories[this.currentCategoryIndex];
         const nextCat = this.categories[this.currentCategoryIndex + 1];
+        const catScore = this.categoryScores[this.currentCategoryIndex];
 
-        this.transCatIcon.innerHTML = window.getQuantexIcon(finishedCat.icon);
-        this.transCatName.textContent = finishedCat.name.toUpperCase();
-        this.transScore.textContent = `${catScore} / ${this.questionsPerCategory} ACCURATE`;
-        this.transNextCat.textContent = `NEXT PHASE: ${nextCat.name.toUpperCase()}`;
+        this.transCatIcon.innerHTML = window.getQuantexIcon(completedCat.icon);
+        this.transCatName.textContent = completedCat.name.toUpperCase();
+        this.transScore.textContent = `${catScore} / ${this.questionsPerCategory}`;
+        this.transNextCat.textContent = `NEXT: ${nextCat.name.toUpperCase()}`;
 
         this.gameScreen.classList.add('hidden');
         this.transitionScreen.classList.remove('hidden');
@@ -358,10 +420,12 @@ class QuantexGame {
 
         this.transitionScreen.classList.add('hidden');
         this.gameScreen.classList.remove('hidden');
+
+        this.renderCategoryPills();
         this.renderQuestion();
     }
 
-    showFinalResults() {
+    finishGame() {
         this.state = 'FINISHED';
         window.soundEngine.playGameComplete();
 
@@ -369,33 +433,36 @@ class QuantexGame {
         this.resAccuracy.textContent = `${accuracy}%`;
         this.resScore.textContent = `${this.overallScore} / ${this.totalQuestions}`;
 
-        let rank = "QUANTUM APPRENTICE";
-        if (this.overallScore >= 24) rank = "CYBER ORACLE // GOD TIER";
-        else if (this.overallScore >= 21) rank = "DATA ARCHITECT // MASTER";
-        else if (this.overallScore >= 17) rank = "NEURAL ANALYST // ELITE";
-        else if (this.overallScore >= 13) rank = "SYSTEM OPERATOR // EXPERT";
-        else if (this.overallScore >= 9) rank = "DATA RUNNER // NOVICE";
+        // Calculate Rank
+        let rank = "QUANTUM INITIATE";
+        if (this.overallScore === 25) rank = "CYBERNETIC ORACLE (PERFECT 25/25)";
+        else if (this.overallScore >= 22) rank = "QUANTUM MASTER ARCHITECT";
+        else if (this.overallScore >= 18) rank = "SENIOR PROTOCOL ANALYST";
+        else if (this.overallScore >= 13) rank = "NEURAL DATA OPERATOR";
+        else if (this.overallScore >= 8) rank = "CYBER DRIFTER";
+
         this.resRank.textContent = rank;
 
-        const previousBest = parseInt(localStorage.getItem('quantex_high_score') || '0', 10);
-        if (this.overallScore > previousBest) {
-            localStorage.setItem('quantex_high_score', this.overallScore);
-            this.resBestScore.textContent = `NEW RECORD: ${this.overallScore} / ${this.totalQuestions}`;
-            this.resBestScore.classList.add('new-record');
-        } else {
-            this.resBestScore.textContent = `PERSONAL BEST: ${previousBest} / ${this.totalQuestions}`;
-            this.resBestScore.classList.remove('new-record');
+        // Save Best Score
+        const storedBest = localStorage.getItem('quantex_best_score') || 0;
+        if (this.overallScore > storedBest) {
+            localStorage.setItem('quantex_best_score', this.overallScore);
         }
+        const currentBest = Math.max(this.overallScore, storedBest);
+        this.resBestScore.textContent = `BEST: ${currentBest} / ${this.totalQuestions}`;
 
+        // Render Breakdown
         this.resBreakdown.innerHTML = '';
         this.categories.forEach((cat, idx) => {
             const score = this.categoryScores[idx];
             const percent = (score / this.questionsPerCategory) * 100;
-            const matrixRow = this.resultsMatrix[idx] || [];
-            const badgesHtml = matrixRow.map(isHit => isHit ? `<span class="hit-dot hit">${window.getQuantexIcon('check')}</span>` : `<span class="hit-dot miss">${window.getQuantexIcon('cross')}</span>`).join(' ');
-
             const row = document.createElement('div');
-            row.className = 'res-row';
+            row.className = 'res-cat-row';
+
+            const badgesHtml = (this.resultsMatrix[idx] || []).map(hit => {
+                return `<span class="res-dot ${hit ? 'hit' : 'miss'}">${hit ? window.getQuantexIcon('check') : window.getQuantexIcon('cross')}</span>`;
+            }).join('');
+
             row.innerHTML = `
                 <div class="res-cat-info">
                     <span class="res-icon">${window.getQuantexIcon(cat.icon)}</span>
@@ -424,7 +491,7 @@ class QuantexGame {
             return `${cat.name.padEnd(20, ' ')} : ${row} (${this.categoryScores[idx]}/5)`;
         }).join('\n');
 
-        const shareText = `QUANTEX // NEURAL SCALE COMPARISON\nScore: ${this.overallScore}/${this.totalQuestions} (${accuracy}%)\nRank: ${rank}\n\n${matrixText}\n\nPlay: https://theaser7.github.io/games/quantex/`;
+        const shareText = `QUANTEX // LIVE DATA PROTOCOL\nScore: ${this.overallScore}/${this.totalQuestions} (${accuracy}%)\nRank: ${rank}\n\n${matrixText}\n\nPlay: https://theaser7.github.io/games/quantex/`;
 
         navigator.clipboard.writeText(shareText).then(() => {
             this.toastShare.classList.add('show');
