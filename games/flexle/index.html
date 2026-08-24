@@ -147,7 +147,8 @@
             justify-content: center;
             cursor: pointer;
             text-decoration: none;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            font-weight: 700;
             transition: all 0.2s ease;
         }
 
@@ -160,6 +161,12 @@
             opacity: 0.4;
             cursor: not-allowed;
             pointer-events: none;
+        }
+
+        .btn-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
         }
 
         h1 {
@@ -588,13 +595,39 @@
 
     <header class="header">
         <div class="header-title-group">
-            <a href="../../" class="btn-icon" title="Back to Hub">&larr;</a>
+            <a href="../../" class="btn-icon" title="Back to Hub">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </a>
             <h1>Flexle</h1>
         </div>
         <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-icon" id="btn-sound" title="Toggle Sound">
+                <svg id="icon-sound-on" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+                <svg id="icon-sound-off" style="display: none;" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <line x1="23" y1="9" x2="17" y2="15"></line>
+                    <line x1="17" y1="9" x2="23" y2="15"></line>
+                </svg>
+            </button>
             <button class="btn-icon" id="btn-lang" title="Switch Language">RU</button>
-            <button class="btn-icon" id="btn-restart" title="New Game">&#x21bb;</button>
-            <button class="btn-icon" id="btn-settings" title="Settings">&#x2699;</button>
+            <button class="btn-icon" id="btn-restart" title="New Game">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+            </button>
+            <button class="btn-icon" id="btn-settings" title="Settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
         </div>
     </header>
 
@@ -607,7 +640,7 @@
             <button class="len-btn" data-len="8">8</button>
             <button class="len-btn" data-len="9">9</button>
             <button class="len-btn" data-len="10">10</button>
-            <button class="len-btn" data-len="random">🎲</button>
+            <button class="len-btn" data-len="random">RND</button>
         </div>
         <div class="status-pill" id="attempts-pill">6 attempts</div>
     </div>
@@ -624,6 +657,16 @@
             <div class="modal-header">
                 <h2 class="modal-title">Settings</h2>
                 <button class="modal-close" id="close-settings">&times;</button>
+            </div>
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Sound Effects</div>
+                    <div class="setting-sub">Procedural audio effects</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-sound" checked>
+                    <span class="slider"></span>
+                </label>
             </div>
             <div class="setting-item">
                 <div>
@@ -658,6 +701,7 @@
         </div>
     </div>
 
+    <script src="sound.js"></script>
     <script src="words.js"></script>
     <script src="game.js"></script>
 </body>

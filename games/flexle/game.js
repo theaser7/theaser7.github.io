@@ -19,16 +19,16 @@ const KEYBOARDS = {
     EN: [
         ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
         ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-        ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫']
+        ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL']
     ],
     RU: [
         ['Й', 'Ц', 'У', 'К', 'Е', 'Н', 'Г', 'Ш', 'Щ', 'З', 'Х', 'Ъ'],
         ['Ф', 'Ы', 'В', 'А', 'П', 'Р', 'О', 'Л', 'Д', 'Ж', 'Э'],
-        ['ENTER', 'Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю', '⌫']
+        ['ENTER', 'Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю', 'DEL']
     ]
 };
 
-// Robust Physical Key Code to Char Mapping
+// Physical Key Code to Char Mapping
 const RU_CODE_MAP = {
     'KeyQ': 'Й', 'KeyW': 'Ц', 'KeyE': 'У', 'KeyR': 'К', 'KeyT': 'Е',
     'KeyY': 'Н', 'KeyU': 'Г', 'KeyI': 'Ш', 'KeyO': 'Щ', 'KeyP': 'З',
@@ -166,7 +166,7 @@ function startNewGame() {
     state.maxAttempts = calcAttempts(chosenLen);
 
     // Pick target word
-    const dict = DICTIONARY[state.lang][chosenLen] || [];
+    const dict = (DICTIONARY[state.lang] && DICTIONARY[state.lang][chosenLen]) || [];
     if (dict.length > 0) {
         state.targetWord = dict[Math.floor(Math.random() * dict.length)].toUpperCase();
     } else {
@@ -226,7 +226,7 @@ function renderKeyboard() {
         rowKeys.forEach(key => {
             const btn = document.createElement('button');
             btn.className = 'key';
-            if (key === 'ENTER' || key === '⌫') {
+            if (key === 'ENTER' || key === 'DEL') {
                 btn.classList.add('wide');
             }
             btn.textContent = key;
@@ -239,7 +239,7 @@ function renderKeyboard() {
 
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                handleInput(key);
+                handleInput(key === 'DEL' ? 'BACKSPACE' : key);
             });
 
             rowDiv.appendChild(btn);
@@ -253,8 +253,9 @@ function renderKeyboard() {
 function handleInput(key) {
     if (state.isGameOver) return;
 
-    if (key === '⌫' || key === 'BACKSPACE') {
+    if (key === 'BACKSPACE') {
         if (state.currentCol > 0) {
+            sounds.playBackspace();
             state.currentCol--;
             state.grid[state.currentRow][state.currentCol] = '';
             const tile = document.getElementById(`tile-${state.currentRow}-${state.currentCol}`);
@@ -268,6 +269,7 @@ function handleInput(key) {
 
     if (key === 'ENTER') {
         if (state.currentCol < state.activeLength) {
+            sounds.playShake();
             shakeRow(state.currentRow);
             showToast(state.lang === 'RU' ? 'Слишком мало букв' : 'Not enough letters');
             return;
@@ -283,7 +285,8 @@ function handleInput(key) {
         const isEn = /^[A-Z]$/i.test(cleanLetter);
 
         if ((state.lang === 'RU' && isRu) || (state.lang === 'EN' && isEn)) {
-            // Lock language/length controls on first input
+            sounds.playKeyTap();
+
             if (!state.hasStarted) {
                 state.hasStarted = true;
                 setControlsLocked(true);
@@ -323,8 +326,9 @@ function submitGuess() {
 
     // Strict Mode Check
     if (state.strictMode) {
-        const dict = DICTIONARY[state.lang][state.activeLength] || [];
+        const dict = (DICTIONARY[state.lang] && DICTIONARY[state.lang][state.activeLength]) || [];
         if (!dict.includes(guess)) {
+            sounds.playShake();
             shakeRow(state.currentRow);
             showToast(state.lang === 'RU' ? 'Нет в списке слов' : 'Not in word list');
             return;
@@ -358,7 +362,7 @@ function submitGuess() {
         }
     }
 
-    // Animate Tiles Flip
+    // Animate Tiles Flip with pitch-scaled chime
     const rowTiles = [];
     for (let c = 0; c < state.activeLength; c++) {
         rowTiles.push(document.getElementById(`tile-${state.currentRow}-${c}`));
@@ -366,6 +370,7 @@ function submitGuess() {
 
     rowTiles.forEach((tile, index) => {
         setTimeout(() => {
+            sounds.playFlip(index);
             if (tile) {
                 tile.classList.add('flip');
                 tile.setAttribute('data-state', evaluation[index]);
@@ -393,11 +398,13 @@ function submitGuess() {
         if (isWin) {
             state.isGameOver = true;
             bounceRow(state.currentRow);
+            sounds.playWin();
             setTimeout(() => {
                 showGameOver(true);
             }, 800);
         } else if (isLastAttempt) {
             state.isGameOver = true;
+            sounds.playLoss();
             setTimeout(() => {
                 showGameOver(false);
             }, 800);
@@ -416,7 +423,7 @@ function showGameOver(isWin) {
     const wordElem = document.getElementById('gameover-word');
 
     if (isWin) {
-        title.textContent = state.lang === 'RU' ? 'Победа! 🎉' : 'Splendid! 🎉';
+        title.textContent = state.lang === 'RU' ? 'Победа!' : 'Splendid!';
         desc.textContent = state.lang === 'RU' ? `Вы угадали слово за ${state.currentRow + 1} попыток!` : `You solved it in ${state.currentRow + 1} guesses!`;
     } else {
         title.textContent = state.lang === 'RU' ? 'Раунд окончен' : 'Game Over';
@@ -431,7 +438,23 @@ function closeAllModals() {
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
 }
 
-// Physical Keyboard Listener with Intelligent Layout Mapping
+function updateSoundUI() {
+    const iconOn = document.getElementById('icon-sound-on');
+    const iconOff = document.getElementById('icon-sound-off');
+    const toggleSound = document.getElementById('toggle-sound');
+
+    if (sounds.isMuted) {
+        iconOn.style.display = 'none';
+        iconOff.style.display = 'block';
+        if (toggleSound) toggleSound.checked = false;
+    } else {
+        iconOn.style.display = 'block';
+        iconOff.style.display = 'none';
+        if (toggleSound) toggleSound.checked = true;
+    }
+}
+
+// Physical Keyboard Listener
 window.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
     if (document.querySelector('.modal-overlay.open')) {
@@ -454,7 +477,6 @@ window.addEventListener('keydown', (e) => {
         return;
     }
 
-    // Map physical keyboard key based on selected game language
     let mappedLetter = null;
     if (state.lang === 'RU') {
         if (RU_CODE_MAP[code]) {
@@ -479,6 +501,7 @@ window.addEventListener('keydown', (e) => {
 // UI Event Handlers
 document.addEventListener('DOMContentLoaded', () => {
     initBackground();
+    updateSoundUI();
 
     // Hide preloader smoothly
     setTimeout(() => {
@@ -487,6 +510,23 @@ document.addEventListener('DOMContentLoaded', () => {
             preloader.classList.add('loaded');
         }
     }, 400);
+
+    // Sound toggle in header
+    document.getElementById('btn-sound').addEventListener('click', () => {
+        sounds.toggleMute();
+        updateSoundUI();
+        showToast(sounds.isMuted ? 'Sound: Muted' : 'Sound: Enabled');
+    });
+
+    // Sound toggle in settings modal
+    const toggleSound = document.getElementById('toggle-sound');
+    if (toggleSound) {
+        toggleSound.addEventListener('change', (e) => {
+            sounds.isMuted = !e.target.checked;
+            localStorage.setItem('flexle_muted', sounds.isMuted);
+            updateSoundUI();
+        });
+    }
 
     // Length Selector Buttons
     const lenBtns = document.querySelectorAll('.len-btn[data-len]');
