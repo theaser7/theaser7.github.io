@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>the stash &bull; lab</title>
+    <title>the stash</title>
     <style>
         :root {
             --bg-deep: #050807;
@@ -398,6 +398,13 @@
             color: #38bdf8;
         }
 
+        .status-archived {
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #94a3b8;
+        }
+
+
         .card-title {
             font-size: 1.25rem;
             font-weight: 700;
@@ -771,7 +778,7 @@
 
                 <!-- Command / Search Terminal Box -->
                 <div class="search-container">
-                    <div class="search-label">// SEARCH LAB DIRECTORY OR FILTER BY MODULE</div>
+                    <div class="search-label">// SEARCH DIRECTORY OR FILTER BY MODULE</div>
                     <div class="search-input-wrapper">
                         <input type="text" id="search-input" class="search-input" placeholder="Type keyword, tag, or project name..." autocomplete="off">
                     </div>
@@ -780,6 +787,7 @@
                         <button class="quick-tag-chip" data-status="playable">PLAYABLE</button>
                         <button class="quick-tag-chip" data-status="wip">IN PROGRESS</button>
                         <button class="quick-tag-chip" data-status="concept">CONCEPT</button>
+                        <button class="quick-tag-chip" data-status="archived">ARCHIVED</button>
                     </div>
                 </div>
 
@@ -809,26 +817,27 @@
                         <a href="./games/flexle/" class="btn-action">Launch Flexle &rarr;</a>
                     </article>
 
-                    <!-- 2. Quantex Card -->
-                    <article class="project-card" data-type="games" data-category="playable">
+                    <!-- 2. Quantex Card (Archived) -->
+                    <article class="project-card" data-type="games" data-category="archived">
                         <div>
                             <div class="card-top">
-                                <div class="card-glyph-box" style="display: flex; align-items: center; justify-content: center; color: var(--mint);">
+                                <div class="card-glyph-box" style="display: flex; align-items: center; justify-content: center; color: #94a3b8; border-color: rgba(148, 163, 184, 0.2);">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                                 </div>
-                                <span class="status-pill status-playable">Playable</span>
+                                <span class="status-pill status-archived">Archived</span>
                             </div>
-                            <h2 class="card-title">Quantex</h2>
-                            <p class="card-desc">Cyberpunk More/Less comparison protocol across 5 categories: Google searches, YouTube subs, Box office, Valuations, and Trivia extremes. Unlimited replayability.</p>
+                            <h2 class="card-title" style="color: #cbd5e1;">Quantex</h2>
+                            <p class="card-desc">Cyberpunk More/Less comparison game across 5 categories: Google searches, YouTube subs, Cinema gross, Valuations, and Trivia extremes.</p>
                             <div class="card-tags">
+                                <span class="tag-pill">#Archived</span>
                                 <span class="tag-pill">#MoreLess</span>
                                 <span class="tag-pill">#Game</span>
-                                <span class="tag-pill">#Comparison</span>
                                 <span class="tag-pill">#WebAudio</span>
                             </div>
                         </div>
-                        <a href="./games/quantex/" class="btn-action">Launch Quantex &rarr;</a>
+                        <a href="./games/quantex/" class="btn-action" style="color: #94a3b8; border-color: rgba(148, 163, 184, 0.3); background: rgba(148, 163, 184, 0.05);">Launch Quantex (Archived) &rarr;</a>
                     </article>
+
 
                     <!-- 2. Clarify Card -->
                     <article class="project-card" data-type="utilities" data-category="wip">
@@ -965,8 +974,9 @@
 
     <!-- Footer -->
     <footer>
-        <span>THE STASH // LAB &bull; 2D BLUEPRINT MATRIX</span>
+        <span>THE STASH &bull; 2D BLUEPRINT MATRIX</span>
     </footer>
+
 
 
     <!-- 2D Cyber Blueprint Grid Canvas & Filter Controller -->
