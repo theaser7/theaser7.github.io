@@ -252,24 +252,12 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="select-engine">Processing Engine</label>
+                <label class="form-label" for="select-engine">Processing Mode</label>
                 <select class="form-input" id="select-engine">
-                    <option value="auto">Auto-Detect (Local GPU Server &rarr; Cloud AI &rarr; Browser)</option>
-                    <option value="cloud">Force Cloud AI Server (Hugging Face / Remote)</option>
+                    <option value="auto">Auto-Detect (Local RTX 4060 GPU &rarr; Browser Fallback)</option>
                     <option value="browser">Force In-Browser Engine (WebGL / Client-Side)</option>
                 </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="input-cloud-url">Cloud AI Server URL (Optional)</label>
-                <input type="text" class="form-input" id="input-cloud-url" placeholder="e.g. https://your-name-clarify.hf.space">
-                <span class="form-hint">Deploy <code>utilities/clarify/cloud/</code> to a free Hugging Face Space for 24/7 online AI.</span>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="input-api-key">Cloud API Key (If required)</label>
-                <input type="password" class="form-input" id="input-api-key" placeholder="Optional bearer token...">
-                <span class="form-hint">Stored exclusively in local storage. Zero telemetry.</span>
+                <span class="form-hint">100% private, zero telemetry, full control over your data.</span>
             </div>
 
             <button class="btn-primary" id="btn-save-settings">Save Settings</button>

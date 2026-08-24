@@ -13,12 +13,9 @@
         isProcessing: false,
         upscaledCanvas: null,
         splitPosition: 50, // % (0..100)
-        apiKey: localStorage.getItem('clarify_api_key') || '',
-        cloudUrl: localStorage.getItem('clarify_cloud_url') || '',
         engineBackend: localStorage.getItem('clarify_engine') || 'auto',
-        activeEngine: 'browser', // 'local', 'cloud', 'browser'
-        isCompanionOnline: false,
-        isCloudOnline: false
+        activeEngine: 'browser', // 'local', 'browser'
+        isCompanionOnline: false
     };
 
     // --- DOM Elements ---
@@ -58,18 +55,15 @@
     const btnSettings = document.getElementById('btn-settings');
     const modalSettings = document.getElementById('modal-settings');
     const closeSettings = document.getElementById('close-settings');
-    const inputCloudUrl = document.getElementById('input-cloud-url');
-    const inputApiKey = document.getElementById('input-api-key');
     const selectEngine = document.getElementById('select-engine');
     const btnSaveSettings = document.getElementById('btn-save-settings');
     const companionStatusPill = document.getElementById('companion-status-pill');
 
-    // --- 3-Tier Server Health Check & Detection (Local RTX 4060 -> Cloud AI -> Browser) ---
+    // --- Local RTX 4060 Server Health Check & Detection ---
     async function checkCompanionServer() {
         const accelText = document.getElementById('accel-text');
         const accelDot = document.querySelector('.accel-dot');
 
-        // 1. Try Local Companion Server (RTX 4060)
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 900);
@@ -97,41 +91,8 @@
             }
         } catch (e) {}
 
+        // Fallback: Browser WebGL Engine
         state.isCompanionOnline = false;
-
-        // 2. Try Cloud AI Server (Hugging Face / Remote)
-        if (state.cloudUrl) {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 2000);
-                const cloudHealth = state.cloudUrl.replace(/\/$/, '') + '/health';
-
-                const res = await fetch(cloudHealth, {
-                    method: 'GET',
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-
-                if (res.ok) {
-                    state.isCloudOnline = true;
-                    state.activeEngine = 'cloud';
-                    if (accelText) accelText.textContent = 'Cloud AI Server Active';
-                    if (accelDot) {
-                        accelDot.style.background = '#a855f7';
-                        accelDot.style.boxShadow = '0 0 10px #a855f7';
-                    }
-                    if (companionStatusPill) {
-                        companionStatusPill.textContent = 'Cloud Active (Remote)';
-                        companionStatusPill.style.background = 'rgba(168, 85, 247, 0.18)';
-                        companionStatusPill.style.color = '#c084fc';
-                    }
-                    return;
-                }
-            } catch (e) {}
-        }
-
-        // 3. Fallback: Browser WebGL Engine
-        state.isCloudOnline = false;
         state.activeEngine = 'browser';
         if (accelText) accelText.textContent = 'Browser Engine (WebGL)';
         if (accelDot) {
@@ -712,8 +673,6 @@
 
     // --- Settings Modal ---
     btnSettings.addEventListener('click', () => {
-        if (inputCloudUrl) inputCloudUrl.value = state.cloudUrl;
-        if (inputApiKey) inputApiKey.value = state.apiKey;
         if (selectEngine) selectEngine.value = state.engineBackend;
         modalSettings.classList.add('open');
     });
@@ -727,14 +686,6 @@
     });
 
     btnSaveSettings.addEventListener('click', () => {
-        if (inputCloudUrl) {
-            state.cloudUrl = inputCloudUrl.value.trim().replace(/\/$/, '');
-            localStorage.setItem('clarify_cloud_url', state.cloudUrl);
-        }
-        if (inputApiKey) {
-            state.apiKey = inputApiKey.value.trim();
-            localStorage.setItem('clarify_api_key', state.apiKey);
-        }
         if (selectEngine) {
             state.engineBackend = selectEngine.value;
             localStorage.setItem('clarify_engine', state.engineBackend);
