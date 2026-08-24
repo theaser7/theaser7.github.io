@@ -1,9 +1,13 @@
 // Game State
 const state = {
     lang: localStorage.getItem('flexle_lang') || 'RU',
-    strictMode: localStorage.getItem('flexle_strict') === 'true',
+    strictMode: localStorage.getItem('flexle_strict') !== null 
+        ? localStorage.getItem('flexle_strict') === 'true' 
+        : true,
+    hardMode: localStorage.getItem('flexle_hard') === 'true',
     wordLength: 5,
     isRandomLength: false,
+    isXLMode: false,
     maxAttempts: 6,
     targetWord: '',
     currentRow: 0,
@@ -106,11 +110,14 @@ function showToast(msg) {
     }, 2200);
 }
 
-// Attempts Calculation
+// Dynamic Attempts Calculation
 function calcAttempts(len) {
     if (len <= 6) return 6;
     if (len <= 8) return 7;
-    return 8;
+    if (len <= 10) return 8;
+    if (len <= 13) return 9;
+    if (len <= 16) return 10;
+    return 11;
 }
 
 // Lock / Unlock In-Game Language and Length Settings
@@ -150,7 +157,7 @@ function setControlsLocked(isLocked) {
     }
 }
 
-// Init & Restart Game
+// Start New Game
 function startNewGame() {
     state.isGameOver = false;
     state.hasStarted = false;
@@ -159,21 +166,51 @@ function startNewGame() {
     state.keyStatuses = {};
 
     let chosenLen = state.wordLength;
-    if (state.isRandomLength) {
+    if (state.isXLMode) {
+        // Pick random long word from 11+
+        const xlDict = (DICTIONARY[state.lang] && DICTIONARY[state.lang]["11+"]) || [];
+        if (xlDict.length > 0) {
+            state.targetWord = xlDict[Math.floor(Math.random() * xlDict.length)].toUpperCase();
+            chosenLen = state.targetWord.length;
+        } else {
+            state.targetWord = state.lang === 'RU' ? 'ПРИКЛЮЧЕНИЯ' : 'ADVENTURES';
+            chosenLen = state.targetWord.length;
+        }
+    } else if (state.isRandomLength) {
         chosenLen = Math.floor(Math.random() * 7) + 4; // 4 to 10
+        const dict = (DICTIONARY[state.lang] && DICTIONARY[state.lang][chosenLen]) || [];
+        if (dict.length > 0) {
+            state.targetWord = dict[Math.floor(Math.random() * dict.length)].toUpperCase();
+        } else {
+            state.targetWord = (state.lang === 'RU' ? 'КОСМОС' : 'PLANET').slice(0, chosenLen).toUpperCase();
+        }
+    } else {
+        const dict = (DICTIONARY[state.lang] && DICTIONARY[state.lang][chosenLen]) || [];
+        if (dict.length > 0) {
+            state.targetWord = dict[Math.floor(Math.random() * dict.length)].toUpperCase();
+        } else {
+            state.targetWord = (state.lang === 'RU' ? 'КОСМОС' : 'PLANET').slice(0, chosenLen).toUpperCase();
+        }
     }
+
     state.activeLength = chosenLen;
     state.maxAttempts = calcAttempts(chosenLen);
 
-    // Pick target word
-    const dict = (DICTIONARY[state.lang] && DICTIONARY[state.lang][chosenLen]) || [];
-    if (dict.length > 0) {
-        state.targetWord = dict[Math.floor(Math.random() * dict.length)].toUpperCase();
+    // Auto strict mode default logic
+    if (state.isXLMode) {
+        // Default false for 11+ unless user explicitly forced in settings
+        if (localStorage.getItem('flexle_strict') === null) {
+            state.strictMode = false;
+        }
     } else {
-        state.targetWord = (state.lang === 'RU' ? 'КОСМОС' : 'PLANET').slice(0, chosenLen).toUpperCase();
+        if (localStorage.getItem('flexle_strict') === null) {
+            state.strictMode = true;
+        }
     }
+    const toggleStrict = document.getElementById('toggle-strict');
+    if (toggleStrict) toggleStrict.checked = state.strictMode;
 
-    document.getElementById('attempts-pill').textContent = `${state.maxAttempts} attempts`;
+    document.getElementById('attempts-pill').textContent = `${state.maxAttempts} attempts (${chosenLen} letters)`;
     setControlsLocked(false);
 
     // Initialize Grid Array
@@ -184,11 +221,29 @@ function startNewGame() {
     closeAllModals();
 }
 
-// Render Board
+// Render Board with Adaptive Tile Size
 function renderBoard() {
     const board = document.getElementById('board');
     board.innerHTML = '';
     board.style.gridTemplateRows = `repeat(${state.maxAttempts}, 1fr)`;
+
+    // Calculate adaptive tile size based on letter count
+    let tileSize = 48;
+    let fontSize = 1.4;
+
+    if (state.activeLength > 12) {
+        tileSize = Math.max(22, Math.floor(650 / state.activeLength) - 5);
+        fontSize = 0.9;
+    } else if (state.activeLength > 8) {
+        tileSize = Math.max(30, Math.floor(650 / state.activeLength) - 6);
+        fontSize = 1.1;
+    } else if (state.activeLength > 6) {
+        tileSize = 42;
+        fontSize = 1.3;
+    }
+
+    document.documentElement.style.setProperty('--tile-size', `${tileSize}px`);
+    document.documentElement.style.setProperty('--tile-font', `${fontSize}rem`);
 
     for (let r = 0; r < state.maxAttempts; r++) {
         const row = document.createElement('div');
@@ -196,7 +251,7 @@ function renderBoard() {
         row.id = `row-${r}`;
         row.style.display = 'grid';
         row.style.gridTemplateColumns = `repeat(${state.activeLength}, 1fr)`;
-        row.style.gap = '6px';
+        row.style.gap = state.activeLength > 10 ? '3px' : '5px';
 
         for (let c = 0; c < state.activeLength; c++) {
             const tile = document.createElement('div');
@@ -368,6 +423,8 @@ function submitGuess() {
         rowTiles.push(document.getElementById(`tile-${state.currentRow}-${c}`));
     }
 
+    const flipInterval = state.activeLength > 10 ? 120 : 180;
+
     rowTiles.forEach((tile, index) => {
         setTimeout(() => {
             sounds.playFlip(index);
@@ -388,7 +445,7 @@ function submitGuess() {
                     keyBtn.setAttribute('data-state', newStatus);
                 }
             }
-        }, index * 200);
+        }, index * flipInterval);
     });
 
     const isWin = guess === target;
@@ -412,7 +469,7 @@ function submitGuess() {
             state.currentRow++;
             state.currentCol = 0;
         }
-    }, state.activeLength * 200 + 200);
+    }, state.activeLength * flipInterval + 200);
 }
 
 // Game Over Modal
@@ -528,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Length Selector Buttons
+    // Length Selector Buttons (4, 5, 6, 7, 8, 9, 10, 11+, random)
     const lenBtns = document.querySelectorAll('.len-btn[data-len]');
     lenBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -540,8 +597,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const val = btn.getAttribute('data-len');
             if (val === 'random') {
                 state.isRandomLength = true;
+                state.isXLMode = false;
+            } else if (val === '11+') {
+                state.isXLMode = true;
+                state.isRandomLength = false;
             } else {
                 state.isRandomLength = false;
+                state.isXLMode = false;
                 state.wordLength = parseInt(val, 10);
             }
             startNewGame();
@@ -585,6 +647,17 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('flexle_strict', state.strictMode);
         showToast(state.strictMode ? 'Strict Mode: ON' : 'Strict Mode: OFF');
     });
+
+    // Hard Mode Switch
+    const toggleHard = document.getElementById('toggle-hard');
+    if (toggleHard) {
+        toggleHard.checked = state.hardMode;
+        toggleHard.addEventListener('change', (e) => {
+            state.hardMode = e.target.checked;
+            localStorage.setItem('flexle_hard', state.hardMode);
+            showToast(state.hardMode ? 'Hard Mode: ON' : 'Hard Mode: OFF');
+        });
+    }
 
     // Modal Language Switch
     const modalLangToggle = document.getElementById('modal-lang-toggle');
