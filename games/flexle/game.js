@@ -539,13 +539,14 @@ function updateSoundUI() {
     }
 }
 
-// --- Interactive Draggable Bracket Range Sliders ---
+// --- Interactive Dual-Thumb Range Slider & Random Length Config ---
 const TICKS = [4, 5, 6, 7, 8, 9, 10, 11]; // 11 represents 11+
 let tempMin = state.rndMin;
 let tempMax = state.rndMax;
 
 function getTickPercent(val) {
     const idx = TICKS.indexOf(val);
+    if (idx === -1) return 0;
     return (idx / (TICKS.length - 1)) * 100;
 }
 
@@ -555,107 +556,255 @@ function getValFromPercent(pct) {
     return TICKS[rawIdx];
 }
 
-function renderAxisUI() {
-    const ticksContainer = document.getElementById('axis-ticks');
-    const highlight = document.getElementById('axis-highlight');
-    const displayText = document.getElementById('range-display-text');
-    const handleMin = document.getElementById('handle-min');
-    const handleMax = document.getElementById('handle-max');
-    if (!ticksContainer) return;
+function updateRangeModalLocalization() {
+    const isRu = state.lang === 'RU';
+    const title = document.getElementById('rnd-range-title');
+    const subtitle = document.getElementById('rnd-range-subtitle');
+    const lblMin = document.getElementById('lbl-min-len');
+    const lblMax = document.getElementById('lbl-max-len');
+    const lblPresets = document.getElementById('lbl-presets');
+    const btnSaveText = document.getElementById('btn-save-range-text');
 
-    ticksContainer.innerHTML = '';
+    if (title) title.textContent = isRu ? 'Диапазон длины слов' : 'Random Range';
+    if (subtitle) subtitle.textContent = isRu ? 'Интервал длин слов для режима «Случайно»' : 'Word length interval for random mode';
+    if (lblMin) lblMin.textContent = isRu ? 'МИН' : 'MIN';
+    if (lblMax) lblMax.textContent = isRu ? 'МАКС' : 'MAX';
+    if (lblPresets) lblPresets.textContent = isRu ? 'Пресеты:' : 'Presets:';
+    if (btnSaveText) btnSaveText.textContent = isRu ? 'Применить диапазон' : 'Apply Range';
+
+    // Localize preset chip names
+    document.querySelectorAll('.preset-chip .preset-name').forEach(nameEl => {
+        const txt = nameEl.getAttribute(isRu ? 'data-ru' : 'data-en');
+        if (txt) nameEl.textContent = txt;
+    });
+}
+
+function renderAxisUI() {
+    const ticksContainer = document.getElementById('range-scale-ticks');
+    const trackActive = document.getElementById('range-track-active');
+    const valMin = document.getElementById('val-min-len');
+    const valMax = document.getElementById('val-max-len');
+    const tooltipMin = document.getElementById('tooltip-min');
+    const tooltipMax = document.getElementById('tooltip-max');
+    const countBadge = document.getElementById('val-range-count');
+    const thumbMin = document.getElementById('thumb-min');
+    const thumbMax = document.getElementById('thumb-max');
+
+    if (!ticksContainer || !trackActive || !thumbMin || !thumbMax) return;
+
     const minVal = Math.min(tempMin, tempMax);
     const maxVal = Math.max(tempMin, tempMax);
 
     const minLabel = minVal === 11 ? '11+' : minVal;
     const maxLabel = maxVal === 11 ? '11+' : maxVal;
-    displayText.textContent = `[ ${minLabel} … ${maxLabel} ]`;
 
-    TICKS.forEach((t) => {
-        const tickElem = document.createElement('div');
-        tickElem.className = 'axis-tick';
-        const pct = getTickPercent(t);
-        tickElem.style.left = `${pct}%`;
+    if (valMin) valMin.textContent = minLabel;
+    if (valMax) valMax.textContent = maxLabel;
+    if (tooltipMin) tooltipMin.textContent = minLabel;
+    if (tooltipMax) tooltipMax.textContent = maxLabel;
 
-        if (t >= minVal && t <= maxVal) {
-            tickElem.classList.add('in-range');
+    // Range length count
+    const minIdx = TICKS.indexOf(minVal);
+    const maxIdx = TICKS.indexOf(maxVal);
+    const totalSelected = (maxIdx >= 0 && minIdx >= 0) ? (maxIdx - minIdx + 1) : 1;
+
+    if (countBadge) {
+        if (state.lang === 'RU') {
+            const word = totalSelected === 1 ? 'длина' : (totalSelected < 5 ? 'длины' : 'длин');
+            countBadge.textContent = `${totalSelected} ${word}`;
+        } else {
+            countBadge.textContent = `${totalSelected} ${totalSelected === 1 ? 'length' : 'lengths'}`;
         }
-
-        const mark = document.createElement('div');
-        mark.className = 'axis-tick-mark';
-
-        const label = document.createElement('span');
-        label.textContent = t === 11 ? '11+' : t;
-
-        tickElem.appendChild(mark);
-        tickElem.appendChild(label);
-        ticksContainer.appendChild(tickElem);
-    });
+    }
 
     const minPct = getTickPercent(minVal);
     const maxPct = getTickPercent(maxVal);
 
-    // Update Handles Position
-    handleMin.style.left = `calc(16px + (100% - 32px) * ${minPct / 100})`;
-    handleMax.style.left = `calc(16px + (100% - 32px) * ${maxPct / 100})`;
+    // Update active track bar
+    trackActive.style.left = `calc(16px + (100% - 32px) * ${minPct / 100})`;
+    trackActive.style.width = `calc((100% - 32px) * ${(maxPct - minPct) / 100})`;
 
-    // Update Highlight bar
-    highlight.style.left = `calc(16px + (100% - 32px) * ${minPct / 100})`;
-    highlight.style.width = `calc((100% - 32px) * ${(maxPct - minPct) / 100})`;
+    // Update thumb positions
+    thumbMin.style.left = `calc(16px + (100% - 32px) * ${minPct / 100})`;
+    thumbMax.style.left = `calc(16px + (100% - 32px) * ${maxPct / 100})`;
+
+    thumbMin.setAttribute('aria-valuenow', minVal);
+    thumbMax.setAttribute('aria-valuenow', maxVal);
+
+    // Render scale ticks
+    ticksContainer.innerHTML = '';
+    TICKS.forEach((t) => {
+        const tickBtn = document.createElement('button');
+        tickBtn.className = 'scale-tick-btn';
+        const pct = getTickPercent(t);
+        tickBtn.style.left = `calc(16px + (100% - 32px) * ${pct / 100})`;
+
+        if (t >= minVal && t <= maxVal) {
+            tickBtn.classList.add('in-range');
+        }
+        if (t === minVal || t === maxVal) {
+            tickBtn.classList.add('is-bound');
+        }
+
+        const mark = document.createElement('div');
+        mark.className = 'scale-tick-mark';
+
+        const label = document.createElement('span');
+        label.className = 'scale-tick-label';
+        label.textContent = t === 11 ? '11+' : t;
+
+        tickBtn.appendChild(mark);
+        tickBtn.appendChild(label);
+
+        tickBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (t < minVal) {
+                tempMin = t;
+            } else if (t > maxVal) {
+                tempMax = t;
+            } else {
+                const distMin = Math.abs(t - minVal);
+                const distMax = Math.abs(t - maxVal);
+                if (distMin <= distMax) {
+                    tempMin = t;
+                } else {
+                    tempMax = t;
+                }
+            }
+            if (sounds.playTick) sounds.playTick();
+            renderAxisUI();
+        });
+
+        ticksContainer.appendChild(tickBtn);
+    });
+
+    // Update Preset Chips Active state
+    document.querySelectorAll('.preset-chip').forEach(chip => {
+        const pMin = parseInt(chip.dataset.min, 10);
+        const pMax = parseInt(chip.dataset.max, 10);
+        if (pMin === minVal && pMax === maxVal) {
+            chip.classList.add('active');
+        } else {
+            chip.classList.remove('active');
+        }
+    });
+
+    updateRangeModalLocalization();
 }
 
-// Attach Drag Listeners to Handles
+// Attach Drag & Interaction Listeners to Thumbs
 function initDraggableHandles() {
-    const wrapper = document.getElementById('axis-track-wrapper');
-    const handleMin = document.getElementById('handle-min');
-    const handleMax = document.getElementById('handle-max');
-    if (!wrapper || !handleMin || !handleMax) return;
+    const container = document.getElementById('range-track-container');
+    const thumbMin = document.getElementById('thumb-min');
+    const thumbMax = document.getElementById('thumb-max');
+    if (!container || !thumbMin || !thumbMax) return;
 
     let activeDrag = null; // 'min' or 'max'
 
     function handlePointerDown(handleType, e) {
         e.preventDefault();
+        e.stopPropagation();
         activeDrag = handleType;
-        if (handleType === 'min') handleMin.classList.add('dragging');
-        if (handleType === 'max') handleMax.classList.add('dragging');
+        if (handleType === 'min') thumbMin.classList.add('dragging');
+        if (handleType === 'max') thumbMax.classList.add('dragging');
+        
+        if (e.target.setPointerCapture) {
+            e.target.setPointerCapture(e.pointerId);
+        }
+
         window.addEventListener('pointermove', onPointerMove);
         window.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('pointercancel', onPointerUp);
     }
 
     function onPointerMove(e) {
         if (!activeDrag) return;
-        const rect = wrapper.getBoundingClientRect();
+        const rect = container.getBoundingClientRect();
         const padding = 16;
         const trackWidth = rect.width - padding * 2;
+        if (trackWidth <= 0) return;
+
         const offsetX = e.clientX - rect.left - padding;
         const pct = (offsetX / trackWidth) * 100;
         const val = getValFromPercent(pct);
 
+        let changed = false;
         if (activeDrag === 'min') {
-            tempMin = Math.min(val, tempMax);
+            const clamped = Math.min(val, tempMax);
+            if (clamped !== tempMin) {
+                tempMin = clamped;
+                changed = true;
+            }
         } else if (activeDrag === 'max') {
-            tempMax = Math.max(val, tempMin);
+            const clamped = Math.max(val, tempMin);
+            if (clamped !== tempMax) {
+                tempMax = clamped;
+                changed = true;
+            }
         }
-        renderAxisUI();
+
+        if (changed) {
+            if (sounds.playTick) sounds.playTick();
+            renderAxisUI();
+        }
     }
 
-    function onPointerUp() {
+    function onPointerUp(e) {
+        if (!activeDrag) return;
         activeDrag = null;
-        handleMin.classList.remove('dragging');
-        handleMax.classList.remove('dragging');
+        thumbMin.classList.remove('dragging');
+        thumbMax.classList.remove('dragging');
         window.removeEventListener('pointermove', onPointerMove);
         window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerUp);
     }
 
-    handleMin.addEventListener('pointerdown', (e) => handlePointerDown('min', e));
-    handleMax.addEventListener('pointerdown', (e) => handlePointerDown('max', e));
+    thumbMin.addEventListener('pointerdown', (e) => handlePointerDown('min', e));
+    thumbMax.addEventListener('pointerdown', (e) => handlePointerDown('max', e));
 
-    // Clicking anywhere on track moves closest handle
-    wrapper.addEventListener('click', (e) => {
-        if (e.target === handleMin || e.target === handleMax) return;
-        const rect = wrapper.getBoundingClientRect();
+    // Keyboard navigation for accessibility
+    thumbMin.addEventListener('keydown', (e) => {
+        const curIdx = TICKS.indexOf(tempMin);
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+            if (curIdx > 0) {
+                tempMin = TICKS[curIdx - 1];
+                if (sounds.playTick) sounds.playTick();
+                renderAxisUI();
+            }
+        } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+            if (TICKS[curIdx + 1] <= tempMax) {
+                tempMin = TICKS[curIdx + 1];
+                if (sounds.playTick) sounds.playTick();
+                renderAxisUI();
+            }
+        }
+    });
+
+    thumbMax.addEventListener('keydown', (e) => {
+        const curIdx = TICKS.indexOf(tempMax);
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+            if (TICKS[curIdx - 1] >= tempMin) {
+                tempMax = TICKS[curIdx - 1];
+                if (sounds.playTick) sounds.playTick();
+                renderAxisUI();
+            }
+        } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+            if (curIdx < TICKS.length - 1) {
+                tempMax = TICKS[curIdx + 1];
+                if (sounds.playTick) sounds.playTick();
+                renderAxisUI();
+            }
+        }
+    });
+
+    // Clicking track moves closest thumb
+    container.addEventListener('click', (e) => {
+        if (e.target.closest('.range-thumb')) return;
+        const rect = container.getBoundingClientRect();
         const padding = 16;
         const trackWidth = rect.width - padding * 2;
+        if (trackWidth <= 0) return;
+
         const offsetX = e.clientX - rect.left - padding;
         const pct = (offsetX / trackWidth) * 100;
         const val = getValFromPercent(pct);
@@ -668,6 +817,7 @@ function initDraggableHandles() {
         } else {
             tempMax = Math.max(val, tempMin);
         }
+        if (sounds.playTick) sounds.playTick();
         renderAxisUI();
     });
 }
@@ -721,6 +871,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initBackground();
     updateSoundUI();
     initDraggableHandles();
+    renderAxisUI();
+    updateRangeModalLocalization();
 
     // Hide preloader smoothly
     setTimeout(() => {
@@ -787,10 +939,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Quick Presets
-    document.querySelectorAll('.preset-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-            tempMin = parseInt(pill.dataset.min, 10);
-            tempMax = parseInt(pill.dataset.max, 10);
+    document.querySelectorAll('.preset-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            tempMin = parseInt(chip.dataset.min, 10);
+            tempMax = parseInt(chip.dataset.max, 10);
+            if (sounds.playTick) sounds.playTick();
             renderAxisUI();
         });
     });
@@ -801,7 +954,12 @@ document.addEventListener('DOMContentLoaded', () => {
         state.rndMax = Math.max(tempMin, tempMax);
         localStorage.setItem('flexle_rnd_range', JSON.stringify({ min: state.rndMin, max: state.rndMax }));
         modalRndRange.classList.remove('open');
-        showToast(`Random range: [ ${state.rndMin} … ${state.rndMax === 11 ? '11+' : state.rndMax} ]`);
+        const minLabel = state.rndMin === 11 ? '11+' : state.rndMin;
+        const maxLabel = state.rndMax === 11 ? '11+' : state.rndMax;
+        const toastMsg = state.lang === 'RU'
+            ? `Диапазон: [ ${minLabel} … ${maxLabel} ]`
+            : `Random range: [ ${minLabel} … ${maxLabel} ]`;
+        showToast(toastMsg);
         
         if (state.isRandomLength && !state.hasStarted) {
             startNewGame();
@@ -820,6 +978,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('flexle_lang', state.lang);
         btnLang.textContent = state.lang;
         document.getElementById('modal-lang-toggle').textContent = state.lang;
+        updateRangeModalLocalization();
+        renderAxisUI();
         startNewGame();
     });
 
@@ -869,6 +1029,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('flexle_lang', state.lang);
         btnLang.textContent = state.lang;
         modalLangToggle.textContent = state.lang;
+        updateRangeModalLocalization();
+        renderAxisUI();
         startNewGame();
     });
 
