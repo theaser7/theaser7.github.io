@@ -86,26 +86,19 @@
                         <span id="meta-filename">image.png</span>
                         <span class="image-meta-dims" id="meta-dims">1920 × 1080</span>
                     </div>
-                    <div class="viewer-toolbar">
-                        <button class="tool-btn" id="btn-zoom-in" title="Zoom In">+</button>
-                        <button class="tool-btn" id="btn-zoom-out" title="Zoom Out">&minus;</button>
-                        <button class="tool-btn" id="btn-zoom-reset" title="Reset View">1:1</button>
-                    </div>
                 </div>
 
                 <!-- Interactive Split Viewport -->
-                <div class="split-viewport" id="split-viewport">
+                <div class="split-viewport" id="split-viewport" title="Drag anywhere to compare Before / After">
                     <div class="split-labels">
                         <span class="split-tag tag-original">Original</span>
                         <span class="split-tag tag-enhanced">Clarify AI</span>
                     </div>
 
-                    <div class="canvas-transform-wrapper" id="transform-wrapper">
-                        <!-- Before (Original) Canvas Layer -->
-                        <canvas class="image-canvas-layer layer-before" id="canvas-before"></canvas>
-                        <!-- After (Upscaled) Canvas Layer -->
-                        <canvas class="image-canvas-layer layer-after" id="canvas-after"></canvas>
-                    </div>
+                    <!-- Before (Original) Canvas Layer -->
+                    <canvas class="image-canvas-layer layer-before" id="canvas-before"></canvas>
+                    <!-- After (Upscaled) Canvas Layer -->
+                    <canvas class="image-canvas-layer layer-after" id="canvas-after"></canvas>
 
                     <!-- Draggable Divider Line & Handle -->
                     <div class="split-divider-line" id="split-divider">
@@ -116,8 +109,6 @@
                             </svg>
                         </div>
                     </div>
-
-                    <div class="zoom-pill" id="zoom-pill">100%</div>
                 </div>
             </div>
 

@@ -340,22 +340,7 @@ body {
     border: 1px solid var(--card-border);
     user-select: none;
     touch-action: none;
-    cursor: grab;
-}
-
-.split-viewport:active {
-    cursor: grabbing;
-}
-
-.canvas-transform-wrapper {
-    position: absolute;
-    transform-origin: center center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+    cursor: ew-resize;
 }
 
 .image-canvas-layer {
@@ -365,6 +350,7 @@ body {
     object-fit: contain;
     image-rendering: auto;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+    pointer-events: none;
 }
 
 .layer-before {
@@ -383,9 +369,9 @@ body {
     top: 0;
     bottom: 0;
     left: 50%;
-    width: 2px;
+    width: 3px;
     background: #ffffff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8), 0 0 6px var(--accent);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.9), 0 0 8px var(--accent);
     z-index: 10;
     pointer-events: none;
     transform: translateX(-50%);
@@ -395,8 +381,8 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     background: #ffffff;
     border: 3px solid var(--accent);
@@ -404,7 +390,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), 0 0 15px var(--accent);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7), 0 0 15px var(--accent);
     z-index: 15;
     transform: translate(-50%, -50%);
     cursor: ew-resize;
