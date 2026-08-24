@@ -3,35 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stash &bull; Lab</title>
+    <title>Stash // Lab</title>
     <style>
         :root {
-            --bg-color: #0f1117;
-            --card-bg: #1a1d27;
-            --card-border: #2e3446;
-            --card-hover-border: #6366f1;
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --accent: #6366f1;
-            --accent-hover: #4f46e5;
-            --badge-playable-bg: rgba(34, 197, 94, 0.15);
-            --badge-playable-color: #4ade80;
-            --badge-wip-bg: rgba(234, 179, 8, 0.15);
-            --badge-wip-color: #facc15;
-            --badge-concept-bg: rgba(168, 85, 247, 0.15);
-            --badge-concept-color: #c084fc;
+            --bg-deep: #07090e;
+            --bg-surface: rgba(13, 17, 26, 0.75);
+            --bg-surface-hover: rgba(20, 27, 41, 0.9);
+            --hud-border: #1e2638;
+            --hud-border-active: #3b4764;
+            --hud-glow: rgba(99, 102, 241, 0.25);
+            --accent-indigo: #6366f1;
+            --accent-cyan: #06b6d4;
+            --accent-cyan-glow: rgba(6, 182, 212, 0.35);
+            --accent-purple: #a855f7;
+            --text-main: #f1f5f9;
+            --text-muted: #8b9bb4;
+            --text-dim: #4b5870;
+            --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            
+            --badge-playable-bg: rgba(34, 197, 94, 0.12);
+            --badge-playable-border: rgba(34, 197, 94, 0.35);
+            --badge-playable-text: #4ade80;
+            
+            --badge-wip-bg: rgba(234, 179, 8, 0.12);
+            --badge-wip-border: rgba(234, 179, 8, 0.35);
+            --badge-wip-text: #facc15;
+            
+            --badge-concept-bg: rgba(6, 182, 212, 0.12);
+            --badge-concept-border: rgba(6, 182, 212, 0.35);
+            --badge-concept-text: #38bdf8;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: var(--font-sans);
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
+            background-color: var(--bg-deep);
+            color: var(--text-main);
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
@@ -39,6 +52,7 @@
             flex-direction: column;
         }
 
+        /* 3D Cyber Grid Canvas */
         #bg-canvas {
             position: fixed;
             top: 0;
@@ -47,362 +61,756 @@
             height: 100vh;
             z-index: 0;
             pointer-events: none;
-            opacity: 0.35;
+            opacity: 0.65;
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.4;
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1120px;
             margin: 0 auto;
-            padding: 2.5rem 1.5rem;
+            padding: 3rem 1.5rem 2rem;
             position: relative;
-            z-index: 1;
+            z-index: 2;
             width: 100%;
             flex: 1;
         }
 
+        /* Header Console */
         header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2.75rem;
+            position: relative;
         }
 
-        .avatar-glow {
-            width: 72px;
-            height: 72px;
+        .hud-system-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.9rem;
+            background: rgba(13, 17, 26, 0.8);
+            border: 1px solid var(--hud-border);
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .hud-dot {
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1, #a855f7);
+            background-color: #22c55e;
+            box-shadow: 0 0 10px #22c55e;
+            animation: pulse-dot 2.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 76px;
+            height: 76px;
+            margin: 0 auto 1.25rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.25rem;
-            box-shadow: 0 0 25px rgba(99, 102, 241, 0.4);
-            font-size: 2rem;
-            user-select: none;
+        }
+
+        .avatar-glow {
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan));
+            filter: blur(12px);
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+
+        .avatar-box {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            background: #0f131f;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 15px rgba(99, 102, 241, 0.2);
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 2.75rem;
             font-weight: 800;
-            letter-spacing: -0.025em;
+            letter-spacing: -0.03em;
             margin-bottom: 0.5rem;
-            background: linear-gradient(to right, #ffffff, #a5b4fc);
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 80%, #38bdf8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .title-tag {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            background: rgba(6, 182, 212, 0.08);
+            -webkit-text-fill-color: var(--accent-cyan);
+            letter-spacing: 0.05em;
         }
 
         .subtitle {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            max-width: 600px;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            max-width: 540px;
             margin: 0 auto;
+            line-height: 1.5;
         }
 
+        /* Controls Section: Search & Category Navigation */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            max-width: 720px;
+            margin: 0 auto 2.5rem;
+        }
+
+        /* Terminal Search Bar */
+        .search-bar-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 700;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(13, 17, 26, 0.7);
+            border: 1px solid var(--hud-border);
+            border-radius: 12px;
+            padding: 0.8rem 2.75rem 0.8rem 3rem;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(10px);
+            font-family: var(--font-sans);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-dim);
+            font-family: var(--font-sans);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-cyan);
+            background: rgba(15, 22, 36, 0.95);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 4px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: color 0.2s ease;
+        }
+
+        .search-clear:hover {
+            color: var(--text-main);
+        }
+
+        /* Category Switcher Tabs */
         .category-tabs {
             display: flex;
             justify-content: center;
-            gap: 0.75rem;
-            margin-bottom: 1.25rem;
+            gap: 0.6rem;
             flex-wrap: wrap;
         }
 
         .category-tab {
-            background-color: rgba(26, 29, 39, 0.8);
-            border: 1px solid var(--card-border);
-            color: var(--text-secondary);
-            padding: 0.65rem 1.4rem;
-            border-radius: 12px;
+            background: rgba(13, 17, 26, 0.8);
+            border: 1px solid var(--hud-border);
+            color: var(--text-muted);
+            padding: 0.6rem 1.25rem;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 700;
+            font-size: 0.9rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .category-tab:hover {
+            border-color: var(--hud-border-active);
+            color: var(--text-main);
+            background: rgba(22, 28, 42, 0.9);
+        }
+
+        .category-tab.active {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--accent-indigo);
+            color: #ffffff;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+        }
+
+        .tab-counter {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            color: inherit;
+        }
+
+        .category-tab.active .tab-counter {
+            background: var(--accent-indigo);
+            color: #ffffff;
+        }
+
+        /* Status Filters */
+        .status-filters {
+            display: flex;
+            justify-content: center;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+        }
+
+        .status-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 0.35rem 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            letter-spacing: 0.03em;
             transition: all 0.2s ease;
             outline: none;
         }
 
-        .category-tab:hover {
-            border-color: var(--accent);
-            color: var(--text-primary);
-            background-color: rgba(99, 102, 241, 0.08);
+        .status-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.04);
         }
 
-        .category-tab.active {
-            background-color: var(--accent);
-            border-color: var(--accent);
-            color: #ffffff;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        .status-btn.active {
+            color: var(--accent-cyan);
+            border-color: rgba(6, 182, 212, 0.35);
+            background: rgba(6, 182, 212, 0.08);
         }
 
-        .filter-bar {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 2.5rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-secondary);
-            padding: 0.45rem 1.1rem;
-            border-radius: 9999px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .filter-btn:hover {
-            border-color: var(--accent);
-            color: var(--text-primary);
-        }
-
-        .filter-btn.active {
-            background-color: rgba(99, 102, 241, 0.2);
-            border-color: var(--accent);
-            color: #ffffff;
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
-        }
-
+        /* Grid & Cards (Cyberpunk HUD style) */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 1.5rem;
+            margin-bottom: 3rem;
         }
 
         .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
+            background: var(--bg-surface);
+            border: 1px solid var(--hud-border);
+            border-radius: 14px;
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
             position: relative;
+            backdrop-filter: blur(14px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             overflow: hidden;
+        }
+
+        /* HUD Corner Brackets */
+        .card::before, .card::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .card::before {
+            top: 6px;
+            left: 6px;
+            border-top: 2px solid var(--text-dim);
+            border-left: 2px solid var(--text-dim);
+        }
+
+        .card::after {
+            bottom: 6px;
+            right: 6px;
+            border-bottom: 2px solid var(--text-dim);
+            border-right: 2px solid var(--text-dim);
         }
 
         .card:hover {
             transform: translateY(-4px);
-            border-color: var(--card-hover-border);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+            border-color: var(--hud-border-active);
+            background: var(--bg-surface-hover);
+            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.7), 0 0 25px var(--card-glow, rgba(99, 102, 241, 0.15));
         }
 
+        .card:hover::before {
+            border-color: var(--card-accent, var(--accent-indigo));
+        }
+
+        .card:hover::after {
+            border-color: var(--card-accent, var(--accent-indigo));
+        }
+
+        /* Card Elements */
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
         }
 
-        .card-icon {
-            font-size: 2rem;
-            line-height: 1;
+        .card-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover .card-icon-box {
+            transform: scale(1.05);
         }
 
         .badge {
+            font-family: var(--font-mono);
             font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.3rem 0.7rem;
-            border-radius: 9999px;
+            font-weight: 700;
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         .badge-playable {
-            background-color: var(--badge-playable-bg);
-            color: var(--badge-playable-color);
+            background: var(--badge-playable-bg);
+            border: 1px solid var(--badge-playable-border);
+            color: var(--badge-playable-text);
         }
 
         .badge-wip {
-            background-color: var(--badge-wip-bg);
-            color: var(--badge-wip-color);
+            background: var(--badge-wip-bg);
+            border: 1px solid var(--badge-wip-border);
+            color: var(--badge-wip-text);
         }
 
         .badge-concept {
-            background-color: var(--badge-concept-bg);
-            color: var(--badge-concept-color);
+            background: var(--badge-concept-bg);
+            border: 1px solid var(--badge-concept-border);
+            color: var(--badge-concept-text);
         }
 
         .card-title {
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
+            color: #ffffff;
+            margin-bottom: 0.6rem;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .card-desc {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.5;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            line-height: 1.55;
             margin-bottom: 1.5rem;
-            flex-grow: 1;
         }
 
         .card-tags {
             display: flex;
-            gap: 0.4rem;
             flex-wrap: wrap;
+            gap: 0.4rem;
             margin-bottom: 1.25rem;
         }
 
         .tag {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            background: rgba(255, 255, 255, 0.05);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            background: rgba(255, 255, 255, 0.03);
             padding: 0.2rem 0.5rem;
-            border-radius: 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .card:hover .tag {
+            color: var(--text-muted);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .btn-launch {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            background-color: var(--accent);
-            color: #ffffff;
-            text-decoration: none;
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--hud-border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.9rem;
             font-weight: 600;
-            font-size: 0.95rem;
-            transition: background-color 0.2s ease;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            outline: none;
         }
 
         .btn-launch:hover {
-            background-color: var(--accent-hover);
+            background: var(--btn-accent, var(--accent-indigo));
+            border-color: var(--btn-accent, var(--accent-indigo));
+            color: #ffffff;
+            box-shadow: 0 0 20px var(--btn-glow, rgba(99, 102, 241, 0.4));
         }
 
-        .btn-disabled {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text-secondary);
-            cursor: not-allowed;
+        .btn-concept {
+            background: rgba(6, 182, 212, 0.08);
+            border-color: rgba(6, 182, 212, 0.25);
+            color: var(--accent-cyan);
         }
 
-        .btn-disabled:hover {
-            background-color: rgba(255, 255, 255, 0.05);
+        .btn-concept:hover {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #07090e;
+            box-shadow: 0 0 20px var(--accent-cyan-glow);
         }
 
+        /* Empty Search/Filter State */
         .empty-state {
             grid-column: 1 / -1;
             text-align: center;
             padding: 4rem 1.5rem;
-            background-color: var(--card-bg);
-            border: 1px dashed var(--card-border);
+            background: var(--bg-surface);
+            border: 1px dashed var(--hud-border);
             border-radius: 16px;
         }
 
         .empty-state-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
+            color: var(--accent-cyan);
         }
 
         .empty-state-title {
             font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-primary);
+            font-weight: 700;
+            color: var(--text-main);
             margin-bottom: 0.5rem;
         }
 
         .empty-state-desc {
-            color: var(--text-secondary);
+            color: var(--text-muted);
             font-size: 0.95rem;
+        }
+
+        /* Modal Preview for Concept */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: #0d121c;
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            border-radius: 16px;
+            max-width: 580px;
+            width: 100%;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 35px rgba(6, 182, 212, 0.2);
+            transform: scale(0.95);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: #ffffff;
+        }
+
+        .modal-badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.75rem;
+        }
+
+        .modal-body {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .modal-features li {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .modal-features li svg {
+            color: var(--accent-cyan);
+            flex-shrink: 0;
         }
 
         footer {
             text-align: center;
             padding: 2rem 1rem;
-            color: var(--text-secondary);
+            color: var(--text-dim);
             font-size: 0.85rem;
             position: relative;
-            z-index: 1;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 2;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            font-family: var(--font-mono);
         }
 
         @media (max-width: 640px) {
             h1 {
-                font-size: 2rem;
+                font-size: 2.1rem;
             }
             .grid {
                 grid-template-columns: 1fr;
             }
-            .category-tabs {
-                flex-direction: row;
-                width: 100%;
-            }
             .category-tab {
                 flex: 1;
                 justify-content: center;
-                padding: 0.6rem 0.8rem;
-                font-size: 0.85rem;
+                padding: 0.55rem 0.75rem;
+                font-size: 0.82rem;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Cyber Grid Canvas -->
     <canvas id="bg-canvas"></canvas>
+    <div class="scanlines"></div>
 
     <div class="container">
+        <!-- HUD Header -->
         <header>
-            <div class="avatar-glow">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                    <polyline points="2 17 12 22 22 17"></polyline>
-                    <polyline points="2 12 12 17 22 12"></polyline>
-                </svg>
+            <div class="hud-system-pill">
+                <span class="hud-dot"></span>
+                <span>SYSTEM STATUS // OPERATIONAL</span>
             </div>
-            <h1>Stash</h1>
-            <p class="subtitle">Experiments, tools & pet projects.</p>
+            
+            <div class="avatar-container">
+                <div class="avatar-glow"></div>
+                <div class="avatar-box">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
+            </div>
+
+            <h1>
+                Stash <span class="title-tag">LAB</span>
+            </h1>
+            <p class="subtitle">Curated suite of interactive web games, utilities, and experimental architectures.</p>
         </header>
 
-        <!-- Category Switcher Tabs: Games & Utilities -->
-        <div class="category-tabs">
-            <button class="category-tab active" data-tab="all">
-                <span>All Projects</span>
-            </button>
-            <button class="category-tab" data-tab="games">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-                    <line x1="6" y1="12" x2="10" y2="12"></line>
-                    <line x1="8" y1="10" x2="8" y2="14"></line>
-                    <circle cx="15" cy="11" r="1"></circle>
-                    <circle cx="18" cy="13" r="1"></circle>
-                </svg>
-                <span>Games</span>
-            </button>
-            <button class="category-tab" data-tab="utilities">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-                </svg>
-                <span>Utilities</span>
-            </button>
-        </div>
+        <!-- Controls: Live Search, Category Tabs & Status Filters -->
+        <section class="controls-panel">
+            <!-- Terminal Live Search -->
+            <div class="search-bar-wrapper">
+                <span class="search-icon">&gt;_</span>
+                <input type="text" id="search-input" class="search-input" placeholder="Search projects by name, tags, or technology..." autocomplete="off">
+                <button id="search-clear" class="search-clear" title="Clear search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
 
-        <!-- Status Filter Tags -->
-        <div class="filter-bar">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="playable">Playable</button>
-            <button class="filter-btn" data-filter="wip">In Progress</button>
-            <button class="filter-btn" data-filter="concept">Concept</button>
-        </div>
+            <!-- Category Switcher Tabs -->
+            <div class="category-tabs">
+                <button class="category-tab active" data-tab="all">
+                    <span>All Projects</span>
+                    <span class="tab-counter" id="count-all">3</span>
+                </button>
+                <button class="category-tab" data-tab="games">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                        <line x1="6" y1="12" x2="10" y2="12"></line>
+                        <line x1="8" y1="10" x2="8" y2="14"></line>
+                        <circle cx="15" cy="11" r="1"></circle>
+                        <circle cx="18" cy="13" r="1"></circle>
+                    </svg>
+                    <span>Games</span>
+                    <span class="tab-counter" id="count-games">1</span>
+                </button>
+                <button class="category-tab" data-tab="utilities">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                    <span>Utilities</span>
+                    <span class="tab-counter" id="count-utilities">2</span>
+                </button>
+            </div>
 
+            <!-- Status Filter Chips -->
+            <div class="status-filters">
+                <button class="status-btn active" data-status="all">ALL STATUS</button>
+                <button class="status-btn" data-status="playable">PLAYABLE</button>
+                <button class="status-btn" data-status="wip">IN PROGRESS</button>
+                <button class="status-btn" data-status="concept">CONCEPT</button>
+            </div>
+        </section>
+
+        <!-- Project Grid -->
         <main class="grid" id="project-grid">
-            <!-- Flexle Game Card -->
-            <article class="card" data-type="games" data-category="playable">
+            <!-- 1. Flexle Game Card -->
+            <article class="card" data-type="games" data-category="playable" style="--card-accent: #22c55e; --card-glow: rgba(34, 197, 94, 0.2); --btn-accent: #22c55e; --btn-glow: rgba(34, 197, 94, 0.4);">
                 <div>
                     <div class="card-header">
-                        <div class="card-custom-icon" style="width: 44px; height: 44px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 4px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);">
-                            <div style="background: #22c55e; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff;">F</div>
-                            <div style="background: #eab308; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff;">L</div>
-                            <div style="background: #374151; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #9ca3af;">E</div>
-                            <div style="background: #6366f1; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff;">X</div>
+                        <div class="card-icon-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 5px; border-color: rgba(34, 197, 94, 0.3);">
+                            <div style="background: #22c55e; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff;">F</div>
+                            <div style="background: #eab308; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff;">L</div>
+                            <div style="background: #374151; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #9ca3af;">E</div>
+                            <div style="background: #6366f1; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff;">X</div>
                         </div>
                         <span class="badge badge-playable">Playable</span>
                     </div>
                     <h2 class="card-title">Flexle</h2>
-                    <p class="card-desc">Flexible Wordle game with custom word lengths from 4 to 11+ letters, bracket drum picker for random ranges, procedural audio effects, and rich RU/EN dictionaries.</p>
+                    <p class="card-desc">Flexible Wordle game with custom word lengths from 4 to 11+ letters, bracket drum picker for random ranges, procedural audio synthesizers, and rich RU/EN dictionaries.</p>
                 </div>
                 <div>
                     <div class="card-tags">
@@ -411,15 +819,15 @@
                         <span class="tag">#Bilingual</span>
                         <span class="tag">#WebAudio</span>
                     </div>
-                    <a href="./games/flexle/" class="btn-launch">Play Flexle &rarr;</a>
+                    <a href="./games/flexle/" class="btn-launch">Launch Flexle &rarr;</a>
                 </div>
             </article>
 
-            <!-- Clarify AI Photo Upscaler Card -->
-            <article class="card" data-type="utilities" data-category="wip">
+            <!-- 2. Clarify AI Upscaler Card -->
+            <article class="card" data-type="utilities" data-category="wip" style="--card-accent: #a855f7; --card-glow: rgba(168, 85, 247, 0.2); --btn-accent: #a855f7; --btn-glow: rgba(168, 85, 247, 0.4);">
                 <div>
                     <div class="card-header">
-                        <div class="card-custom-icon" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 10px; box-shadow: 0 0 15px rgba(168, 85, 247, 0.2); color: #c084fc;">
+                        <div class="card-icon-box" style="border-color: rgba(168, 85, 247, 0.3); color: #c084fc;">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 3 21 3 21 9"></polyline>
                                 <polyline points="9 21 3 21 3 15"></polyline>
@@ -443,92 +851,226 @@
                 </div>
             </article>
 
+            <!-- 3. FetchFlow yt-dlp Concept Card -->
+            <article class="card" data-type="utilities" data-category="concept" style="--card-accent: #06b6d4; --card-glow: rgba(6, 182, 212, 0.25); --btn-accent: #06b6d4; --btn-glow: rgba(6, 182, 212, 0.4);">
+                <div>
+                    <div class="card-header">
+                        <div class="card-icon-box" style="border-color: rgba(6, 182, 212, 0.35); color: #38bdf8; background: rgba(6, 182, 212, 0.08);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </div>
+                        <span class="badge badge-concept">Concept</span>
+                    </div>
+                    <h2 class="card-title">FetchFlow</h2>
+                    <p class="card-desc">High-throughput media extraction & stream scraper concept powered by <code>yt-dlp</code> & <code>ffmpeg</code>. Direct 4K video stream routing, lossless audio extraction, section trimming, and batch scripts.</p>
+                </div>
+                <div>
+                    <div class="card-tags">
+                        <span class="tag">#yt-dlp</span>
+                        <span class="tag">#MediaStream</span>
+                        <span class="tag">#FFmpeg</span>
+                        <span class="tag">#Automation</span>
+                    </div>
+                    <button class="btn-launch btn-concept" id="btn-fetchflow-concept">Concept Specs &rarr;</button>
+                </div>
+            </article>
+
+            <!-- Empty Search State -->
             <div class="empty-state" id="empty-state" style="display: none;">
-                <div class="empty-state-icon" style="display: flex; justify-content: center; margin-bottom: 0.75rem;">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="9" y1="3" x2="9" y2="21"></line>
-                        <line x1="15" y1="3" x2="15" y2="21"></line>
-                        <line x1="3" y1="9" x2="21" y2="9"></line>
-                        <line x1="3" y1="15" x2="21" y2="15"></line>
+                <div class="empty-state-icon">
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                 </div>
-                <div class="empty-state-title">Fresh canvas</div>
-                <p class="empty-state-desc">No projects found in this category.</p>
+                <div class="empty-state-title">No matching modules found</div>
+                <p class="empty-state-desc">Try clearing the search query or switching active category filters.</p>
             </div>
         </main>
     </div>
 
+    <!-- FetchFlow Concept Modal -->
+    <div class="modal-overlay" id="concept-modal">
+        <div class="modal-card">
+            <button class="modal-close" id="modal-close-btn" title="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <span class="modal-badge">ARCHITECTURAL CONCEPT</span>
+            <h3 class="modal-title">FetchFlow // Core Specs</h3>
+            <p class="modal-body">
+                FetchFlow is a planned client-side command compiler and companion bridge for <strong>yt-dlp</strong> and <strong>ffmpeg</strong>, giving users complete control over high-resolution media extraction without remote third-party servers.
+            </p>
+            <ul class="modal-features">
+                <li>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span><strong>1000+ Providers:</strong> YouTube, VK, Twitch VODs, Rutube, SoundCloud & more.</span>
+                </li>
+                <li>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span><strong>Lossless Audio:</strong> MP3 320k, FLAC, Opus, AAC with embedded artwork & tags.</span>
+                </li>
+                <li>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span><strong>Section Trimming:</strong> Download specific timestamp segments via FFmpeg.</span>
+                </li>
+                <li>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span><strong>Automation:</strong> 1-click generation of portable Windows <code>.bat</code> execution scripts.</span>
+                </li>
+            </ul>
+            <button class="btn-launch btn-concept" id="modal-ack-btn">Understood</button>
+        </div>
+    </div>
+
+    <!-- Minimal Footer -->
     <footer>
-        <p>100% Client-side &bull; Zero trackers</p>
+        <span>STASH // LAB</span>
+        <span>&bull;</span>
+        <span>CLIENT-SIDE ENGINE</span>
     </footer>
 
+    <!-- Interactive 3D Cyber Grid & Filter Controller -->
     <script>
+        // --- 1. 3D Perspective Cyber Grid Canvas ---
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
-        let stars = [];
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let targetMouseX = mouseX;
+        let targetMouseY = mouseY;
+        let gridOffset = 0;
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            initStars();
-        }
-
-        function initStars() {
-            stars = [];
-            const count = Math.floor((canvas.width * canvas.height) / 8000);
-            for (let i = 0; i < count; i++) {
-                stars.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    radius: Math.random() * 1.5,
-                    alpha: Math.random() * 0.8 + 0.2,
-                    speed: Math.random() * 0.3 + 0.05
-                });
-            }
-        }
-
-        function animateStars() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ffffff';
-
-            stars.forEach(star => {
-                ctx.globalAlpha = star.alpha;
-                ctx.beginPath();
-                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                ctx.fill();
-
-                star.y -= star.speed;
-                if (star.y < 0) {
-                    star.y = canvas.height;
-                    star.x = Math.random() * canvas.width;
-                }
-            });
-
-            requestAnimationFrame(animateStars);
         }
 
         window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        animateStars();
+        window.addEventListener('mousemove', (e) => {
+            targetMouseX = e.clientX;
+            targetMouseY = e.clientY;
+        });
 
-        // Dual Filtering: Tabs (All / Games / Utilities) + Status (All / Playable / In Progress / Concept)
+        function renderCyberGrid() {
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            // Smooth mouse follow
+            mouseX += (targetMouseX - mouseX) * 0.05;
+            mouseY += (targetMouseY - mouseY) * 0.05;
+
+            // Horizon line & vanishing point
+            const horizonY = h * 0.42 + (mouseY - h / 2) * 0.08;
+            const vanishingX = w / 2 + (mouseX - w / 2) * 0.15;
+
+            // Perspective speed
+            gridOffset = (gridOffset + 0.6) % 40;
+
+            // Horizon Glow Gradient
+            const horizonGlow = ctx.createLinearGradient(0, horizonY - 80, 0, horizonY + 80);
+            horizonGlow.addColorStop(0, 'rgba(99, 102, 241, 0)');
+            horizonGlow.addColorStop(0.5, 'rgba(6, 182, 212, 0.12)');
+            horizonGlow.addColorStop(1, 'rgba(99, 102, 241, 0)');
+            ctx.fillStyle = horizonGlow;
+            ctx.fillRect(0, horizonY - 80, w, 160);
+
+            // Perspective grid vertical perspective lines
+            ctx.lineWidth = 1;
+            const numPerspectiveLines = 28;
+            const spread = w * 1.8;
+
+            for (let i = 0; i <= numPerspectiveLines; i++) {
+                const bottomX = (w / 2 - spread / 2) + (spread / numPerspectiveLines) * i;
+                const alpha = Math.max(0.04, 0.35 - Math.abs(i - numPerspectiveLines / 2) / (numPerspectiveLines / 2) * 0.25);
+                ctx.strokeStyle = `rgba(99, 102, 241, ${alpha})`;
+                
+                ctx.beginPath();
+                ctx.moveTo(vanishingX, horizonY);
+                ctx.lineTo(bottomX, h);
+                ctx.stroke();
+            }
+
+            // Horizontal perspective lines (logarithmic spacing for 3D depth)
+            const numHorizLines = 18;
+            for (let i = 1; i <= numHorizLines; i++) {
+                const progress = (i * 40 + gridOffset) / (numHorizLines * 40);
+                const currentY = horizonY + Math.pow(progress, 2.5) * (h - horizonY);
+                
+                if (currentY > horizonY && currentY <= h) {
+                    const alpha = Math.min(0.4, progress * 0.45);
+                    ctx.strokeStyle = `rgba(6, 182, 212, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.moveTo(0, currentY);
+                    ctx.lineTo(w, currentY);
+                    ctx.stroke();
+                }
+            }
+
+            requestAnimationFrame(renderCyberGrid);
+        }
+
+        resizeCanvas();
+        renderCyberGrid();
+
+        // --- 2. Live Search, Category Tabs & Status Filter Logic ---
         let activeTab = 'all';
-        let activeFilter = 'all';
+        let activeStatus = 'all';
+        let searchQuery = '';
+
+        const searchInput = document.getElementById('search-input');
+        const searchClear = document.getElementById('search-clear');
         const emptyState = document.getElementById('empty-state');
+        const cards = document.querySelectorAll('.card');
+
+        function updateCounters() {
+            let totalCount = 0;
+            let gamesCount = 0;
+            let utilsCount = 0;
+
+            cards.forEach(card => {
+                const type = card.getAttribute('data-type');
+                const status = card.getAttribute('data-category');
+                const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
+                const desc = card.querySelector('.card-desc')?.textContent.toLowerCase() || '';
+                const tags = Array.from(card.querySelectorAll('.tag')).map(t => t.textContent.toLowerCase()).join(' ');
+
+                const matchesStatus = (activeStatus === 'all' || status === activeStatus);
+                const matchesSearch = (!searchQuery || title.includes(searchQuery) || desc.includes(searchQuery) || tags.includes(searchQuery));
+
+                if (matchesStatus && matchesSearch) {
+                    totalCount++;
+                    if (type === 'games') gamesCount++;
+                    if (type === 'utilities') utilsCount++;
+                }
+            });
+
+            document.getElementById('count-all').textContent = totalCount;
+            document.getElementById('count-games').textContent = gamesCount;
+            document.getElementById('count-utilities').textContent = utilsCount;
+        }
 
         function updateGrid() {
-            const cards = document.querySelectorAll('.card');
             let visibleCount = 0;
 
             cards.forEach(card => {
                 const cardType = card.getAttribute('data-type');
                 const cardCat = card.getAttribute('data-category');
+                const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
+                const desc = card.querySelector('.card-desc')?.textContent.toLowerCase() || '';
+                const tags = Array.from(card.querySelectorAll('.tag')).map(t => t.textContent.toLowerCase()).join(' ');
 
                 const matchesTab = (activeTab === 'all' || cardType === activeTab);
-                const matchesFilter = (activeFilter === 'all' || cardCat === activeFilter);
+                const matchesStatus = (activeStatus === 'all' || cardCat === activeStatus);
+                const matchesSearch = (!searchQuery || title.includes(searchQuery) || desc.includes(searchQuery) || tags.includes(searchQuery));
 
-                if (matchesTab && matchesFilter) {
+                if (matchesTab && matchesStatus && matchesSearch) {
                     card.style.display = 'flex';
                     visibleCount++;
                 } else {
@@ -539,8 +1081,26 @@
             if (emptyState) {
                 emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
             }
+
+            updateCounters();
         }
 
+        // Live Search Input Event
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim().toLowerCase();
+            searchClear.style.display = searchQuery ? 'flex' : 'none';
+            updateGrid();
+        });
+
+        searchClear.addEventListener('click', () => {
+            searchInput.value = '';
+            searchQuery = '';
+            searchClear.style.display = 'none';
+            searchInput.focus();
+            updateGrid();
+        });
+
+        // Category Tabs Click
         document.querySelectorAll('.category-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
@@ -550,14 +1110,46 @@
             });
         });
 
-        document.querySelectorAll('.filter-btn').forEach(btn => {
+        // Status Filter Chips Click
+        document.querySelectorAll('.status-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                activeFilter = btn.getAttribute('data-filter');
+                activeStatus = btn.getAttribute('data-status');
                 updateGrid();
             });
         });
+
+        // --- 3. Concept Modal Handlers ---
+        const modal = document.getElementById('concept-modal');
+        const openConceptBtn = document.getElementById('btn-fetchflow-concept');
+        const closeConceptBtn = document.getElementById('modal-close-btn');
+        const ackConceptBtn = document.getElementById('modal-ack-btn');
+
+        function openModal() {
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        if (openConceptBtn) openConceptBtn.addEventListener('click', openModal);
+        if (closeConceptBtn) closeConceptBtn.addEventListener('click', closeModal);
+        if (ackConceptBtn) ackConceptBtn.addEventListener('click', closeModal);
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+
+        // Initialize state
+        updateGrid();
     </script>
 </body>
 </html>
