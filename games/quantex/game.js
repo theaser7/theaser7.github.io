@@ -1,6 +1,6 @@
 /**
  * Quantex Game Engine
- * Cyberpunk More/Less Comparison Game
+ * Cyberpunk More/Less Comparison Game (100% Vector Icons & Procedural Cyber Audio)
  */
 
 class QuantexGame {
@@ -16,9 +16,9 @@ class QuantexGame {
         this.categoryScores = [0, 0, 0, 0, 0];
         this.resultsMatrix = []; // 5 rows of 5 booleans
 
-        this.gameRounds = []; // Prepared pairs for all categories
+        this.gameRounds = [];
         this.isResolving = false;
-        this.state = 'START'; // 'START' | 'PLAYING' | 'TRANSITION' | 'FINISHED'
+        this.state = 'START';
 
         this.initDOMElements();
         this.initEventListeners();
@@ -120,6 +120,9 @@ class QuantexGame {
         this.cardA.addEventListener('click', () => this.handleSelection(0));
         this.cardB.addEventListener('click', () => this.handleSelection(1));
 
+        this.cardA.addEventListener('mouseenter', () => { if (!this.isResolving && this.state === 'PLAYING') window.soundEngine.playHover(); });
+        this.cardB.addEventListener('mouseenter', () => { if (!this.isResolving && this.state === 'PLAYING') window.soundEngine.playHover(); });
+
         this.btnTransContinue.addEventListener('click', () => {
             window.soundEngine.playClick();
             this.advanceFromTransition();
@@ -153,7 +156,8 @@ class QuantexGame {
 
     updateMuteButton(isMuted) {
         if (this.btnMute) {
-            this.btnMute.innerHTML = isMuted ? '🔇 MUTE' : '🔊 SOUND';
+            const iconSvg = isMuted ? window.getQuantexIcon('sound_off') : window.getQuantexIcon('sound_on');
+            this.btnMute.innerHTML = `${iconSvg} <span>${isMuted ? 'MUTE' : 'SOUND'}</span>`;
             this.btnMute.setAttribute('aria-label', isMuted ? 'Unmute Sound' : 'Mute Sound');
             if (isMuted) {
                 this.btnMute.classList.add('muted');
@@ -187,21 +191,16 @@ class QuantexGame {
         this.gameRounds = [];
 
         this.categories.forEach((category) => {
-            // Shuffle category items
             const shuffledItems = [...category.items].sort(() => Math.random() - 0.5);
             const categoryPairs = [];
 
-            // Generate 5 non-overlapping pairs with different values
             let ptr = 0;
             while (categoryPairs.length < this.questionsPerCategory && ptr + 1 < shuffledItems.length) {
                 const itemA = shuffledItems[ptr];
                 const itemB = shuffledItems[ptr + 1];
                 ptr += 2;
 
-                // Ensure values are not identical to prevent ambiguous ties
-                if (itemA.value === itemB.value) {
-                    continue;
-                }
+                if (itemA.value === itemB.value) continue;
 
                 categoryPairs.push({
                     itemA: itemA,
@@ -210,7 +209,6 @@ class QuantexGame {
                 });
             }
 
-            // Fallback if needed
             while (categoryPairs.length < this.questionsPerCategory) {
                 const randA = shuffledItems[Math.floor(Math.random() * shuffledItems.length)];
                 let randB = shuffledItems[Math.floor(Math.random() * shuffledItems.length)];
@@ -233,7 +231,8 @@ class QuantexGame {
         this.categories.forEach((cat, idx) => {
             const pill = document.createElement('div');
             pill.className = `cat-pill ${idx === this.currentCategoryIndex ? 'active' : ''} ${idx < this.currentCategoryIndex ? 'done' : ''}`;
-            pill.innerHTML = `<span>${cat.icon}</span> <span class="pill-name">${cat.name}</span>`;
+            const catSvg = window.getQuantexIcon(cat.icon);
+            pill.innerHTML = `<span class="pill-icon">${catSvg}</span> <span class="pill-name">${cat.name}</span>`;
             this.categoryPills.appendChild(pill);
         });
     }
@@ -244,7 +243,7 @@ class QuantexGame {
         const globalQuestionNum = this.currentCategoryIndex * this.questionsPerCategory + this.currentQuestionIndex + 1;
 
         // Update header & progress
-        this.categoryBadge.textContent = `${category.icon} PHASE 0${this.currentCategoryIndex + 1} / 05`;
+        this.categoryBadge.innerHTML = `<span class="badge-icon">${window.getQuantexIcon(category.icon)}</span> PHASE 0${this.currentCategoryIndex + 1} / 05`;
         this.categoryName.textContent = category.name.toUpperCase();
         this.categoryDesc.textContent = category.description;
         this.progressStep.textContent = `QUERY ${this.currentQuestionIndex + 1} / ${this.questionsPerCategory} (TOTAL: ${globalQuestionNum}/${this.totalQuestions})`;
@@ -263,7 +262,7 @@ class QuantexGame {
         // Set Card A content
         this.cardATitle.textContent = roundData.itemA.name;
         this.cardASubtitle.textContent = roundData.itemA.subtitle;
-        this.cardAIcon.textContent = roundData.itemA.icon || category.icon;
+        this.cardAIcon.innerHTML = window.getQuantexIcon(roundData.itemA.icon || category.icon);
         this.cardAValue.textContent = '???';
         this.cardAValue.classList.remove('revealed');
         this.cardABadge.textContent = 'TARGET ALPHA [ 1 ]';
@@ -271,7 +270,7 @@ class QuantexGame {
         // Set Card B content
         this.cardBTitle.textContent = roundData.itemB.name;
         this.cardBSubtitle.textContent = roundData.itemB.subtitle;
-        this.cardBIcon.textContent = roundData.itemB.icon || category.icon;
+        this.cardBIcon.innerHTML = window.getQuantexIcon(roundData.itemB.icon || category.icon);
         this.cardBValue.textContent = '???';
         this.cardBValue.classList.remove('revealed');
         this.cardBBadge.textContent = 'TARGET BETA [ 2 ]';
@@ -289,14 +288,15 @@ class QuantexGame {
         const chosenCard = selectedIndex === 0 ? this.cardA : this.cardB;
         const otherCard = selectedIndex === 0 ? this.cardB : this.cardA;
 
-        // Reveal Values
+        // Reveal Values with shimmer sound
+        window.soundEngine.playReveal();
         this.cardAValue.textContent = roundData.itemA.formatted;
         this.cardBValue.textContent = roundData.itemB.formatted;
         this.cardAValue.classList.add('revealed');
         this.cardBValue.classList.add('revealed');
 
         if (isCorrect) {
-            window.soundEngine.playCorrect();
+            setTimeout(() => window.soundEngine.playCorrect(), 80);
             this.overallScore++;
             this.categoryScores[this.currentCategoryIndex]++;
             this.resultsMatrix[this.currentCategoryIndex].push(true);
@@ -304,7 +304,7 @@ class QuantexGame {
             chosenCard.classList.add('selected-winner');
             otherCard.classList.add('reveal-lower');
         } else {
-            window.soundEngine.playWrong();
+            setTimeout(() => window.soundEngine.playWrong(), 80);
             this.resultsMatrix[this.currentCategoryIndex].push(false);
 
             chosenCard.classList.add('selected-loser');
@@ -313,7 +313,6 @@ class QuantexGame {
 
         this.scoreDisplay.textContent = `SCORE: ${this.overallScore} / ${this.totalQuestions}`;
 
-        // Disable clicks during resolution delay
         this.cardA.classList.add('disabled');
         this.cardB.classList.add('disabled');
 
@@ -327,7 +326,6 @@ class QuantexGame {
             this.currentQuestionIndex++;
             this.renderQuestion();
         } else {
-            // Category Finished
             if (this.currentCategoryIndex < this.totalCategories - 1) {
                 this.showCategoryTransition();
             } else {
@@ -344,10 +342,10 @@ class QuantexGame {
         const catScore = this.categoryScores[this.currentCategoryIndex];
         const nextCat = this.categories[this.currentCategoryIndex + 1];
 
-        this.transCatIcon.textContent = finishedCat.icon;
+        this.transCatIcon.innerHTML = window.getQuantexIcon(finishedCat.icon);
         this.transCatName.textContent = finishedCat.name.toUpperCase();
         this.transScore.textContent = `${catScore} / ${this.questionsPerCategory} ACCURATE`;
-        this.transNextCat.textContent = `NEXT: ${nextCat.name.toUpperCase()}`;
+        this.transNextCat.textContent = `NEXT PHASE: ${nextCat.name.toUpperCase()}`;
 
         this.gameScreen.classList.add('hidden');
         this.transitionScreen.classList.remove('hidden');
@@ -371,7 +369,6 @@ class QuantexGame {
         this.resAccuracy.textContent = `${accuracy}%`;
         this.resScore.textContent = `${this.overallScore} / ${this.totalQuestions}`;
 
-        // Rank determination
         let rank = "QUANTUM APPRENTICE";
         if (this.overallScore >= 24) rank = "CYBER ORACLE // GOD TIER";
         else if (this.overallScore >= 21) rank = "DATA ARCHITECT // MASTER";
@@ -380,30 +377,28 @@ class QuantexGame {
         else if (this.overallScore >= 9) rank = "DATA RUNNER // NOVICE";
         this.resRank.textContent = rank;
 
-        // High score storage
         const previousBest = parseInt(localStorage.getItem('quantex_high_score') || '0', 10);
         if (this.overallScore > previousBest) {
             localStorage.setItem('quantex_high_score', this.overallScore);
-            this.resBestScore.textContent = `NEW RECORD: ${this.overallScore} / ${this.totalQuestions}!`;
+            this.resBestScore.textContent = `NEW RECORD: ${this.overallScore} / ${this.totalQuestions}`;
             this.resBestScore.classList.add('new-record');
         } else {
             this.resBestScore.textContent = `PERSONAL BEST: ${previousBest} / ${this.totalQuestions}`;
             this.resBestScore.classList.remove('new-record');
         }
 
-        // Category breakdown table
         this.resBreakdown.innerHTML = '';
         this.categories.forEach((cat, idx) => {
             const score = this.categoryScores[idx];
             const percent = (score / this.questionsPerCategory) * 100;
             const matrixRow = this.resultsMatrix[idx] || [];
-            const badgesHtml = matrixRow.map(isHit => isHit ? '<span class="hit-dot hit">✔</span>' : '<span class="hit-dot miss">✖</span>').join(' ');
+            const badgesHtml = matrixRow.map(isHit => isHit ? `<span class="hit-dot hit">${window.getQuantexIcon('check')}</span>` : `<span class="hit-dot miss">${window.getQuantexIcon('cross')}</span>`).join(' ');
 
             const row = document.createElement('div');
             row.className = 'res-row';
             row.innerHTML = `
                 <div class="res-cat-info">
-                    <span class="res-icon">${cat.icon}</span>
+                    <span class="res-icon">${window.getQuantexIcon(cat.icon)}</span>
                     <span class="res-name">${cat.name}</span>
                 </div>
                 <div class="res-dots">${badgesHtml}</div>
@@ -424,12 +419,12 @@ class QuantexGame {
         const accuracy = Math.round((this.overallScore / this.totalQuestions) * 100);
         const rank = this.resRank.textContent;
 
-        const emojiMatrix = this.categories.map((cat, idx) => {
-            const row = (this.resultsMatrix[idx] || []).map(hit => hit ? '🟩' : '🟥').join('');
-            return `${cat.icon} ${row} (${this.categoryScores[idx]}/5)`;
+        const matrixText = this.categories.map((cat, idx) => {
+            const row = (this.resultsMatrix[idx] || []).map(hit => hit ? '[OK]' : '[XX]').join(' ');
+            return `${cat.name.padEnd(20, ' ')} : ${row} (${this.categoryScores[idx]}/5)`;
         }).join('\n');
 
-        const shareText = `QUANTEX // NEURAL COMPARISON\nScore: ${this.overallScore}/${this.totalQuestions} (${accuracy}%)\nRank: ${rank}\n\n${emojiMatrix}\n\nPlay: https://theaser7.github.io/games/quantex/`;
+        const shareText = `QUANTEX // NEURAL SCALE COMPARISON\nScore: ${this.overallScore}/${this.totalQuestions} (${accuracy}%)\nRank: ${rank}\n\n${matrixText}\n\nPlay: https://theaser7.github.io/games/quantex/`;
 
         navigator.clipboard.writeText(shareText).then(() => {
             this.toastShare.classList.add('show');
@@ -437,13 +432,11 @@ class QuantexGame {
                 this.toastShare.classList.remove('show');
             }, 2500);
         }).catch(() => {
-            // Fallback prompt
             prompt('Copy your result:', shareText);
         });
     }
 }
 
-// Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
     window.gameInstance = new QuantexGame();
 });

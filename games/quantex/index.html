@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUANTEX &bull; Neural Comparison &bull; stash.lab</title>
-    <meta name="description" content="Quantex - Cyberpunk More/Less data comparison game without daily limits. Compare Google searches, YouTube subscribers, movie box office, prices, and extreme trivia.">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <title>QUANTEX &bull; Neural Scale Comparison &bull; stash.lab</title>
+    <meta name="description" content="Quantex - Cyberpunk More/Less data comparison game with vector blueprint interface and procedural WebAudio synthesis.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><polygon points=%2213 2 3 14 12 14 11 22 21 10 12 10 13 2%22/></svg>">
     
     <style>
         :root {
@@ -114,9 +114,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
             color: var(--mint);
             box-shadow: 0 0 10px var(--mint-soft-glow);
+        }
+
+        .brand-logo svg {
+            width: 20px;
+            height: 20px;
         }
 
         .brand-title {
@@ -153,8 +157,13 @@
             transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.45rem;
             text-decoration: none;
+        }
+
+        .hud-btn svg {
+            width: 14px;
+            height: 14px;
         }
 
         .hud-btn:hover {
@@ -220,11 +229,23 @@
             background: linear-gradient(90deg, transparent, var(--mint), transparent);
         }
 
-        .hero-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            display: inline-block;
-            filter: drop-shadow(0 0 15px var(--mint-glow));
+        .hero-icon-box {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.25rem;
+            border-radius: var(--radius-md);
+            background: var(--mint-dark);
+            border: 1px solid var(--border-active);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mint);
+            box-shadow: 0 0 20px var(--mint-glow);
+        }
+
+        .hero-icon-box svg {
+            width: 36px;
+            height: 36px;
         }
 
         .hero-title {
@@ -257,17 +278,19 @@
             background: var(--bg-card);
             border: 1px solid var(--border-dim);
             border-radius: var(--radius-sm);
-            padding: 0.75rem 0.5rem;
+            padding: 0.85rem 0.5rem;
             font-size: 0.75rem;
             color: var(--text-muted);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.4rem;
         }
 
-        .cat-chip-icon {
-            font-size: 1.3rem;
+        .cat-chip-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--mint);
         }
 
         .cat-chip-name {
@@ -283,9 +306,9 @@
         .btn-cta {
             background: var(--mint);
             color: var(--bg-deep);
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
-            padding: 1rem 3rem;
+            padding: 0.95rem 2.8rem;
             border: none;
             border-radius: var(--radius-md);
             cursor: pointer;
@@ -337,6 +360,14 @@
             font-size: 0.75rem;
             font-weight: 700;
             letter-spacing: 0.08em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .badge-icon svg {
+            width: 14px;
+            height: 14px;
         }
 
         .cat-title-text {
@@ -393,9 +424,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.4rem;
+            gap: 0.45rem;
             white-space: nowrap;
             transition: all 0.3s ease;
+        }
+
+        .cat-pill .pill-icon svg {
+            width: 14px;
+            height: 14px;
         }
 
         .cat-pill.active {
@@ -469,7 +505,7 @@
             background: var(--bg-card);
             border: 2px solid var(--border-medium);
             border-radius: var(--radius-lg);
-            padding: 2rem 1.5rem;
+            padding: 2.25rem 1.5rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -480,7 +516,7 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-            min-height: 320px;
+            min-height: 330px;
         }
 
         .comparison-card::before {
@@ -521,17 +557,33 @@
         }
 
         .card-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            transition: transform 0.2s ease;
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            background: var(--mint-dark);
+            border: 1px solid var(--border-medium);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mint);
+            margin-bottom: 1.25rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 15px var(--mint-soft-glow);
+        }
+
+        .card-icon svg {
+            width: 32px;
+            height: 32px;
         }
 
         .comparison-card:hover:not(.disabled) .card-icon {
-            transform: scale(1.1);
+            transform: scale(1.08);
+            border-color: var(--border-active);
+            box-shadow: 0 0 20px var(--mint-glow);
         }
 
         .card-title {
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             font-weight: 700;
             color: var(--text-main);
             margin-bottom: 0.4rem;
@@ -575,7 +627,7 @@
             margin-top: 0.75rem;
             font-size: 0.75rem;
             color: var(--mint);
-            opacity: 0.8;
+            opacity: 0.85;
             letter-spacing: 0.05em;
         }
 
@@ -583,7 +635,7 @@
         .comparison-card.selected-winner {
             border-color: var(--mint);
             box-shadow: 0 0 30px var(--mint-glow);
-            background: rgba(7, 42, 30, 0.8);
+            background: rgba(7, 42, 30, 0.85);
         }
 
         .comparison-card.selected-winner .card-value-display {
@@ -594,7 +646,7 @@
         .comparison-card.selected-loser {
             border-color: var(--danger);
             box-shadow: 0 0 30px var(--danger-glow);
-            background: rgba(45, 12, 12, 0.8);
+            background: rgba(45, 12, 12, 0.85);
         }
 
         .comparison-card.selected-loser .card-value-display {
@@ -608,7 +660,7 @@
         }
 
         .comparison-card.reveal-lower {
-            opacity: 0.5;
+            opacity: 0.45;
             filter: grayscale(0.4);
         }
 
@@ -646,8 +698,22 @@
         }
 
         .trans-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-md);
+            background: var(--mint-dark);
+            border: 1px solid var(--border-active);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mint);
+            margin: 0 auto 1.25rem;
+            box-shadow: 0 0 20px var(--mint-glow);
+        }
+
+        .trans-icon svg {
+            width: 32px;
+            height: 32px;
         }
 
         .trans-title {
@@ -776,8 +842,14 @@
         .res-cat-info {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.65rem;
             min-width: 180px;
+        }
+
+        .res-icon svg {
+            width: 18px;
+            height: 18px;
+            color: var(--mint);
         }
 
         .res-dots {
@@ -792,8 +864,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
-            font-weight: bold;
+        }
+
+        .hit-dot svg {
+            width: 12px;
+            height: 12px;
         }
 
         .hit-dot.hit {
@@ -830,6 +905,9 @@
             border-radius: var(--radius-md);
             cursor: pointer;
             transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .btn-share:hover {
@@ -894,7 +972,7 @@
         }
 
         .modal-title {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: var(--mint);
             margin-bottom: 1rem;
@@ -1004,16 +1082,27 @@
         <!-- Header -->
         <header>
             <a href="../../index.html" class="brand-link">
-                <div class="brand-logo">⚡</div>
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
                 <div>
                     <span class="brand-title">QUANTEX</span>
                     <span class="brand-badge">PULSE v1.0</span>
                 </div>
             </a>
             <div class="header-actions">
-                <button id="btn-help" class="hud-btn" title="How to play">❓ RULES</button>
-                <button id="btn-mute" class="hud-btn" title="Toggle audio">🔊 SOUND</button>
-                <a href="../../index.html" class="hud-btn" title="Return to stash lab">🏠 HUB</a>
+                <button id="btn-help" class="hud-btn" title="How to play">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>RULES</span>
+                </button>
+                <button id="btn-mute" class="hud-btn" title="Toggle audio">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    <span>SOUND</span>
+                </button>
+                <a href="../../index.html" class="hud-btn" title="Return to stash lab">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>HUB</span>
+                </a>
             </div>
         </header>
 
@@ -1021,7 +1110,9 @@
             <!-- Start Screen -->
             <section id="start-screen" class="screen">
                 <div class="hero-panel">
-                    <div class="hero-icon">⚡</div>
+                    <div class="hero-icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
                     <h1 class="hero-title">QUANTEX</h1>
                     <p class="hero-subtitle">
                         Neural scale comparison protocol. Analyze two data vectors and select the entity with the <strong>GREATER VALUE</strong> across 5 distinct domains.
@@ -1029,27 +1120,37 @@
 
                     <div class="categories-preview">
                         <div class="cat-chip">
-                            <span class="cat-chip-icon">🔍</span>
+                            <span class="cat-chip-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            </span>
                             <span class="cat-chip-name">Google</span>
                             <span class="cat-chip-count">5 Queries</span>
                         </div>
                         <div class="cat-chip">
-                            <span class="cat-chip-icon">▶️</span>
+                            <span class="cat-chip-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            </span>
                             <span class="cat-chip-name">YouTube</span>
                             <span class="cat-chip-count">5 Queries</span>
                         </div>
                         <div class="cat-chip">
-                            <span class="cat-chip-icon">🎬</span>
+                            <span class="cat-chip-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                            </span>
                             <span class="cat-chip-name">Cinema</span>
                             <span class="cat-chip-count">5 Queries</span>
                         </div>
                         <div class="cat-chip">
-                            <span class="cat-chip-icon">🏷️</span>
+                            <span class="cat-chip-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                            </span>
                             <span class="cat-chip-name">Prices</span>
                             <span class="cat-chip-count">5 Queries</span>
                         </div>
                         <div class="cat-chip">
-                            <span class="cat-chip-icon">🧠</span>
+                            <span class="cat-chip-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
+                            </span>
                             <span class="cat-chip-name">Trivia</span>
                             <span class="cat-chip-count">5 Queries</span>
                         </div>
@@ -1066,7 +1167,7 @@
                 <div class="game-hud">
                     <div class="hud-top-bar">
                         <div class="category-meta">
-                            <span id="category-badge" class="badge-cat">🔍 PHASE 01 / 05</span>
+                            <span id="category-badge" class="badge-cat">PHASE 01 / 05</span>
                             <span id="category-name" class="cat-title-text">GOOGLE SEARCHES</span>
                         </div>
                         <div class="hud-stats">
@@ -1090,7 +1191,7 @@
                     <!-- Card Alpha (Left) -->
                     <div id="card-a" class="comparison-card">
                         <span id="card-a-badge" class="card-target-badge">TARGET ALPHA [ 1 ]</span>
-                        <div id="card-a-icon" class="card-icon">⚡</div>
+                        <div id="card-a-icon" class="card-icon"></div>
                         <h2 id="card-a-title" class="card-title">Entity Alpha</h2>
                         <p id="card-a-subtitle" class="card-subtitle">Description</p>
                         <div id="card-a-value" class="card-value-display">???</div>
@@ -1105,7 +1206,7 @@
                     <!-- Card Beta (Right) -->
                     <div id="card-b" class="comparison-card">
                         <span id="card-b-badge" class="card-target-badge">TARGET BETA [ 2 ]</span>
-                        <div id="card-b-icon" class="card-icon">⚡</div>
+                        <div id="card-b-icon" class="card-icon"></div>
                         <h2 id="card-b-title" class="card-title">Entity Beta</h2>
                         <p id="card-b-subtitle" class="card-subtitle">Description</p>
                         <div id="card-b-value" class="card-value-display">???</div>
@@ -1121,7 +1222,7 @@
             <!-- Category Transition Screen -->
             <section id="transition-screen" class="screen hidden">
                 <div class="transition-panel">
-                    <div id="trans-cat-icon" class="trans-icon">🔍</div>
+                    <div id="trans-cat-icon" class="trans-icon"></div>
                     <h2 class="trans-title"><span id="trans-cat-name">PHASE COMPLETE</span></h2>
                     <div id="trans-score" class="trans-score-box">4 / 5 ACCURATE</div>
                     <p id="trans-next-cat" class="trans-next-text">NEXT: YOUTUBE SUBSCRIBERS</p>
@@ -1153,7 +1254,10 @@
                     <div id="res-breakdown" class="breakdown-container"></div>
 
                     <div class="results-actions">
-                        <button id="btn-share" class="btn-share">📋 COPY RESULT</button>
+                        <button id="btn-share" class="btn-share">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            <span>COPY RESULT</span>
+                        </button>
                         <button id="btn-play-again" class="btn-cta">PLAY AGAIN &rarr;</button>
                     </div>
                 </div>
@@ -1168,12 +1272,15 @@
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast-share" class="toast">✓ Results Copied to Clipboard!</div>
+    <div id="toast-share" class="toast">Results Copied to Clipboard!</div>
 
     <!-- Help Modal -->
     <div id="modal-help" class="modal-backdrop">
         <div class="modal-box">
-            <h3 class="modal-title">⚡ HOW TO PLAY QUANTEX</h3>
+            <h3 class="modal-title">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>HOW TO PLAY QUANTEX</span>
+            </h3>
             <div class="modal-content">
                 <p>Welcome to Quantex, the unrestricted data scale comparison protocol.</p>
                 <br>
@@ -1190,7 +1297,6 @@
 
     <!-- Background Grid Script -->
     <script>
-        // 2D Blueprint Grid Canvas Background
         (function() {
             const canvas = document.getElementById('bg-canvas');
             if (!canvas) return;
@@ -1214,7 +1320,6 @@
 
                 offset = (offset + 0.15) % gridSize;
 
-                // Vertical lines
                 for (let x = offset; x < w; x += gridSize) {
                     ctx.beginPath();
                     ctx.moveTo(x, 0);
@@ -1222,7 +1327,6 @@
                     ctx.stroke();
                 }
 
-                // Horizontal lines
                 for (let y = offset; y < h; y += gridSize) {
                     ctx.beginPath();
                     ctx.moveTo(0, y);
@@ -1230,7 +1334,6 @@
                     ctx.stroke();
                 }
 
-                // Subtle intersection dots
                 ctx.fillStyle = 'rgba(0, 255, 157, 0.15)';
                 for (let x = offset; x < w; x += gridSize * 2) {
                     for (let y = offset; y < h; y += gridSize * 2) {
@@ -1245,6 +1348,7 @@
     </script>
 
     <!-- Game Scripts -->
+    <script src="icons.js"></script>
     <script src="dataset.js"></script>
     <script src="sound.js"></script>
     <script src="game.js"></script>
