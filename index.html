@@ -850,8 +850,9 @@
         <header class="hero-section">
             <div class="brand-heading">
                 <h1 class="brand-title">the stash</h1>
-                <span class="brand-version">v0.5.9</span>
+                <span class="brand-version">v0.6.3</span>
             </div>
+
 
             <p class="hero-desc">1000+ client-side experiments. Zero watermark. Zero telemetry. Free.</p>
             
@@ -869,7 +870,7 @@
                 <div class="segment-tabs">
                     <button class="tab-btn active" data-tab="all">
                         <span>All Projects</span>
-                        <span class="tab-badge" id="count-all">4</span>
+                        <span class="tab-badge" id="count-all">5</span>
                     </button>
                     <button class="tab-btn" data-tab="games">
                         <span>Games</span>
@@ -877,7 +878,7 @@
                     </button>
                     <button class="tab-btn" data-tab="utilities">
                         <span>Utilities</span>
-                        <span class="tab-badge" id="count-utilities">3</span>
+                        <span class="tab-badge" id="count-utilities">4</span>
                     </button>
 
                 </div>
@@ -944,6 +945,32 @@
                         <a href="./games/quantex/" class="btn-action" style="color: #94a3b8; border-color: rgba(148, 163, 184, 0.3); background: rgba(148, 163, 184, 0.05);">Launch Quantex &rarr;</a>
                     </article>
 
+                    <!-- StashConvert Card -->
+                    <article class="project-card" data-type="utilities" data-category="playable">
+                        <div>
+                            <div class="card-top">
+                                <div class="card-glyph-box" style="color: var(--mint);">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <polyline points="16 13 12 17 8 13"></polyline>
+                                        <line x1="12" y1="9" x2="12" y2="17"></line>
+                                    </svg>
+                                </div>
+                                <span class="status-pill status-playable">Playable</span>
+                            </div>
+                            <h2 class="card-title">StashConvert</h2>
+                            <p class="card-desc">Universal client-side converter for Video, Images, Audio, and Data/Docs. Supports video-to-GIF, video-to-audio extraction, batch queues, and zero telemetry.</p>
+                            <div class="card-tags">
+                                <span class="tag-pill">#Converter</span>
+                                <span class="tag-pill">#Video</span>
+                                <span class="tag-pill">#Audio</span>
+                                <span class="tag-pill">#Images</span>
+                                <span class="tag-pill">#ZeroTelemetry</span>
+                            </div>
+                        </div>
+                        <a href="./utilities/stashconvert/" class="btn-action">Launch StashConvert &rarr;</a>
+                    </article>
 
                     <!-- StashIP Card -->
                     <article class="project-card" data-type="utilities" data-category="playable">
@@ -1331,11 +1358,13 @@
                 tagArchived: "ARCHIVED",
                 cardFlexleDesc: "Flexible Wordle game with custom word lengths from 4 to 11+ letters, bracket drum picker for random ranges, and procedural WebAudio synthesizers.",
                 cardQuantexDesc: "Cyberpunk More/Less comparison game across 5 categories: Google searches, YouTube subs, Cinema gross, Valuations, and Trivia extremes.",
+                cardStashconvertDesc: "Universal client-side converter for Video, Images, Audio, and Data/Docs. Supports video-to-GIF, video-to-audio extraction, batch queues, and zero telemetry.",
                 cardStashipDesc: "Zero-telemetry network diagnostics (IP, ISP, ASN, Geolocation, Timezone, Hostname) with 1-Click Copy and live client-side Speedtest engine.",
                 cardClarifyDesc: "Neural super-resolution tool to upscale, enhance, and denoise photos up to 4K. Features an interactive Before/After split slider and zero telemetry.",
                 cardFetchflowDesc: "High-throughput media extraction & stream scraper concept powered by yt-dlp & ffmpeg. 4K streams, lossless audio, section trimming, and batch scripts.",
                 btnLaunchFlexle: "Launch Flexle →",
                 btnLaunchQuantex: "Launch Quantex →",
+                btnLaunchStashconvert: "Launch StashConvert →",
                 btnLaunchStaship: "Launch StashIP →",
                 btnLaunchClarify: "Launch Clarify →",
                 btnConceptSpecs: "Concept Specs →",
@@ -1374,11 +1403,13 @@
                 tagArchived: "АРХИВ",
                 cardFlexleDesc: "Гибкий Wordle с выбором длины слова от 4 до 11+ букв, барабанным выбором случайных диапазонов и процедурным WebAudio звуком.",
                 cardQuantexDesc: "Киберпанк игра сравнения «больше/меньше» по 5 категориям: поисковые тренды, YouTube, киносборы, капитализации и рекорды науки.",
+                cardStashconvertDesc: "Универсальный клиентский конвертер видео, картинок, аудио и данных. Видео в GIF, извлечение аудио, пакетная очередь и нулевая телеметрия.",
                 cardStashipDesc: "Диагностика сети без телеметрии (IP, провайдер, ASN, геолокация, таймзона) с копированием в 1 клик и встроенным спидометром скорости.",
                 cardClarifyDesc: "Нейросетевой апскейлер для улучшения детализации и удаления шума на фото до 4K. Интерактивный слайдер «До/После» и нулевая телеметрия.",
                 cardFetchflowDesc: "Концепт скоростной загрузки медиапотоков на базе yt-dlp и ffmpeg. Видео 4K, звук без потерь, нарезка фрагментов и bat-скрипты.",
                 btnLaunchFlexle: "Запустить Flexle →",
                 btnLaunchQuantex: "Запустить Quantex →",
+                btnLaunchStashconvert: "Запустить StashConvert →",
                 btnLaunchStaship: "Запустить StashIP →",
                 btnLaunchClarify: "Запустить Clarify →",
                 btnConceptSpecs: "Спецификация концепта →",
@@ -1461,6 +1492,14 @@
                 if (desc) desc.textContent = dict.cardQuantexDesc;
                 const btn = cardQuantex.querySelector('.btn-action');
                 if (btn) btn.textContent = dict.btnLaunchQuantex;
+            }
+
+            const cardStashconvert = document.querySelector('a[href="./utilities/stashconvert/"]')?.closest('.project-card');
+            if (cardStashconvert) {
+                const desc = cardStashconvert.querySelector('.card-desc');
+                if (desc) desc.textContent = dict.cardStashconvertDesc;
+                const btn = cardStashconvert.querySelector('.btn-action');
+                if (btn) btn.textContent = dict.btnLaunchStashconvert;
             }
 
             const cardStaship = document.querySelector('a[href="./utilities/staship/"]')?.closest('.project-card');
@@ -1548,6 +1587,32 @@
             });
         }
 
+        // Concept Modal Handlers (FetchFlow)
+        const conceptModal = document.getElementById('concept-modal');
+        const openConceptBtn = document.getElementById('btn-concept-trigger');
+        const closeConceptBtn = document.getElementById('modal-close-btn');
+        const ackConceptBtn = document.getElementById('modal-ack-btn');
+
+        function openConcept() { if (conceptModal) conceptModal.classList.add('active'); }
+        function closeConcept() { if (conceptModal) conceptModal.classList.remove('active'); }
+
+        if (openConceptBtn) openConceptBtn.addEventListener('click', openConcept);
+        if (closeConceptBtn) closeConceptBtn.addEventListener('click', closeConcept);
+        if (ackConceptBtn) ackConceptBtn.addEventListener('click', closeConcept);
+
+        if (conceptModal) {
+            conceptModal.addEventListener('click', (e) => {
+                if (e.target === conceptModal) closeConcept();
+            });
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (settingsModal && settingsModal.classList.contains('active')) settingsModal.classList.remove('active');
+                if (conceptModal && conceptModal.classList.contains('active')) conceptModal.classList.remove('active');
+            }
+        });
+
         document.querySelectorAll('.lang-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const selectedLang = btn.getAttribute('data-lang');
@@ -1558,6 +1623,7 @@
         // Initialize language
         applyLanguage(currentLang);
         updateGrid();
+
     </script>
 </body>
 </html>
