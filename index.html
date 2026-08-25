@@ -855,8 +855,9 @@
         <header class="hero-section">
             <div class="brand-heading">
                 <h1 class="brand-title">the stash</h1>
-                <span class="brand-version">v0.7.9</span>
+                <span class="brand-version">v0.8.0</span>
             </div>
+
 
 
 
@@ -1084,17 +1085,18 @@
                                 <span class="status-pill status-playable">Playable</span>
                             </div>
                             <h2 class="card-title">Companion Server</h2>
-                            <p class="card-desc" id="desc-companion">1-Click Local Python backend for Hardware-Accelerated Clarify AI Super-Resolution (RTX 4060 GPU) and FetchFlow 4K yt-dlp downloading (Ryzen 5). Zero telemetry.</p>
+                            <p class="card-desc" id="desc-companion">1-Click Local Python backend for Hardware-Accelerated Clarify AI Super-Resolution (GPU) and FetchFlow 4K yt-dlp downloading. Zero telemetry.</p>
                             <div class="card-tags">
                                 <span class="tag-pill">#Python</span>
-                                <span class="tag-pill">#RTX4060</span>
-                                <span class="tag-pill">#Ryzen5</span>
+                                <span class="tag-pill">#HardwareAccel</span>
+                                <span class="tag-pill">#AIUpscale</span>
                                 <span class="tag-pill">#yt-dlp</span>
-                                <span class="tag-pill">#Vulkan</span>
+                                <span class="tag-pill">#ZeroTelemetry</span>
                             </div>
                         </div>
                         <a href="./downloads/the-stash-companion.zip" download class="btn-action" id="btn-launch-companion">Download Server (.zip) &rarr;</a>
                     </article>
+
 
 
 
@@ -1602,13 +1604,11 @@
                 if (btn) btn.textContent = dict.btnLaunchFetchflow;
             }
 
-            const cardCompanion = document.querySelector('a[href="./downloads/the-stash-companion.zip"]')?.closest('.project-card');
-            if (cardCompanion) {
-                const desc = cardCompanion.querySelector('.card-desc');
-                if (desc) desc.textContent = dict.cardCompanionDesc;
-                const btn = cardCompanion.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnLaunchCompanion;
-            }
+            const descCompanion = document.getElementById('desc-companion');
+            if (descCompanion) descCompanion.textContent = dict.cardCompanionDesc;
+            const btnCompanion = document.getElementById('btn-launch-companion');
+            if (btnCompanion) btnCompanion.textContent = dict.btnLaunchCompanion;
+
 
 
 

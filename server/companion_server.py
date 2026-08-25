@@ -32,7 +32,33 @@ DOWNLOADS_DIR = Path.home() / "Downloads" / "the_stash"
 download_jobs = {}
 
 
+def detect_hardware():
+    """Dynamically detect CPU and GPU hardware on Windows/Linux."""
+    cpu_name = platform.processor() or "CPU"
+    gpu_name = "Vulkan / GPU Accelerated"
+
+    if sys.platform == "win32":
+        try:
+            out = subprocess.check_output('powershell -NoProfile -Command "(Get-CimInstance Win32_Processor).Name"', shell=True, text=True).strip()
+            if out:
+                cpu_name = out
+        except Exception:
+            pass
+
+        try:
+            out = subprocess.check_output('powershell -NoProfile -Command "(Get-CimInstance Win32_VideoController).Name"', shell=True, text=True).strip().split("\n")
+            gpus = [g.strip() for g in out if g.strip() and "Virtual" not in g]
+            if gpus:
+                dedicated = [g for g in gpus if any(k in g for k in ["NVIDIA", "GeForce", "RTX", "GTX", "Radeon RX", "Arc"])]
+                gpu_name = dedicated[0] if dedicated else gpus[0]
+        except Exception:
+            pass
+
+    return f"{gpu_name} / {cpu_name}"
+
+
 def ensure_clarify_installed():
+
     """Download portable Real-ESRGAN Vulkan engine if not present."""
     if CLARIFY_EXE.exists():
         return True
@@ -123,12 +149,13 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
                 "status": "online",
                 "server": "the-stash-companion",
                 "modules": ["clarify", "fetchflow"],
-                "hardware": "RTX 4060 / Ryzen 5 5600G",
+                "hardware": detect_hardware(),
                 "ytdlp_ready": YTDLP_EXE.exists() or bool(shutil.which("yt-dlp")),
                 "clarify_ready": CLARIFY_EXE.exists()
             }
             self._set_cors_headers(200)
             self.wfile.write(json.dumps(data).encode("utf-8"))
+
 
         elif path.startswith("/api/progress/"):
             job_id = path.split("/api/progress/")[1]
@@ -409,13 +436,15 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
 
 
 def main():
+    hw_info = detect_hardware()
     print("=" * 60)
     print("  THE STASH • UNIFIED COMPANION SERVER")
     print(f"  Port: http://127.0.0.1:{PORT}")
-    print("  Hardware: RTX 4060 & Ryzen 5 5600G")
+    print(f"  Hardware: {hw_info}")
     print("  Modules: Clarify (AI Upscale) + FetchFlow (yt-dlp Engine)")
     print("  Zero Telemetry • 100% Local Sandbox")
     print("=" * 60)
+
 
     ensure_clarify_installed()
     ensure_ytdlp_installed()
