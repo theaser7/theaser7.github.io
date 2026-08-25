@@ -769,16 +769,31 @@
                     </div>
 
                     <div class="quality-selector-row">
-                        <label class="quality-label" id="lbl-quality">TARGET FORMAT & QUALITY // КАЧЕСТВО</label>
-                        <select id="quality-select" class="quality-dropdown">
-                            <option value="1080">1080p Full HD (MP4)</option>
-                            <option value="720" selected>720p HD (MP4)</option>
-                            <option value="480">480p SD (MP4)</option>
-                            <option value="360">360p Medium (MP4)</option>
-                            <option value="mp3">Audio MP3 (320 kbps)</option>
-                            <option value="m4a">Audio M4A / AAC</option>
-                        </select>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                                <label class="quality-label" id="lbl-quality">FORMAT & QUALITY // КАЧЕСТВО</label>
+                                <select id="quality-select" class="quality-dropdown">
+                                    <option value="1080">1080p Full HD (MP4)</option>
+                                    <option value="720" selected>720p HD (MP4)</option>
+                                    <option value="480">480p SD (MP4)</option>
+                                    <option value="360">360p Medium (MP4)</option>
+                                    <option value="mp3">Audio MP3 (320 kbps)</option>
+                                    <option value="m4a">Audio M4A / AAC</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                                <label class="quality-label" id="lbl-engine">DOWNLOAD ENGINE // ЗЕРКАЛО</label>
+                                <select id="engine-select" class="quality-dropdown">
+                                    <option value="ssyoutube" selected>SSYouTube (Instant)</option>
+                                    <option value="y2mate">Y2Mate (High Speed)</option>
+                                    <option value="savefrom">SaveFrom (Direct)</option>
+                                    <option value="9xbuddy">9xBuddy (4K/HD)</option>
+                                    <option value="cobalt">Cobalt Web</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
+
 
                     <div class="action-download-buttons">
                         <button class="btn-dl-action btn-dl-video" id="btn-dl-video">

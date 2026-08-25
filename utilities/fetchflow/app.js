@@ -103,6 +103,7 @@ class FetchFlowApp {
         this.mediaDuration = document.getElementById('media-duration');
         this.mediaPlatform = document.getElementById('media-platform');
         this.qualitySelect = document.getElementById('quality-select');
+        this.engineSelect = document.getElementById('engine-select');
 
         this.btnDlVideo = document.getElementById('btn-dl-video');
         this.btnDlAudio = document.getElementById('btn-dl-audio');
@@ -118,6 +119,7 @@ class FetchFlowApp {
         this.btnMute = document.getElementById('btn-mute');
         this.toast = document.getElementById('toast-notify');
     }
+
 
     initEvents() {
         if (this.urlInput) {
@@ -553,10 +555,11 @@ class FetchFlowApp {
     }
 
     /**
-     * Executes download based on user selected quality dropdown
+     * Executes download based on user selected quality and engine mirror
      */
     async executeMediaDownload(media) {
         const quality = this.qualitySelect ? this.qualitySelect.value : '720';
+        const engine = this.engineSelect ? this.engineSelect.value : 'ssyoutube';
         const isAudioFormat = quality === 'mp3' || quality === 'm4a';
 
         if (isAudioFormat) {
@@ -566,38 +569,55 @@ class FetchFlowApp {
 
         const safeName = (media.title || 'video').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
 
-        // YouTube specific stream resolution bridge
+        // YouTube specific stream resolution via selected high-speed mirror
         if (media.isYouTube && media.videoId) {
             const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
             this.showToast(dict.toastDownloading);
 
-            // Fast direct download bridges with requested resolution
-            const downloadUrl = `https://api.vevioz.com/api/button/mp4/${media.videoId}?quality=${quality}`;
-            const directBridge = `https://loader.to/api/button/?url=https://www.youtube.com/watch?v=${media.videoId}&f=${quality}`;
-            
-            // Open stream download bridge window
-            const win = window.open(directBridge, '_blank');
-            if (!win) window.location.href = downloadUrl;
+            let targetDownloadUrl = '';
+            if (engine === 'ssyoutube') {
+                targetDownloadUrl = `https://ssyoutube.com/watch?v=${media.videoId}`;
+            } else if (engine === 'y2mate') {
+                targetDownloadUrl = `https://www.y2mate.com/youtube/${media.videoId}`;
+            } else if (engine === 'savefrom') {
+                targetDownloadUrl = `https://en.savefrom.net/20/?url=https://www.youtube.com/watch?v=${media.videoId}`;
+            } else if (engine === '9xbuddy') {
+                targetDownloadUrl = `https://9xbuddy.com/process?url=https://www.youtube.com/watch?v=${media.videoId}`;
+            } else {
+                targetDownloadUrl = `https://cobalt.tools`;
+            }
+
+            window.open(targetDownloadUrl, '_blank');
             this.showToast(dict.toastDownloaded);
             window.fetchflowSound.playStreamFound();
             return;
         }
 
-        // Direct stream download for TikTok, Twitter, Reddit, etc.
+        // Direct in-browser blob stream download for TikTok, Twitter, Reddit, etc.
         const streamUrl = media.videoUrl || media.streamUrl;
         await this.forceDownloadFile(streamUrl, `${safeName}_${quality}p.mp4`);
     }
 
     async executeAudioDownload(media) {
         const safeName = (media.title || 'audio').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
+        const engine = this.engineSelect ? this.engineSelect.value : 'ssyoutube';
 
         if (media.isYouTube && media.videoId) {
             const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
             this.showToast(dict.toastDownloading);
 
-            const directAudioBridge = `https://loader.to/api/button/?url=https://www.youtube.com/watch?v=${media.videoId}&f=mp3`;
-            const win = window.open(directAudioBridge, '_blank');
-            if (!win) window.location.href = `https://api.vevioz.com/api/button/mp3/${media.videoId}`;
+            let targetAudioUrl = '';
+            if (engine === 'y2mate') {
+                targetAudioUrl = `https://www.y2mate.com/youtube-mp3/${media.videoId}`;
+            } else if (engine === 'savefrom') {
+                targetAudioUrl = `https://en.savefrom.net/20/?url=https://www.youtube.com/watch?v=${media.videoId}`;
+            } else if (engine === '9xbuddy') {
+                targetAudioUrl = `https://9xbuddy.com/process?url=https://www.youtube.com/watch?v=${media.videoId}`;
+            } else {
+                targetAudioUrl = `https://ssyoutube.com/watch?v=${media.videoId}`;
+            }
+
+            window.open(targetAudioUrl, '_blank');
             this.showToast(dict.toastDownloaded);
             window.fetchflowSound.playStreamFound();
             return;
@@ -606,6 +626,7 @@ class FetchFlowApp {
         const audioUrl = media.audioUrl || media.streamUrl;
         await this.forceDownloadFile(audioUrl, `${safeName}.mp3`);
     }
+
 
     async forceDownloadFile(fileUrl, filename) {
         if (this.isDownloading) return;
