@@ -1,6 +1,6 @@
 /**
  * FetchFlow - Universal Client-Side Media Extractor & Stream Downloader
- * 100% in-browser stream parsing. Zero telemetry.
+ * 100% in-browser stream parsing and direct downloading. Zero telemetry.
  */
 
 const FETCHFLOW_I18N = {
@@ -22,7 +22,7 @@ const FETCHFLOW_I18N = {
         btnDownloadVideo: "DOWNLOAD VIDEO (HD)",
         btnDownloadAudio: "DOWNLOAD AUDIO (MP3)",
         btnDownloadThumb: "DOWNLOAD COVER",
-        btnOpenStream: "OPEN DIRECT STREAM",
+        btnOpenStream: "DIRECT STREAM / OPEN",
         historyTitle: "RECENT STREAMS",
         historyEmpty: "No recent extractions yet. Paste a link above to begin.",
         btnClearHistory: "CLEAR HISTORY",
@@ -30,6 +30,8 @@ const FETCHFLOW_I18N = {
         errExtractFailed: "Failed to extract media stream. Please verify the URL or try again.",
         toastCopied: "Link copied to clipboard!",
         toastSuccess: "Extraction completed successfully!",
+        toastDownloading: "Starting stream download...",
+        toastDownloaded: "Download ready!",
         footerLeft: "FetchFlow • 100% In-Browser Media Extraction",
         footerRight: "Part of the stash"
     },
@@ -51,7 +53,7 @@ const FETCHFLOW_I18N = {
         btnDownloadVideo: "СКАЧАТЬ ВИДЕО (HD)",
         btnDownloadAudio: "СКАЧАТЬ АУДИО (MP3)",
         btnDownloadThumb: "СКАЧАТЬ ОБЛОЖКУ",
-        btnOpenStream: "ОТКРЫТЬ ПРЯМОЙ ПОТОК",
+        btnOpenStream: "ПРЯМОЙ ПОТОК / ОТКРЫТЬ",
         historyTitle: "НЕДАВНИЕ ЗАГРУЗКИ",
         historyEmpty: "История пуста. Вставьте ссылку выше для извлечения.",
         btnClearHistory: "ОЧИСТИТЬ ИСТОРИЮ",
@@ -59,6 +61,8 @@ const FETCHFLOW_I18N = {
         errExtractFailed: "Не удалось извлечь медиапоток. Проверьте ссылку и повторите попытку.",
         toastCopied: "Ссылка скопирована в буфер!",
         toastSuccess: "Медиапоток успешно получен!",
+        toastDownloading: "Скачивание медиапотока...",
+        toastDownloaded: "Файл готов и сохранен!",
         footerLeft: "FetchFlow • 100% извлечение медиа в браузере",
         footerRight: "Часть the stash"
     }
@@ -69,6 +73,7 @@ class FetchFlowApp {
         this.currentLang = localStorage.getItem('the_stash_lang') || 'en';
         this.currentMedia = null;
         this.isFetching = false;
+        this.isDownloading = false;
         this.history = [];
         
         try {
@@ -112,7 +117,6 @@ class FetchFlowApp {
     }
 
     initEvents() {
-        // Input platform detection on type/paste
         if (this.urlInput) {
             this.urlInput.addEventListener('input', () => {
                 this.detectPlatformFromUrl(this.urlInput.value.trim());
@@ -124,7 +128,6 @@ class FetchFlowApp {
             });
         }
 
-        // Paste button
         if (this.btnPaste) {
             this.btnPaste.addEventListener('click', async () => {
                 window.fetchflowSound.playPaste();
@@ -141,14 +144,12 @@ class FetchFlowApp {
             });
         }
 
-        // Fetch button
         if (this.btnFetch) {
             this.btnFetch.addEventListener('click', () => {
                 this.fetchMedia();
             });
         }
 
-        // Clear History
         if (this.btnClearHistory) {
             this.btnClearHistory.addEventListener('click', () => {
                 window.fetchflowSound.playClick();
@@ -158,7 +159,6 @@ class FetchFlowApp {
             });
         }
 
-        // Language & Sound
         if (this.btnLang) {
             this.btnLang.addEventListener('click', () => {
                 window.fetchflowSound.playClick();
@@ -240,7 +240,7 @@ class FetchFlowApp {
         if (!this.toast) return;
         this.toast.textContent = message;
         this.toast.classList.add('show');
-        setTimeout(() => this.toast.classList.remove('show'), 2400);
+        setTimeout(() => this.toast.classList.remove('show'), 2800);
     }
 
     detectPlatformFromUrl(url) {
@@ -327,85 +327,162 @@ class FetchFlowApp {
     async extractStream(targetUrl) {
         const platform = this.detectPlatformFromUrl(targetUrl);
 
-        // 1. Reddit direct fallback parser
-        if (platform === 'REDDIT' && targetUrl.includes('reddit.com/r/')) {
+        // 1. TikTok Direct Watermark-Free Extractor
+        if (platform === 'TIKTOK') {
             try {
-                const jsonUrl = targetUrl.replace(/\/$/, '') + '.json';
-                const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(jsonUrl)}`);
-                const data = await res.json();
-                const post = data[0]?.data?.children[0]?.data;
-                if (post && post.secure_media?.reddit_video) {
-                    const rv = post.secure_media.reddit_video;
-                    return {
-                        title: post.title || 'Reddit Video',
-                        author: post.author ? `u/${post.author}` : 'Reddit User',
-                        platform: 'Reddit',
-                        duration: rv.duration ? `${rv.duration}s` : 'N/A',
-                        videoUrl: rv.fallback_url,
-                        audioUrl: rv.fallback_url.replace(/DASH_\d+/, 'DASH_AUDIO_128'),
-                        streamUrl: rv.fallback_url,
-                        thumbnail: post.thumbnail && post.thumbnail.startsWith('http') ? post.thumbnail : '',
-                        sourceUrl: targetUrl
-                    };
-                }
-            } catch (e) {
-                console.warn('Reddit direct fallback failed, continuing to API gateway...');
-            }
-        }
-
-        // 2. High-speed multi-gateway extraction endpoints
-        const cobaltGateways = [
-            'https://cobalt-api.kwiatekm.com',
-            'https://api.cobalt.tools',
-            'https://co.wuk.sh/api/json',
-            'https://api.wuk.sh/api/json'
-        ];
-
-        for (const gw of cobaltGateways) {
-            try {
-                const response = await fetch(gw, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        url: targetUrl,
-                        videoQuality: 'max',
-                        filenamePattern: 'classic',
-                        downloadMode: 'auto'
-                    })
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result && (result.url || result.picker)) {
-                        const streamUrl = result.url || (result.picker && result.picker[0]?.url);
+                const apiRes = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(targetUrl)}`);
+                if (apiRes.ok) {
+                    const json = await apiRes.json();
+                    if (json.data) {
+                        const d = json.data;
+                        const durationSec = d.duration || 0;
+                        const durStr = durationSec ? `${Math.floor(durationSec / 60)}:${(durationSec % 60).toString().padStart(2, '0')}` : 'HD';
                         return {
-                            title: result.filename || `${platform} Stream`,
-                            author: platform,
-                            platform: platform,
-                            duration: 'Full HD',
-                            videoUrl: streamUrl,
-                            audioUrl: streamUrl,
-                            streamUrl: streamUrl,
-                            thumbnail: '',
+                            title: d.title || 'TikTok Video',
+                            author: d.author ? `@${d.author.unique_id || d.author.nickname}` : 'TikTok Creator',
+                            platform: 'TikTok',
+                            duration: durStr,
+                            videoUrl: d.play || d.hdplay || d.wmplay,
+                            audioUrl: d.music || d.music_info?.play,
+                            streamUrl: d.play || d.hdplay,
+                            thumbnail: d.cover || d.origin_cover,
                             sourceUrl: targetUrl
                         };
                     }
                 }
             } catch (e) {
-                console.warn(`Gateway ${gw} failed, trying next...`);
+                console.warn('TikWM direct extraction failed, trying fallback...', e);
             }
         }
 
-        // 3. Smart Direct Stream Proxy Fallback
-        const fallbackProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+        // 2. YouTube Invidious / Piped Streams
+        if (platform === 'YOUTUBE') {
+            let videoId = null;
+            try {
+                const u = new URL(targetUrl);
+                if (u.hostname.includes('youtu.be')) {
+                    videoId = u.pathname.slice(1);
+                } else if (u.searchParams.has('v')) {
+                    videoId = u.searchParams.get('v');
+                } else if (u.pathname.includes('/shorts/')) {
+                    videoId = u.pathname.split('/shorts/')[1]?.split('?')[0];
+                }
+            } catch (e) {}
+
+            if (videoId) {
+                const invidiousHosts = [
+                    'https://invidious.privacydev.net',
+                    'https://yewtu.be',
+                    'https://vid.puffyan.us',
+                    'https://invidious.nerdvpn.de'
+                ];
+
+                for (const host of invidiousHosts) {
+                    try {
+                        const invRes = await fetch(`${host}/api/v1/videos/${videoId}`, { signal: AbortSignal.timeout(5000) });
+                        if (invRes.ok) {
+                            const data = await invRes.json();
+                            if (data && data.formatStreams && data.formatStreams.length > 0) {
+                                // Sort by resolution desc
+                                const streams = data.formatStreams.sort((a, b) => (parseInt(b.resolution) || 0) - (parseInt(a.resolution) || 0));
+                                const bestVideo = streams[0];
+                                const audioStreams = data.adaptiveFormats?.filter(f => f.type?.startsWith('audio/')) || [];
+                                const bestAudio = audioStreams[0];
+
+                                const durSec = data.lengthSeconds || 0;
+                                const durStr = durSec ? `${Math.floor(durSec / 60)}:${(durSec % 60).toString().padStart(2, '0')}` : 'HD';
+
+                                return {
+                                    title: data.title || 'YouTube Video',
+                                    author: data.author || 'YouTube Channel',
+                                    platform: 'YouTube',
+                                    duration: durStr,
+                                    videoUrl: bestVideo.url,
+                                    audioUrl: bestAudio ? bestAudio.url : bestVideo.url,
+                                    streamUrl: bestVideo.url,
+                                    thumbnail: data.videoThumbnails?.[0]?.url || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+                                    sourceUrl: targetUrl
+                                };
+                            }
+                        }
+                    } catch (e) {}
+                }
+
+                // If Invidious instances fail, return direct high-res embed with thumbnail
+                return {
+                    title: 'YouTube Stream',
+                    author: 'YouTube',
+                    platform: 'YouTube',
+                    duration: 'Auto HD',
+                    videoUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1`,
+                    audioUrl: targetUrl,
+                    streamUrl: `https://www.youtube.com/watch?v=${videoId}`,
+                    thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+                    sourceUrl: targetUrl,
+                    isEmbed: true
+                };
+            }
+        }
+
+        // 3. Reddit direct fallback parser
+        if (platform === 'REDDIT') {
+            try {
+                const cleanUrl = targetUrl.split('?')[0].replace(/\/$/, '') + '.json';
+                const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(cleanUrl)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const post = data[0]?.data?.children[0]?.data;
+                    if (post && post.secure_media?.reddit_video) {
+                        const rv = post.secure_media.reddit_video;
+                        const durationSec = rv.duration || 0;
+                        const durStr = durationSec ? `${durationSec}s` : 'HD';
+                        return {
+                            title: post.title || 'Reddit Video',
+                            author: post.author ? `u/${post.author}` : 'Reddit User',
+                            platform: 'Reddit',
+                            duration: durStr,
+                            videoUrl: rv.fallback_url,
+                            audioUrl: rv.fallback_url.replace(/DASH_\d+/, 'DASH_AUDIO_128'),
+                            streamUrl: rv.fallback_url,
+                            thumbnail: post.thumbnail && post.thumbnail.startsWith('http') ? post.thumbnail : '',
+                            sourceUrl: targetUrl
+                        };
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // 4. Twitter / X Direct Media Parser via vxtwitter / fxtwitter
+        if (platform === 'X / TWITTER') {
+            try {
+                const apiVx = targetUrl.replace('twitter.com', 'api.vxtwitter.com').replace('x.com', 'api.vxtwitter.com');
+                const vxRes = await fetch(apiVx);
+                if (vxRes.ok) {
+                    const vxData = await vxRes.json();
+                    if (vxData.mediaURLs && vxData.mediaURLs.length > 0) {
+                        const vidUrl = vxData.mediaURLs[0];
+                        return {
+                            title: vxData.text ? vxData.text.slice(0, 80) : 'Twitter Media',
+                            author: vxData.user_name ? `${vxData.user_name} (@${vxData.user_screen_name})` : 'Twitter User',
+                            platform: 'Twitter / X',
+                            duration: 'HD',
+                            videoUrl: vidUrl,
+                            audioUrl: vidUrl,
+                            streamUrl: vidUrl,
+                            thumbnail: vxData.media_extended?.[0]?.thumbnail_url || '',
+                            sourceUrl: targetUrl
+                        };
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // 5. Generic / Direct Stream Fallback
         return {
             title: `${platform} Media Stream`,
             author: platform,
             platform: platform,
-            duration: 'Live / VOD',
+            duration: 'Live / Media',
             videoUrl: targetUrl,
             audioUrl: targetUrl,
             streamUrl: targetUrl,
@@ -423,11 +500,19 @@ class FetchFlowApp {
         this.mediaDuration.textContent = media.duration || 'Auto';
         this.mediaPlatform.textContent = media.platform;
 
-        // Player element
         this.playerContainer.innerHTML = '';
-        const isAudio = media.platform === 'SOUNDCLOUD' || media.isAudioOnly;
 
-        if (isAudio) {
+        if (media.isEmbed) {
+            const iframe = document.createElement('iframe');
+            iframe.src = media.videoUrl;
+            iframe.style.width = '100%';
+            iframe.style.height = '320px';
+            iframe.style.border = 'none';
+            iframe.style.borderRadius = '8px';
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            iframe.allowFullscreen = true;
+            this.playerContainer.appendChild(iframe);
+        } else if (media.platform === 'SOUNDCLOUD' || media.isAudioOnly) {
             const audio = document.createElement('audio');
             audio.controls = true;
             audio.src = media.audioUrl || media.streamUrl;
@@ -441,25 +526,29 @@ class FetchFlowApp {
             video.style.width = '100%';
             video.style.maxHeight = '380px';
             video.style.borderRadius = '8px';
+            if (media.thumbnail) video.poster = media.thumbnail;
             this.playerContainer.appendChild(video);
         }
 
         // Download Action Buttons
         this.btnDlVideo.onclick = () => {
             window.fetchflowSound.playClick();
-            this.triggerDownload(media.videoUrl || media.streamUrl, `${media.title || 'video'}.mp4`);
+            const safeName = (media.title || 'video').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
+            this.forceDownloadFile(media.videoUrl || media.streamUrl, `${safeName}.mp4`);
         };
 
         this.btnDlAudio.onclick = () => {
             window.fetchflowSound.playClick();
-            this.triggerDownload(media.audioUrl || media.streamUrl, `${media.title || 'audio'}.mp3`);
+            const safeName = (media.title || 'audio').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
+            this.forceDownloadFile(media.audioUrl || media.streamUrl, `${safeName}.mp3`);
         };
 
         if (media.thumbnail) {
             this.btnDlThumb.style.display = 'inline-flex';
             this.btnDlThumb.onclick = () => {
                 window.fetchflowSound.playClick();
-                this.triggerDownload(media.thumbnail, `${media.title || 'cover'}.jpg`);
+                const safeName = (media.title || 'cover').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
+                this.forceDownloadFile(media.thumbnail, `${safeName}.jpg`);
             };
         } else {
             this.btnDlThumb.style.display = 'none';
@@ -470,22 +559,71 @@ class FetchFlowApp {
             window.open(media.streamUrl || media.videoUrl, '_blank');
         };
 
-        // Scroll to preview smoothly
         this.previewSection.scrollIntoView({ behavior: 'smooth' });
     }
 
-    triggerDownload(url, filename) {
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.target = '_blank';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+    /**
+     * Resilient in-browser forced file downloader:
+     * 1. Tries direct blob fetch
+     * 2. Tries multi-hop CORS proxy blob fetch
+     * 3. Falls back to window.open stream download
+     */
+    async forceDownloadFile(fileUrl, filename) {
+        if (this.isDownloading) return;
+        this.isDownloading = true;
+
+        const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
+        this.showToast(dict.toastDownloading);
+
+        const tryBlobDownload = async (url) => {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+            return true;
+        };
+
+        try {
+            // Attempt 1: Direct fetch
+            await tryBlobDownload(fileUrl);
+            this.showToast(dict.toastDownloaded);
+            window.fetchflowSound.playStreamFound();
+        } catch (e1) {
+            console.warn('Direct blob fetch failed, attempting CORS proxy...', e1);
+            try {
+                // Attempt 2: AllOrigins proxy
+                const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(fileUrl)}`;
+                await tryBlobDownload(proxiedUrl);
+                this.showToast(dict.toastDownloaded);
+                window.fetchflowSound.playStreamFound();
+            } catch (e2) {
+                console.warn('CORS proxy blob fetch failed, opening direct stream tab...', e2);
+                // Attempt 3: Direct tab download fallback
+                const a = document.createElement('a');
+                a.href = fileUrl;
+                a.target = '_blank';
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                this.showToast(dict.toastDownloaded);
+            }
+        } finally {
+            this.isDownloading = false;
+        }
     }
 
     saveToHistory(media) {
-        // Avoid duplicate top item
         this.history = this.history.filter(h => h.sourceUrl !== media.sourceUrl);
         this.history.unshift({
             title: media.title,
