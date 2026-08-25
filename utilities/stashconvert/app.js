@@ -67,217 +67,290 @@ const STASHCONVERT_I18N = {
 };
 
 /**
- * Pure JavaScript Animated GIF89a Encoder with LZW compression
- * Produces crisp, glitch-free animated .gif files directly in browser.
+ * Rock-Solid GIF89a Encoder & Adaptive Color Quantizer
+ * Produces crisp, glitch-free animated GIF images with high-fidelity palette quantization.
  */
-class GifBitWriter {
-    constructor() {
-        this.bytes = [];
-        this.curAcc = 0;
-        this.curBits = 0;
+function GifWriter(buf, width, height, gopts) {
+    var p = 0;
+    gopts = gopts || {};
+    var loop_count = gopts.loop === undefined ? 0 : gopts.loop;
+
+    // Header
+    buf[p++] = 0x47; buf[p++] = 0x49; buf[p++] = 0x46; // GIF
+    buf[p++] = 0x38; buf[p++] = 0x39; buf[p++] = 0x61; // 89a
+
+    // Logical Screen Descriptor
+    buf[p++] = width & 0xff; buf[p++] = (width >> 8) & 0xff;
+    buf[p++] = height & 0xff; buf[p++] = (height >> 8) & 0xff;
+    buf[p++] = 0x70; // 8-bit color resolution, no global color table
+    buf[p++] = 0;    // Background color
+    buf[p++] = 0;    // Pixel aspect ratio
+
+    // Netscape 2.0 Loop Extension (infinite loop)
+    if (loop_count !== null) {
+        buf[p++] = 0x21; buf[p++] = 0xff; buf[p++] = 0x0b;
+        buf[p++] = 0x4e; buf[p++] = 0x45; buf[p++] = 0x54; // NET
+        buf[p++] = 0x53; buf[p++] = 0x43; buf[p++] = 0x41; // SCA
+        buf[p++] = 0x50; buf[p++] = 0x45;                  // PE
+        buf[p++] = 0x32; buf[p++] = 0x2e; buf[p++] = 0x30; // 2.0
+        buf[p++] = 0x03; buf[p++] = 0x01;
+        buf[p++] = loop_count & 0xff;
+        buf[p++] = (loop_count >> 8) & 0xff;
+        buf[p++] = 0x00;
     }
 
-    write(code, nBits) {
-        this.curAcc |= (code << this.curBits);
-        this.curBits += nBits;
-        while (this.curBits >= 8) {
-            this.bytes.push(this.curAcc & 0xFF);
-            this.curAcc >>>= 8;
-            this.curBits -= 8;
-        }
-    }
+    this.addFrame = function(x, y, w, h, indexed_pixels, opts) {
+        opts = opts || {};
+        var delay = opts.delay === undefined ? 10 : opts.delay;
+        var local_palette = opts.palette;
 
-    flush() {
-        if (this.curBits > 0) {
-            this.bytes.push(this.curAcc & 0xFF);
-            this.curAcc = 0;
-            this.curBits = 0;
+        // Graphic Control Extension
+        buf[p++] = 0x21; buf[p++] = 0xf9; buf[p++] = 0x04;
+        buf[p++] = 0x04; // Disposal method: restore to background
+        buf[p++] = delay & 0xff; buf[p++] = (delay >> 8) & 0xff;
+        buf[p++] = 0;    // Transparent color index
+        buf[p++] = 0x00;
+
+        // Image Descriptor
+        buf[p++] = 0x2c;
+        buf[p++] = x & 0xff; buf[p++] = (x >> 8) & 0xff;
+        buf[p++] = y & 0xff; buf[p++] = (y >> 8) & 0xff;
+        buf[p++] = w & 0xff; buf[p++] = (w >> 8) & 0xff;
+        buf[p++] = h & 0xff; buf[p++] = (h >> 8) & 0xff;
+
+        // Local Color Table (256 colors = 0x87)
+        buf[p++] = 0x87;
+        for (var i = 0; i < 256; ++i) {
+            var rgb = (local_palette && i < local_palette.length) ? local_palette[i] : 0;
+            buf[p++] = (rgb >> 16) & 0xff;
+            buf[p++] = (rgb >> 8) & 0xff;
+            buf[p++] = rgb & 0xff;
         }
-    }
+
+        p = GifWriterOutputLZW(buf, p, 8, indexed_pixels);
+        return p;
+    };
+
+    this.finish = function() {
+        buf[p++] = 0x3b; // Trailer
+        return buf.subarray(0, p);
+    };
 }
 
-class AnimatedGifEncoder {
-    constructor(width, height, delayMs = 100) {
-        this.width = width;
-        this.height = height;
-        this.delayMs = delayMs;
-        this.frames = [];
+function GifWriterOutputLZW(buf, p, min_code_size, index_stream) {
+    buf[p++] = min_code_size;
+
+    var cur_subblock = p++;
+    var clear_code = 1 << min_code_size;
+    var eoi_code = clear_code + 1;
+    var next_code = eoi_code + 1;
+
+    var cur_code_size = min_code_size + 1;
+    var cur_shift = 0;
+    var cur_accum = 0;
+    var sub_len = 0;
+
+    function write_code(c) {
+        cur_accum |= c << cur_shift;
+        cur_shift += cur_code_size;
+        while (cur_shift >= 8) {
+            buf[p++] = cur_accum & 0xff;
+            sub_len++;
+            if (sub_len === 255) {
+                buf[cur_subblock] = 255;
+                cur_subblock = p++;
+                sub_len = 0;
+            }
+            cur_accum >>= 8;
+            cur_shift -= 8;
+        }
     }
 
-    addFrame(imageData) {
-        this.frames.push(imageData);
+    write_code(clear_code);
+
+    var table = {};
+    var prefix = index_stream[0];
+
+    for (var i = 1, len = index_stream.length; i < len; ++i) {
+        var k = index_stream[i];
+        var code = table[(prefix << 8) | k];
+
+        if (code !== undefined) {
+            prefix = code;
+        } else {
+            write_code(prefix);
+
+            if (next_code <= 4095) {
+                table[(prefix << 8) | k] = next_code++;
+                if (next_code > (1 << cur_code_size) && cur_code_size < 12) {
+                    cur_code_size++;
+                }
+            } else {
+                write_code(clear_code);
+                table = {};
+                cur_code_size = min_code_size + 1;
+                next_code = eoi_code + 1;
+            }
+            prefix = k;
+        }
     }
 
-    quantizeFrame(imgData) {
+    write_code(prefix);
+    write_code(eoi_code);
+
+    if (cur_shift > 0) {
+        buf[p++] = cur_accum & 0xff;
+        sub_len++;
+    }
+
+    if (sub_len > 0) {
+        buf[cur_subblock] = sub_len;
+    }
+    buf[p++] = 0x00;
+
+    return p;
+}
+
+// Adaptive Median-Cut Color Quantizer
+class AdaptiveQuantizer {
+    static quantize(imgData, maxColors = 256) {
         const data = imgData.data;
         const len = data.length;
         const numPixels = len / 4;
 
-        // 256-color palette: 216 uniform RGB cube + 40 grayscales
-        const palette = [];
-        for (let r = 0; r < 6; r++) {
-            for (let g = 0; g < 6; g++) {
-                for (let b = 0; b < 6; b++) {
-                    palette.push([r * 51, g * 51, b * 51]);
-                }
-            }
-        }
-        for (let i = 0; i < 40; i++) {
-            const v = Math.round((i / 39) * 255);
-            palette.push([v, v, v]);
+        // Collect color samples
+        const sampleStep = Math.max(1, Math.floor(numPixels / 8000));
+        const colorSet = new Map();
+
+        for (let i = 0; i < len; i += 4 * sampleStep) {
+            const r = data[i] >> 2;
+            const g = data[i + 1] >> 2;
+            const b = data[i + 2] >> 2;
+            const key = (r << 12) | (g << 6) | b;
+            colorSet.set(key, (colorSet.get(key) || 0) + 1);
         }
 
+        let colors = Array.from(colorSet.entries()).map(([k, count]) => ({
+            r: ((k >> 12) & 0x3F) << 2,
+            g: ((k >> 6) & 0x3F) << 2,
+            b: (k & 0x3F) << 2,
+            count
+        }));
+
+        if (colors.length === 0) {
+            colors = [{ r: 0, g: 0, b: 0, count: 1 }];
+        }
+
+        // Median cut
+        let boxes = [colors];
+        while (boxes.length < maxColors) {
+            let splitIndex = -1;
+            let maxRange = -1;
+
+            for (let i = 0; i < boxes.length; i++) {
+                const box = boxes[i];
+                if (box.length < 2) continue;
+
+                let minR = 255, maxR = 0, minG = 255, maxG = 0, minB = 255, maxB = 0;
+                for (let c of box) {
+                    if (c.r < minR) minR = c.r; if (c.r > maxR) maxR = c.r;
+                    if (c.g < minG) minG = c.g; if (c.g > maxG) maxG = c.g;
+                    if (c.b < minB) minB = c.b; if (c.b > maxB) maxB = c.b;
+                }
+                const range = Math.max(maxR - minR, maxG - minG, maxB - minB);
+                if (range > maxRange) {
+                    maxRange = range;
+                    splitIndex = i;
+                }
+            }
+
+            if (splitIndex === -1 || maxRange <= 0) break;
+
+            const boxToSplit = boxes.splice(splitIndex, 1)[0];
+            let minR = 255, maxR = 0, minG = 255, maxG = 0, minB = 255, maxB = 0;
+            for (let c of boxToSplit) {
+                if (c.r < minR) minR = c.r; if (c.r > maxR) maxR = c.r;
+                if (c.g < minG) minG = c.g; if (c.g > maxG) maxG = c.g;
+                if (c.b < minB) minB = c.b; if (c.b > maxB) maxB = c.b;
+            }
+            const rangeR = maxR - minR;
+            const rangeG = maxG - minG;
+            const rangeB = maxB - minB;
+            const maxDimension = rangeR >= rangeG && rangeR >= rangeB ? 'r' : (rangeG >= rangeB ? 'g' : 'b');
+
+            boxToSplit.sort((a, b) => a[maxDimension] - b[maxDimension]);
+            const mid = Math.floor(boxToSplit.length / 2);
+            boxes.push(boxToSplit.slice(0, mid));
+            boxes.push(boxToSplit.slice(mid));
+        }
+
+        // Build 256 palette integers (0xRRGGBB)
+        const palette = [];
+        for (let box of boxes) {
+            let total = 0, sumR = 0, sumG = 0, sumB = 0;
+            for (let c of box) {
+                sumR += c.r * c.count;
+                sumG += c.g * c.count;
+                sumB += c.b * c.count;
+                total += c.count;
+            }
+            const avgR = Math.round(sumR / (total || 1));
+            const avgG = Math.round(sumG / (total || 1));
+            const avgB = Math.round(sumB / (total || 1));
+            palette.push((avgR << 16) | (avgG << 8) | avgB);
+        }
+
+        while (palette.length < 256) {
+            palette.push(0);
+        }
+
+        // Precompute palette RGB arrays for fast euclidean matching
+        const palR = new Uint8Array(palette.length);
+        const palG = new Uint8Array(palette.length);
+        const palB = new Uint8Array(palette.length);
+        for (let i = 0; i < palette.length; i++) {
+            palR[i] = (palette[i] >> 16) & 0xFF;
+            palG[i] = (palette[i] >> 8) & 0xFF;
+            palB[i] = palette[i] & 0xFF;
+        }
+
+        // Fast color cache map
+        const cache = new Map();
         const indexedPixels = new Uint8Array(numPixels);
 
         for (let i = 0, p = 0; i < len; i += 4, p++) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
+            const r = data[i] >> 2;
+            const g = data[i + 1] >> 2;
+            const b = data[i + 2] >> 2;
+            const key = (r << 12) | (g << 6) | b;
 
-            const maxC = Math.max(r, g, b);
-            const minC = Math.min(r, g, b);
-
-            if (maxC - minC < 8) {
-                const grayIdx = Math.min(39, Math.max(0, Math.round((r / 255) * 39)));
-                indexedPixels[p] = 216 + grayIdx;
-            } else {
-                const ri = Math.min(5, Math.max(0, Math.round(r / 51)));
-                const gi = Math.min(5, Math.max(0, Math.round(g / 51)));
-                const bi = Math.min(5, Math.max(0, Math.round(b / 51)));
-                indexedPixels[p] = ri * 36 + gi * 6 + bi;
+            let idx = cache.get(key);
+            if (idx === undefined) {
+                const origR = data[i];
+                const origG = data[i + 1];
+                const origB = data[i + 2];
+                let minDist = Infinity;
+                idx = 0;
+                for (let k = 0; k < palette.length; k++) {
+                    const dr = origR - palR[k];
+                    const dg = origG - palG[k];
+                    const db = origB - palB[k];
+                    const dist = dr * dr + dg * dg + db * db;
+                    if (dist < minDist) {
+                        minDist = dist;
+                        idx = k;
+                        if (dist === 0) break;
+                    }
+                }
+                cache.set(key, idx);
             }
+            indexedPixels[p] = idx;
         }
 
         return { palette, indexedPixels };
     }
-
-    encode() {
-        const bytes = [];
-        const pushStr = (s) => {
-            for (let i = 0; i < s.length; i++) bytes.push(s.charCodeAt(i));
-        };
-        const push16 = (n) => {
-            bytes.push(n & 0xFF, (n >> 8) & 0xFF);
-        };
-
-        // 1. GIF Header
-        pushStr('GIF89a');
-
-        // 2. Logical Screen Descriptor
-        push16(this.width);
-        push16(this.height);
-        bytes.push(0x70); // GCT Flag = 0, Color Res = 7 (8 bits), Sort = 0, GCT Size = 0
-        bytes.push(0);    // Background color index
-        bytes.push(0);    // Pixel aspect ratio
-
-        // 3. Netscape 2.0 Loop Extension (Infinite looping)
-        bytes.push(0x21, 0xFF, 0x0B);
-        pushStr('NETSCAPE2.0');
-        bytes.push(0x03, 0x01, 0x00, 0x00, 0x00);
-
-        const delayCentisecs = Math.max(1, Math.round(this.delayMs / 10));
-
-        // 4. Encode each frame
-        for (let f = 0; f < this.frames.length; f++) {
-            const { palette, indexedPixels } = this.quantizeFrame(this.frames[f]);
-
-            // Graphic Control Extension
-            bytes.push(0x21, 0xF9, 0x04);
-            bytes.push(0x04); // Disposal method: restore to background
-            push16(delayCentisecs);
-            bytes.push(0x00); // Transparent color index
-            bytes.push(0x00); // Block terminator
-
-            // Image Descriptor
-            bytes.push(0x2C);
-            push16(0); // Left
-            push16(0); // Top
-            push16(this.width);
-            push16(this.height);
-            bytes.push(0x87); // Local Color Table Flag (1), Interlace (0), Sort (0), Size 7 (256 colors)
-
-            // Local Color Table (256 * 3 bytes)
-            for (let i = 0; i < 256; i++) {
-                bytes.push(palette[i][0], palette[i][1], palette[i][2]);
-            }
-
-            // LZW raster data
-            const lzwData = this.lzwEncode(8, indexedPixels);
-            for (let i = 0; i < lzwData.length; i++) {
-                bytes.push(lzwData[i]);
-            }
-        }
-
-        // 5. GIF Trailer
-        bytes.push(0x3B);
-
-        return new Blob([new Uint8Array(bytes)], { type: 'image/gif' });
-    }
-
-    lzwEncode(minCodeSize, pixels) {
-        const clearCode = 1 << minCodeSize; // 256
-        const eoiCode = clearCode + 1;       // 257
-        let nextCode = eoiCode + 1;
-        let codeSize = minCodeSize + 1;
-
-        const writer = new GifBitWriter();
-        const table = new Map();
-
-        const resetTable = () => {
-            table.clear();
-            for (let i = 0; i < clearCode; i++) {
-                table.set(i, i);
-            }
-            codeSize = minCodeSize + 1;
-            nextCode = eoiCode + 1;
-        };
-
-        resetTable();
-        writer.write(clearCode, codeSize);
-
-        let prefix = pixels[0];
-
-        for (let i = 1; i < pixels.length; i++) {
-            const k = pixels[i];
-            const combinedKey = (prefix << 8) | k;
-
-            if (table.has(combinedKey)) {
-                prefix = table.get(combinedKey);
-            } else {
-                writer.write(prefix, codeSize);
-
-                if (nextCode < 4096) {
-                    table.set(combinedKey, nextCode++);
-                    if (nextCode > (1 << codeSize) && codeSize < 12) {
-                        codeSize++;
-                    }
-                } else {
-                    writer.write(clearCode, codeSize);
-                    resetTable();
-                }
-                prefix = k;
-            }
-        }
-
-        writer.write(prefix, codeSize);
-        writer.write(eoiCode, codeSize);
-        writer.flush();
-
-        const result = [minCodeSize];
-        let offset = 0;
-        while (offset < writer.bytes.length) {
-            const blockSize = Math.min(255, writer.bytes.length - offset);
-            result.push(blockSize);
-            for (let b = 0; b < blockSize; b++) {
-                result.push(writer.bytes[offset + b]);
-            }
-            offset += blockSize;
-        }
-        result.push(0x00);
-
-        return result;
-    }
 }
+
 
 
 class StashConvertApp {
@@ -828,7 +901,7 @@ class StashConvertApp {
                 const duration = Math.min(video.duration || 4, 6);
                 const fps = 10;
                 const totalFrames = Math.max(1, Math.floor(duration * fps));
-                const delayMs = Math.round(1000 / fps);
+                const delayCentisecs = Math.max(1, Math.round(100 / fps));
 
                 const targetW = Math.min(video.videoWidth || 360, 360);
                 const targetH = Math.round(targetW * ((video.videoHeight || 240) / (video.videoWidth || 360)));
@@ -837,7 +910,9 @@ class StashConvertApp {
                 canvas.height = targetH;
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-                const gifEncoder = new AnimatedGifEncoder(targetW, targetH, delayMs);
+                const maxBufSize = 1024 * 1024 * 16;
+                const gifBuffer = new Uint8Array(maxBufSize);
+                const writer = new GifWriter(gifBuffer, targetW, targetH, { loop: 0 });
 
                 const captureFrame = (time) => {
                     return new Promise((res) => {
@@ -856,20 +931,29 @@ class StashConvertApp {
                 for (let i = 0; i < totalFrames; i++) {
                     const time = (i / totalFrames) * duration;
                     const frameData = await captureFrame(time);
-                    gifEncoder.addFrame(frameData);
-                    item.progress = Math.round(20 + (i / totalFrames) * 70);
+                    const { palette, indexedPixels } = AdaptiveQuantizer.quantize(frameData, 256);
+
+                    writer.addFrame(0, 0, targetW, targetH, indexedPixels, {
+                        palette: palette,
+                        delay: delayCentisecs,
+                        disposal: 2
+                    });
+
+                    item.progress = Math.round(20 + (i / totalFrames) * 75);
                     this.renderQueue();
                 }
 
                 URL.revokeObjectURL(video.src);
 
-                const gifBlob = gifEncoder.encode();
+                const finalGifBytes = writer.finish();
+                const gifBlob = new Blob([finalGifBytes], { type: 'image/gif' });
                 resolve(gifBlob);
             };
 
             video.onerror = (e) => reject(e);
         });
     }
+
 
 
 
