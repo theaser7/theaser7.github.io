@@ -850,8 +850,9 @@
         <header class="hero-section">
             <div class="brand-heading">
                 <h1 class="brand-title">the stash</h1>
-                <span class="brand-version">v0.6.3</span>
+                <span class="brand-version">v0.6.5</span>
             </div>
+
 
 
             <p class="hero-desc">1000+ client-side experiments. Zero watermark. Zero telemetry. Free.</p>
@@ -1104,25 +1105,25 @@
             <button class="modal-close" id="modal-close-btn" title="Close">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
-            <span class="modal-badge">ARCHITECTURAL CONCEPT</span>
-            <h3 class="modal-title">FetchFlow // Core Specs</h3>
-            <p class="modal-body">
+            <span class="modal-badge" id="concept-modal-badge">ARCHITECTURAL CONCEPT</span>
+            <h3 class="modal-title" id="concept-modal-title">FetchFlow // Core Specs</h3>
+            <p class="modal-body" id="concept-modal-body">
                 FetchFlow is a planned client-side command compiler and companion bridge for <strong>yt-dlp</strong> and <strong>ffmpeg</strong>, giving users complete control over high-resolution media extraction without remote third-party servers.
             </p>
             <ul class="modal-features">
-                <li>
+                <li id="concept-feat-1">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     <span><strong>1000+ Providers:</strong> YouTube, VK, Twitch VODs, Rutube, SoundCloud & more.</span>
                 </li>
-                <li>
+                <li id="concept-feat-2">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     <span><strong>Lossless Audio:</strong> MP3 320k, FLAC, Opus, AAC with embedded artwork & tags.</span>
                 </li>
-                <li>
+                <li id="concept-feat-3">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     <span><strong>Section Trimming:</strong> Download specific timestamp segments via FFmpeg.</span>
                 </li>
-                <li>
+                <li id="concept-feat-4">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     <span><strong>Automation:</strong> 1-click generation of portable Windows <code>.bat</code> execution scripts.</span>
                 </li>
@@ -1130,6 +1131,7 @@
             <button class="btn-action" id="modal-ack-btn">Understood</button>
         </div>
     </div>
+
 
     <!-- Settings Modal -->
     <div class="modal-overlay" id="settings-modal">
@@ -1380,6 +1382,14 @@
                 lblLang: "Interface Language",
                 descLang: "Choose language for the stash hub",
                 btnSave: "Save & Close",
+                conceptBadge: "ARCHITECTURAL CONCEPT",
+                conceptTitle: "FetchFlow // Core Specs",
+                conceptBody: "FetchFlow is a planned client-side command compiler and companion bridge for <strong>yt-dlp</strong> and <strong>ffmpeg</strong>, giving users complete control over high-resolution media extraction without remote third-party servers.",
+                conceptFeat1: "<strong>1000+ Providers:</strong> YouTube, VK, Twitch VODs, Rutube, SoundCloud & more.",
+                conceptFeat2: "<strong>Lossless Audio:</strong> MP3 320k, FLAC, Opus, AAC with embedded artwork & tags.",
+                conceptFeat3: "<strong>Section Trimming:</strong> Download specific timestamp segments via FFmpeg.",
+                conceptFeat4: "<strong>Automation:</strong> 1-click generation of portable Windows <code>.bat</code> execution scripts.",
+                conceptAck: "Understood",
                 statusPlayable: "Playable",
                 statusWip: "In Progress",
                 statusConcept: "Concept",
@@ -1425,6 +1435,14 @@
                 lblLang: "Язык интерфейса",
                 descLang: "Выберите язык отображения хаба the stash",
                 btnSave: "Сохранить и закрыть",
+                conceptBadge: "АРХИТЕКТУРНЫЙ КОНЦЕПТ",
+                conceptTitle: "FetchFlow // Спецификация ядра",
+                conceptBody: "FetchFlow — планируемый клиентский генератор команд и мост-компаньон для <strong>yt-dlp</strong> и <strong>ffmpeg</strong>, дающий полный контроль над извлечением медиа в высоком качестве без сторонних серверов.",
+                conceptFeat1: "<strong>1000+ провайдеров:</strong> YouTube, VK, Twitch VODs, Rutube, SoundCloud и другие.",
+                conceptFeat2: "<strong>Звук без потерь:</strong> MP3 320k, FLAC, Opus, AAC со встроенной обложкой и тегами.",
+                conceptFeat3: "<strong>Нарезка фрагментов:</strong> Загрузка точных таймкод-сегментов через FFmpeg.",
+                conceptFeat4: "<strong>Автоматизация:</strong> Генерация исполняемых Windows <code>.bat</code> скриптов в 1 клик.",
+                conceptAck: "Понятно",
                 statusPlayable: "Готово",
                 statusWip: "В разработке",
                 statusConcept: "Концепт",
@@ -1564,12 +1582,32 @@
             const btnSave = document.getElementById('btn-settings-save');
             if (btnSave) btnSave.textContent = dict.btnSave;
 
+            // Modal Concept (FetchFlow) Texts
+            const cBadge = document.getElementById('concept-modal-badge');
+            if (cBadge) cBadge.textContent = dict.conceptBadge;
+            const cTitle = document.getElementById('concept-modal-title');
+            if (cTitle) cTitle.textContent = dict.conceptTitle;
+            const cBody = document.getElementById('concept-modal-body');
+            if (cBody) cBody.innerHTML = dict.conceptBody;
+            
+            const cF1 = document.querySelector('#concept-feat-1 span');
+            if (cF1) cF1.innerHTML = dict.conceptFeat1;
+            const cF2 = document.querySelector('#concept-feat-2 span');
+            if (cF2) cF2.innerHTML = dict.conceptFeat2;
+            const cF3 = document.querySelector('#concept-feat-3 span');
+            if (cF3) cF3.innerHTML = dict.conceptFeat3;
+            const cF4 = document.querySelector('#concept-feat-4 span');
+            if (cF4) cF4.innerHTML = dict.conceptFeat4;
+            const cAck = document.getElementById('modal-ack-btn');
+            if (cAck) cAck.textContent = dict.conceptAck;
+
             // Switch active buttons
             document.querySelectorAll('.lang-btn').forEach(b => {
                 if (b.getAttribute('data-lang') === lang) b.classList.add('active');
                 else b.classList.remove('active');
             });
         }
+
 
         // Settings Modal Handlers
         const settingsModal = document.getElementById('settings-modal');

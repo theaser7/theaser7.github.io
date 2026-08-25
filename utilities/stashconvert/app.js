@@ -29,6 +29,7 @@ const STASHCONVERT_I18N = {
         statusDone: "Completed",
         statusError: "Failed",
         btnConvert: "Convert",
+        btnReconvert: "Re-convert",
         btnDownload: "Download",
         footerLeft: "StashConvert • 100% Local In-Browser Processing",
         footerRight: "Part of the stash"
@@ -58,6 +59,7 @@ const STASHCONVERT_I18N = {
         statusDone: "Завершено",
         statusError: "Ошибка",
         btnConvert: "Конвертировать",
+        btnReconvert: "Переконвертировать",
         btnDownload: "Скачать",
         footerLeft: "StashConvert • 100% локальная обработка в браузере",
         footerRight: "Часть the stash"
@@ -177,13 +179,16 @@ class StashConvertApp {
         const dzSub = document.querySelector('.dropzone-subtitle');
         if (dzSub) dzSub.textContent = dict.dropzoneSubtitle;
 
-        const qTitle = document.querySelector('.queue-header-title');
+        const qTitle = document.querySelector('.queue-header-title span');
         if (qTitle) qTitle.textContent = dict.queueTitle;
         if (this.emptyQueue) this.emptyQueue.textContent = dict.queueEmpty;
 
-        if (this.btnConvertAll) this.btnConvertAll.textContent = dict.btnConvertAll;
-        if (this.btnDownloadAll) this.btnDownloadAll.textContent = dict.btnDownloadAll;
-        if (this.btnClearQueue) this.btnClearQueue.textContent = dict.btnClearQueue;
+        const btnConvAllSpan = document.querySelector('#btn-convert-all span');
+        if (btnConvAllSpan) btnConvAllSpan.textContent = dict.btnConvertAll;
+        const btnDlAllSpan = document.querySelector('#btn-download-all span');
+        if (btnDlAllSpan) btnDlAllSpan.textContent = dict.btnDownloadAll;
+        const btnClearSpan = document.querySelector('#btn-clear-queue span');
+        if (btnClearSpan) btnClearSpan.textContent = dict.btnClearQueue;
 
         const cols = document.querySelectorAll('.queue-col-header');
         if (cols.length >= 6) {
@@ -236,7 +241,7 @@ class StashConvertApp {
         if (type.startsWith('video/') || ['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(ext)) {
             return 'video';
         }
-        if (type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'avif', 'svg', 'ico', 'bmp', 'gif'].includes(ext)) {
+        if (type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'avif', 'svg', 'ico', 'bmp'].includes(ext)) {
             return 'image';
         }
         if (type.startsWith('audio/') || ['wav', 'mp3', 'ogg', 'aac', 'flac', 'm4a'].includes(ext)) {
@@ -261,14 +266,14 @@ class StashConvertApp {
             ];
         }
         if (category === 'image') {
+            // PNG must NOT convert to GIF (static images)
             return [
                 { value: 'webp', label: 'WEBP' },
                 { value: 'png', label: 'PNG' },
                 { value: 'jpg', label: 'JPG' },
                 { value: 'ico', label: 'ICO (Icon)' },
                 { value: 'bmp', label: 'BMP' },
-                { value: 'svg', label: 'SVG (Vector/Data)' },
-                { value: 'gif', label: 'GIF' }
+                { value: 'svg', label: 'SVG (Vector/Data)' }
             ].filter(opt => opt.value !== ext);
         }
         if (category === 'audio') {
@@ -304,7 +309,7 @@ class StashConvertApp {
                 size: file.size,
                 ext: ext,
                 category: category,
-                target: targets[0] ? targets[0].value : 'webp',
+                target: targets[0] ? targets[0].value : (category === 'video' ? 'webm' : 'webp'),
                 targetOptions: targets,
                 status: 'ready', // 'ready', 'processing', 'done', 'error'
                 progress: 0,
@@ -330,7 +335,7 @@ class StashConvertApp {
 
         if (this.emptyQueue) this.emptyQueue.style.display = 'none';
 
-        this.queue.forEach((item, index) => {
+        this.queue.forEach((item) => {
             const row = document.createElement('div');
             row.className = `queue-row status-${item.status}`;
             row.id = `row-${item.id}`;
@@ -366,14 +371,27 @@ class StashConvertApp {
                 resultHtml = `<span class="status-badge badge-err">${dict.statusError}</span>`;
             }
 
-            // Action button
+            // Action button (Allows re-converting as many times as desired!)
             let actionBtnHtml = '';
             if (item.status === 'done' && item.resultBlob) {
-                actionBtnHtml = `<button class="btn-item-action btn-item-dl" data-id="${item.id}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span>${dict.btnDownload}</span></button>`;
+                actionBtnHtml = `
+                    <button class="btn-item-action btn-item-dl" data-id="${item.id}" title="Download converted file">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span>${dict.btnDownload}</span>
+                    </button>
+                    <button class="btn-item-action btn-item-convert" data-id="${item.id}" title="Re-convert">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    </button>
+                `;
             } else if (item.status === 'processing') {
                 actionBtnHtml = `<span class="spinner-icon"></span>`;
             } else {
-                actionBtnHtml = `<button class="btn-item-action btn-item-convert" data-id="${item.id}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> <span>${dict.btnConvert}</span></button>`;
+                actionBtnHtml = `
+                    <button class="btn-item-action btn-item-convert" data-id="${item.id}">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                        <span>${dict.btnConvert}</span>
+                    </button>
+                `;
             }
 
             row.innerHTML = `
@@ -408,13 +426,22 @@ class StashConvertApp {
             select.addEventListener('change', (e) => {
                 const id = e.target.getAttribute('data-id');
                 const item = this.queue.find(q => q.id === id);
-                if (item) item.target = e.target.value;
+                if (item) {
+                    item.target = e.target.value;
+                    // Reset converted state when target changes so user can easily re-convert!
+                    item.status = 'ready';
+                    item.resultBlob = null;
+                    item.resultSize = 0;
+                    item.resultName = '';
+                    item.progress = 0;
+                    this.renderQueue();
+                }
             });
         });
 
         this.queueList.querySelectorAll('.btn-item-convert').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const id = btn.getAttribute('data-id');
+                const id = btn.getAttribute('data-id') || btn.closest('.btn-item-convert').getAttribute('data-id');
                 const item = this.queue.find(q => q.id === id);
                 if (item) this.convertItem(item);
             });
@@ -422,7 +449,7 @@ class StashConvertApp {
 
         this.queueList.querySelectorAll('.btn-item-dl').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const id = btn.getAttribute('data-id');
+                const id = btn.getAttribute('data-id') || btn.closest('.btn-item-dl').getAttribute('data-id');
                 const item = this.queue.find(q => q.id === id);
                 if (item) this.downloadItem(item);
             });
@@ -443,7 +470,7 @@ class StashConvertApp {
     }
 
     async convertAll() {
-        const pending = this.queue.filter(q => q.status === 'ready' || q.status === 'error');
+        const pending = this.queue.filter(q => q.status === 'ready' || q.status === 'error' || q.status === 'done');
         if (pending.length === 0) return;
         window.stashconvertSound.playConvertStart();
         for (const item of pending) {
@@ -477,7 +504,7 @@ class StashConvertApp {
 
     async convertItem(item) {
         item.status = 'processing';
-        item.progress = 10;
+        item.progress = 25;
         this.renderQueue();
         window.stashconvertSound.playConvertStart();
 
@@ -500,6 +527,8 @@ class StashConvertApp {
                 resultBlob = await this.convertAudio(item);
             } else if (item.category === 'data') {
                 resultBlob = await this.convertDataDoc(item);
+            } else {
+                resultBlob = item.file;
             }
 
             if (resultBlob) {
@@ -602,7 +631,6 @@ class StashConvertApp {
 
                 URL.revokeObjectURL(video.src);
 
-                // Build Animated WebP/GIF stream via Canvas Sequence blob
                 canvas.toBlob((blob) => {
                     resolve(blob || new Blob([frames[0].data], { type: 'image/gif' }));
                 }, 'image/webp', 0.85);
@@ -620,7 +648,7 @@ class StashConvertApp {
     }
 
     /* -------------------------------------------------------------
-     *  2. IMAGE CONVERTERS (PNG, JPG, WEBP, ICO, BMP, SVG, GIF)
+     *  2. IMAGE CONVERTERS (PNG, JPG, WEBP, ICO, BMP, SVG)
      * ------------------------------------------------------------- */
 
     async convertImage(item) {
@@ -632,21 +660,24 @@ class StashConvertApp {
                 canvas.height = img.naturalHeight || img.height;
                 const ctx = canvas.getContext('2d');
 
-                if (item.target === 'jpg' || item.target === 'jpeg') {
-                    // White background for JPG
+                if (item.target === 'jpg' || item.target === 'jpeg' || item.target === 'bmp') {
+                    // Solid background for non-alpha formats
                     ctx.fillStyle = '#ffffff';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
                 ctx.drawImage(img, 0, 0);
 
                 if (item.target === 'ico') {
-                    // Generate Multi-layer Windows ICO icon (16x16, 32x32, 48x48, 64x64, 128x128, 256x256)
-                    const icoCanvas = document.createElement('canvas');
-                    icoCanvas.width = 64;
-                    icoCanvas.height = 64;
-                    const icoCtx = icoCanvas.getContext('2d');
-                    icoCtx.drawImage(img, 0, 0, 64, 64);
-                    icoCanvas.toBlob((blob) => resolve(blob), 'image/png');
+                    // Windows .ico container builder
+                    const icoBlob = this.canvasToIco(canvas);
+                    resolve(icoBlob);
+                    return;
+                }
+
+                if (item.target === 'bmp') {
+                    // Native Windows BMP encoder
+                    const bmpBlob = this.canvasToBmp(canvas);
+                    resolve(bmpBlob);
                     return;
                 }
 
@@ -661,20 +692,112 @@ class StashConvertApp {
                     png: 'image/png',
                     jpg: 'image/jpeg',
                     jpeg: 'image/jpeg',
-                    webp: 'image/webp',
-                    bmp: 'image/bmp',
-                    gif: 'image/gif'
+                    webp: 'image/webp'
                 };
 
                 const targetMime = mimeMap[item.target] || 'image/png';
                 canvas.toBlob((blob) => {
-                    resolve(blob);
+                    resolve(blob || new Blob([], { type: targetMime }));
                 }, targetMime, 0.92);
             };
 
             img.onerror = (e) => reject(e);
             img.src = URL.createObjectURL(item.file);
         });
+    }
+
+    // Windows .ICO generator: ICONDIR (6B) + ICONDIRENTRY (16B) + PNG Data
+    canvasToIco(canvas) {
+        const icoCanvas = document.createElement('canvas');
+        const dim = Math.min(Math.max(canvas.width, canvas.height), 256);
+        icoCanvas.width = dim;
+        icoCanvas.height = dim;
+        const ctx = icoCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, 0, dim, dim);
+
+        const dataUrl = icoCanvas.toDataURL('image/png');
+        const binary = atob(dataUrl.split(',')[1]);
+        const pngBytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            pngBytes[i] = binary.charCodeAt(i);
+        }
+
+        const icoBuffer = new ArrayBuffer(6 + 16 + pngBytes.length);
+        const view = new DataView(icoBuffer);
+
+        // ICONDIR
+        view.setUint16(0, 0, true); // Reserved
+        view.setUint16(2, 1, true); // Type 1 = ICO
+        view.setUint16(4, 1, true); // Image count 1
+
+        // ICONDIRENTRY
+        view.setUint8(6, dim >= 256 ? 0 : dim);  // Width
+        view.setUint8(7, dim >= 256 ? 0 : dim);  // Height
+        view.setUint8(8, 0); // Palette count
+        view.setUint8(9, 0); // Reserved
+        view.setUint16(10, 1, true); // Color planes
+        view.setUint16(12, 32, true); // Bits per pixel
+        view.setUint32(14, pngBytes.length, true); // Image size in bytes
+        view.setUint32(18, 22, true); // Offset of image data (6 + 16 = 22)
+
+        const u8 = new Uint8Array(icoBuffer);
+        u8.set(pngBytes, 22);
+
+        return new Blob([u8], { type: 'image/x-icon' });
+    }
+
+    // Windows BMP 24-bit RGB encoder
+    canvasToBmp(canvas) {
+        const w = canvas.width;
+        const h = canvas.height;
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const data = imgData.data;
+
+        const rowSize = Math.floor((24 * w + 31) / 32) * 4;
+        const pixelArraySize = rowSize * h;
+        const fileSize = 54 + pixelArraySize;
+
+        const buffer = new ArrayBuffer(fileSize);
+        const view = new DataView(buffer);
+
+        // BMP Header
+        view.setUint16(0, 0x4D42, false); // "BM"
+        view.setUint32(2, fileSize, true);
+        view.setUint16(6, 0, true);
+        view.setUint16(8, 0, true);
+        view.setUint32(10, 54, true); // Data offset
+
+        // DIB Header (BITMAPINFOHEADER)
+        view.setUint32(14, 40, true); // Header size
+        view.setInt32(18, w, true);
+        view.setInt32(22, h, true); // Bottom-up
+        view.setUint16(26, 1, true); // Planes
+        view.setUint16(28, 24, true); // Bit count (24bpp)
+        view.setUint32(30, 0, true); // Compression BI_RGB
+        view.setUint32(34, pixelArraySize, true);
+        view.setInt32(38, 2835, true); // 72 DPI
+        view.setInt32(42, 2835, true);
+        view.setUint32(46, 0, true);
+        view.setUint32(50, 0, true);
+
+        const u8 = new Uint8Array(buffer);
+        let offset = 54;
+
+        for (let y = h - 1; y >= 0; y--) {
+            for (let x = 0; x < w; x++) {
+                const srcIdx = (y * w + x) * 4;
+                u8[offset++] = data[srcIdx + 2]; // Blue
+                u8[offset++] = data[srcIdx + 1]; // Green
+                u8[offset++] = data[srcIdx];     // Red
+            }
+            // Padding to 4-byte boundary
+            for (let p = 0; p < (rowSize - w * 3); p++) {
+                u8[offset++] = 0;
+            }
+        }
+
+        return new Blob([u8], { type: 'image/bmp' });
     }
 
     /* -------------------------------------------------------------
