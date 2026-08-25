@@ -64,8 +64,11 @@ const STASHCONVERT_I18N = {
         footerLeft: "StashConvert • 100% локальная обработка в браузере",
         footerRight: "Часть the stash"
     }
+};
+
 /**
  * Pure JavaScript Animated GIF89a Encoder with LZW compression
+
  * Produces genuine, compliant animated .gif files directly in browser.
  */
 class AnimatedGifEncoder {
