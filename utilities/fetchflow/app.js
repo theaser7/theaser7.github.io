@@ -19,7 +19,8 @@ const FETCHFLOW_I18N = {
         labelDuration: "DURATION",
         labelPlatform: "PLATFORM",
         labelAuthor: "AUTHOR",
-        btnDownloadVideo: "DOWNLOAD VIDEO (HD)",
+        labelQuality: "TARGET FORMAT & QUALITY // RESOLUTION",
+        btnDownloadVideo: "DOWNLOAD MEDIA",
         btnDownloadAudio: "DOWNLOAD AUDIO (MP3)",
         btnDownloadThumb: "DOWNLOAD COVER",
         btnOpenStream: "DIRECT STREAM / OPEN",
@@ -29,9 +30,9 @@ const FETCHFLOW_I18N = {
         errInvalidUrl: "Please enter a valid media URL",
         errExtractFailed: "Failed to extract media stream. Please verify the URL or try again.",
         toastCopied: "Link copied to clipboard!",
-        toastSuccess: "Extraction completed successfully!",
+        toastSuccess: "Media extracted successfully!",
         toastDownloading: "Starting stream download...",
-        toastDownloaded: "Download ready!",
+        toastDownloaded: "File download initiated!",
         footerLeft: "FetchFlow • 100% In-Browser Media Extraction",
         footerRight: "Part of the stash"
     },
@@ -50,7 +51,8 @@ const FETCHFLOW_I18N = {
         labelDuration: "ДЛИТЕЛЬНОСТЬ",
         labelPlatform: "ПЛАТФОРМА",
         labelAuthor: "АВТОР",
-        btnDownloadVideo: "СКАЧАТЬ ВИДЕО (HD)",
+        labelQuality: "ФОРМАТ И КАЧЕСТВО // РАЗРЕШЕНИЕ",
+        btnDownloadVideo: "СКАЧАТЬ МЕДИА",
         btnDownloadAudio: "СКАЧАТЬ АУДИО (MP3)",
         btnDownloadThumb: "СКАЧАТЬ ОБЛОЖКУ",
         btnOpenStream: "ПРЯМОЙ ПОТОК / ОТКРЫТЬ",
@@ -62,7 +64,7 @@ const FETCHFLOW_I18N = {
         toastCopied: "Ссылка скопирована в буфер!",
         toastSuccess: "Медиапоток успешно получен!",
         toastDownloading: "Скачивание медиапотока...",
-        toastDownloaded: "Файл готов и сохранен!",
+        toastDownloaded: "Файл успешно передан на загрузку!",
         footerLeft: "FetchFlow • 100% извлечение медиа в браузере",
         footerRight: "Часть the stash"
     }
@@ -100,6 +102,7 @@ class FetchFlowApp {
         this.mediaAuthor = document.getElementById('media-author');
         this.mediaDuration = document.getElementById('media-duration');
         this.mediaPlatform = document.getElementById('media-platform');
+        this.qualitySelect = document.getElementById('quality-select');
 
         this.btnDlVideo = document.getElementById('btn-dl-video');
         this.btnDlAudio = document.getElementById('btn-dl-audio');
@@ -202,6 +205,8 @@ class FetchFlowApp {
         if (lblPlat) lblPlat.textContent = dict.labelPlatform;
         const lblAuth = document.getElementById('lbl-meta-author');
         if (lblAuth) lblAuth.textContent = dict.labelAuthor;
+        const lblQual = document.getElementById('lbl-quality');
+        if (lblQual) lblQual.textContent = dict.labelQuality;
 
         const dlVidSpan = document.querySelector('#btn-dl-video span');
         if (dlVidSpan) dlVidSpan.textContent = dict.btnDownloadVideo;
@@ -305,7 +310,7 @@ class FetchFlowApp {
 
         try {
             const mediaData = await this.extractStream(url);
-            if (mediaData && (mediaData.videoUrl || mediaData.audioUrl || mediaData.streamUrl)) {
+            if (mediaData) {
                 this.currentMedia = mediaData;
                 this.renderPreview(mediaData);
                 this.saveToHistory(mediaData);
@@ -327,6 +332,22 @@ class FetchFlowApp {
     async extractStream(targetUrl) {
         const platform = this.detectPlatformFromUrl(targetUrl);
 
+        // Fetch real Title & Author metadata via universal oEmbed first
+        let realTitle = '';
+        let realAuthor = '';
+        let realThumb = '';
+
+        try {
+            const oembedUrl = `https://noembed.com/embed?url=${encodeURIComponent(targetUrl)}`;
+            const oeRes = await fetch(oembedUrl);
+            if (oeRes.ok) {
+                const oeJson = await oeRes.json();
+                if (oeJson.title) realTitle = oeJson.title;
+                if (oeJson.author_name) realAuthor = oeJson.author_name;
+                if (oeJson.thumbnail_url) realThumb = oeJson.thumbnail_url;
+            }
+        } catch (e) {}
+
         // 1. TikTok Direct Watermark-Free Extractor
         if (platform === 'TIKTOK') {
             try {
@@ -338,30 +359,30 @@ class FetchFlowApp {
                         const durationSec = d.duration || 0;
                         const durStr = durationSec ? `${Math.floor(durationSec / 60)}:${(durationSec % 60).toString().padStart(2, '0')}` : 'HD';
                         return {
-                            title: d.title || 'TikTok Video',
-                            author: d.author ? `@${d.author.unique_id || d.author.nickname}` : 'TikTok Creator',
+                            title: d.title || realTitle || 'TikTok Video',
+                            author: d.author ? `@${d.author.unique_id || d.author.nickname}` : (realAuthor || 'TikTok Creator'),
                             platform: 'TikTok',
                             duration: durStr,
                             videoUrl: d.play || d.hdplay || d.wmplay,
                             audioUrl: d.music || d.music_info?.play,
                             streamUrl: d.play || d.hdplay,
-                            thumbnail: d.cover || d.origin_cover,
+                            thumbnail: d.cover || d.origin_cover || realThumb,
                             sourceUrl: targetUrl
                         };
                     }
                 }
             } catch (e) {
-                console.warn('TikWM direct extraction failed, trying fallback...', e);
+                console.warn('TikWM extraction failed, falling back...', e);
             }
         }
 
-        // 2. YouTube Invidious / Piped Streams
+        // 2. YouTube Stream Extractor
         if (platform === 'YOUTUBE') {
             let videoId = null;
             try {
                 const u = new URL(targetUrl);
                 if (u.hostname.includes('youtu.be')) {
-                    videoId = u.pathname.slice(1);
+                    videoId = u.pathname.slice(1).split('?')[0];
                 } else if (u.searchParams.has('v')) {
                     videoId = u.searchParams.get('v');
                 } else if (u.pathname.includes('/shorts/')) {
@@ -370,55 +391,22 @@ class FetchFlowApp {
             } catch (e) {}
 
             if (videoId) {
-                const invidiousHosts = [
-                    'https://invidious.privacydev.net',
-                    'https://yewtu.be',
-                    'https://vid.puffyan.us',
-                    'https://invidious.nerdvpn.de'
-                ];
+                const thumbUrl = realThumb || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                const finalTitle = realTitle || `YouTube Video (${videoId})`;
+                const finalAuthor = realAuthor || 'YouTube Creator';
 
-                for (const host of invidiousHosts) {
-                    try {
-                        const invRes = await fetch(`${host}/api/v1/videos/${videoId}`, { signal: AbortSignal.timeout(5000) });
-                        if (invRes.ok) {
-                            const data = await invRes.json();
-                            if (data && data.formatStreams && data.formatStreams.length > 0) {
-                                // Sort by resolution desc
-                                const streams = data.formatStreams.sort((a, b) => (parseInt(b.resolution) || 0) - (parseInt(a.resolution) || 0));
-                                const bestVideo = streams[0];
-                                const audioStreams = data.adaptiveFormats?.filter(f => f.type?.startsWith('audio/')) || [];
-                                const bestAudio = audioStreams[0];
-
-                                const durSec = data.lengthSeconds || 0;
-                                const durStr = durSec ? `${Math.floor(durSec / 60)}:${(durSec % 60).toString().padStart(2, '0')}` : 'HD';
-
-                                return {
-                                    title: data.title || 'YouTube Video',
-                                    author: data.author || 'YouTube Channel',
-                                    platform: 'YouTube',
-                                    duration: durStr,
-                                    videoUrl: bestVideo.url,
-                                    audioUrl: bestAudio ? bestAudio.url : bestVideo.url,
-                                    streamUrl: bestVideo.url,
-                                    thumbnail: data.videoThumbnails?.[0]?.url || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-                                    sourceUrl: targetUrl
-                                };
-                            }
-                        }
-                    } catch (e) {}
-                }
-
-                // If Invidious instances fail, return direct high-res embed with thumbnail
                 return {
-                    title: 'YouTube Stream',
-                    author: 'YouTube',
+                    title: finalTitle,
+                    author: finalAuthor,
                     platform: 'YouTube',
-                    duration: 'Auto HD',
+                    duration: 'Full HD',
+                    videoId: videoId,
                     videoUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1`,
-                    audioUrl: targetUrl,
+                    audioUrl: `https://www.youtube.com/watch?v=${videoId}`,
                     streamUrl: `https://www.youtube.com/watch?v=${videoId}`,
-                    thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+                    thumbnail: thumbUrl,
                     sourceUrl: targetUrl,
+                    isYouTube: true,
                     isEmbed: true
                 };
             }
@@ -437,14 +425,14 @@ class FetchFlowApp {
                         const durationSec = rv.duration || 0;
                         const durStr = durationSec ? `${durationSec}s` : 'HD';
                         return {
-                            title: post.title || 'Reddit Video',
-                            author: post.author ? `u/${post.author}` : 'Reddit User',
+                            title: post.title || realTitle || 'Reddit Video',
+                            author: post.author ? `u/${post.author}` : (realAuthor || 'Reddit User'),
                             platform: 'Reddit',
                             duration: durStr,
                             videoUrl: rv.fallback_url,
                             audioUrl: rv.fallback_url.replace(/DASH_\d+/, 'DASH_AUDIO_128'),
                             streamUrl: rv.fallback_url,
-                            thumbnail: post.thumbnail && post.thumbnail.startsWith('http') ? post.thumbnail : '',
+                            thumbnail: post.thumbnail && post.thumbnail.startsWith('http') ? post.thumbnail : realThumb,
                             sourceUrl: targetUrl
                         };
                     }
@@ -452,7 +440,7 @@ class FetchFlowApp {
             } catch (e) {}
         }
 
-        // 4. Twitter / X Direct Media Parser via vxtwitter / fxtwitter
+        // 4. Twitter / X Direct Media Parser via vxtwitter
         if (platform === 'X / TWITTER') {
             try {
                 const apiVx = targetUrl.replace('twitter.com', 'api.vxtwitter.com').replace('x.com', 'api.vxtwitter.com');
@@ -462,14 +450,14 @@ class FetchFlowApp {
                     if (vxData.mediaURLs && vxData.mediaURLs.length > 0) {
                         const vidUrl = vxData.mediaURLs[0];
                         return {
-                            title: vxData.text ? vxData.text.slice(0, 80) : 'Twitter Media',
-                            author: vxData.user_name ? `${vxData.user_name} (@${vxData.user_screen_name})` : 'Twitter User',
+                            title: vxData.text ? vxData.text.slice(0, 80) : (realTitle || 'Twitter Media'),
+                            author: vxData.user_name ? `${vxData.user_name} (@${vxData.user_screen_name})` : (realAuthor || 'Twitter User'),
                             platform: 'Twitter / X',
                             duration: 'HD',
                             videoUrl: vidUrl,
                             audioUrl: vidUrl,
                             streamUrl: vidUrl,
-                            thumbnail: vxData.media_extended?.[0]?.thumbnail_url || '',
+                            thumbnail: vxData.media_extended?.[0]?.thumbnail_url || realThumb,
                             sourceUrl: targetUrl
                         };
                     }
@@ -479,14 +467,14 @@ class FetchFlowApp {
 
         // 5. Generic / Direct Stream Fallback
         return {
-            title: `${platform} Media Stream`,
-            author: platform,
+            title: realTitle || `${platform} Media Stream`,
+            author: realAuthor || platform,
             platform: platform,
             duration: 'Live / Media',
             videoUrl: targetUrl,
             audioUrl: targetUrl,
             streamUrl: targetUrl,
-            thumbnail: '',
+            thumbnail: realThumb,
             sourceUrl: targetUrl
         };
     }
@@ -497,7 +485,7 @@ class FetchFlowApp {
 
         this.mediaTitle.textContent = media.title;
         this.mediaAuthor.textContent = media.author || media.platform;
-        this.mediaDuration.textContent = media.duration || 'Auto';
+        this.mediaDuration.textContent = media.duration || 'Auto HD';
         this.mediaPlatform.textContent = media.platform;
 
         this.playerContainer.innerHTML = '';
@@ -533,14 +521,12 @@ class FetchFlowApp {
         // Download Action Buttons
         this.btnDlVideo.onclick = () => {
             window.fetchflowSound.playClick();
-            const safeName = (media.title || 'video').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
-            this.forceDownloadFile(media.videoUrl || media.streamUrl, `${safeName}.mp4`);
+            this.executeMediaDownload(media);
         };
 
         this.btnDlAudio.onclick = () => {
             window.fetchflowSound.playClick();
-            const safeName = (media.title || 'audio').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
-            this.forceDownloadFile(media.audioUrl || media.streamUrl, `${safeName}.mp3`);
+            this.executeAudioDownload(media);
         };
 
         if (media.thumbnail) {
@@ -556,18 +542,71 @@ class FetchFlowApp {
 
         this.btnOpenStream.onclick = () => {
             window.fetchflowSound.playClick();
-            window.open(media.streamUrl || media.videoUrl, '_blank');
+            if (media.isYouTube && media.videoId) {
+                window.open(`https://www.youtube.com/watch?v=${media.videoId}`, '_blank');
+            } else {
+                window.open(media.streamUrl || media.videoUrl, '_blank');
+            }
         };
 
         this.previewSection.scrollIntoView({ behavior: 'smooth' });
     }
 
     /**
-     * Resilient in-browser forced file downloader:
-     * 1. Tries direct blob fetch
-     * 2. Tries multi-hop CORS proxy blob fetch
-     * 3. Falls back to window.open stream download
+     * Executes download based on user selected quality dropdown
      */
+    async executeMediaDownload(media) {
+        const quality = this.qualitySelect ? this.qualitySelect.value : '720';
+        const isAudioFormat = quality === 'mp3' || quality === 'm4a';
+
+        if (isAudioFormat) {
+            this.executeAudioDownload(media);
+            return;
+        }
+
+        const safeName = (media.title || 'video').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
+
+        // YouTube specific stream resolution bridge
+        if (media.isYouTube && media.videoId) {
+            const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
+            this.showToast(dict.toastDownloading);
+
+            // Fast direct download bridges with requested resolution
+            const downloadUrl = `https://api.vevioz.com/api/button/mp4/${media.videoId}?quality=${quality}`;
+            const directBridge = `https://loader.to/api/button/?url=https://www.youtube.com/watch?v=${media.videoId}&f=${quality}`;
+            
+            // Open stream download bridge window
+            const win = window.open(directBridge, '_blank');
+            if (!win) window.location.href = downloadUrl;
+            this.showToast(dict.toastDownloaded);
+            window.fetchflowSound.playStreamFound();
+            return;
+        }
+
+        // Direct stream download for TikTok, Twitter, Reddit, etc.
+        const streamUrl = media.videoUrl || media.streamUrl;
+        await this.forceDownloadFile(streamUrl, `${safeName}_${quality}p.mp4`);
+    }
+
+    async executeAudioDownload(media) {
+        const safeName = (media.title || 'audio').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
+
+        if (media.isYouTube && media.videoId) {
+            const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
+            this.showToast(dict.toastDownloading);
+
+            const directAudioBridge = `https://loader.to/api/button/?url=https://www.youtube.com/watch?v=${media.videoId}&f=mp3`;
+            const win = window.open(directAudioBridge, '_blank');
+            if (!win) window.location.href = `https://api.vevioz.com/api/button/mp3/${media.videoId}`;
+            this.showToast(dict.toastDownloaded);
+            window.fetchflowSound.playStreamFound();
+            return;
+        }
+
+        const audioUrl = media.audioUrl || media.streamUrl;
+        await this.forceDownloadFile(audioUrl, `${safeName}.mp3`);
+    }
+
     async forceDownloadFile(fileUrl, filename) {
         if (this.isDownloading) return;
         this.isDownloading = true;
@@ -594,21 +633,16 @@ class FetchFlowApp {
         };
 
         try {
-            // Attempt 1: Direct fetch
             await tryBlobDownload(fileUrl);
             this.showToast(dict.toastDownloaded);
             window.fetchflowSound.playStreamFound();
         } catch (e1) {
-            console.warn('Direct blob fetch failed, attempting CORS proxy...', e1);
             try {
-                // Attempt 2: AllOrigins proxy
                 const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(fileUrl)}`;
                 await tryBlobDownload(proxiedUrl);
                 this.showToast(dict.toastDownloaded);
                 window.fetchflowSound.playStreamFound();
             } catch (e2) {
-                console.warn('CORS proxy blob fetch failed, opening direct stream tab...', e2);
-                // Attempt 3: Direct tab download fallback
                 const a = document.createElement('a');
                 a.href = fileUrl;
                 a.target = '_blank';

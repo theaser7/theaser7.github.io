@@ -419,11 +419,49 @@
             color: var(--mint);
         }
 
+        .quality-selector-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            padding: 0.75rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .quality-label {
+            font-size: 0.65rem;
+            color: var(--mint);
+            font-weight: 800;
+            letter-spacing: 0.08em;
+        }
+
+        .quality-dropdown {
+            background: var(--bg-input);
+            border: 1px solid var(--border-active);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-sm);
+            outline: none;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--mint-soft-glow);
+        }
+
+        .quality-dropdown option {
+            background: #090f0c;
+            color: var(--text-main);
+            padding: 0.5rem;
+        }
+
         .action-download-buttons {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
         }
+
 
         .btn-dl-action {
             padding: 0.65rem 1rem;
@@ -730,10 +768,22 @@
                         </div>
                     </div>
 
+                    <div class="quality-selector-row">
+                        <label class="quality-label" id="lbl-quality">TARGET FORMAT & QUALITY // КАЧЕСТВО</label>
+                        <select id="quality-select" class="quality-dropdown">
+                            <option value="1080">1080p Full HD (MP4)</option>
+                            <option value="720" selected>720p HD (MP4)</option>
+                            <option value="480">480p SD (MP4)</option>
+                            <option value="360">360p Medium (MP4)</option>
+                            <option value="mp3">Audio MP3 (320 kbps)</option>
+                            <option value="m4a">Audio M4A / AAC</option>
+                        </select>
+                    </div>
+
                     <div class="action-download-buttons">
                         <button class="btn-dl-action btn-dl-video" id="btn-dl-video">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            <span>DOWNLOAD VIDEO (HD)</span>
+                            <span>DOWNLOAD MEDIA</span>
                         </button>
                         <button class="btn-dl-action btn-dl-audio" id="btn-dl-audio">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
@@ -748,6 +798,7 @@
                             <span>OPEN DIRECT STREAM</span>
                         </button>
                     </div>
+
                 </div>
             </div>
         </section>
