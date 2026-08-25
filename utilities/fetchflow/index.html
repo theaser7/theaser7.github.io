@@ -687,6 +687,10 @@
             </a>
 
             <div class="header-actions">
+                <div id="companion-badge" class="hud-btn" style="color: var(--text-dim); pointer-events: none;">
+                    <span id="companion-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #64748b; display: inline-block;"></span>
+                    <span id="companion-status-text">SERVER: OFFLINE</span>
+                </div>
                 <button id="btn-lang" class="hud-btn" title="Toggle language / Сменить язык">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                     <span id="btn-lang-text">RU</span>
@@ -700,6 +704,7 @@
                     <span id="txt-btn-hub">HUB</span>
                 </a>
             </div>
+
         </header>
 
         <!-- Hero -->
@@ -813,6 +818,18 @@
                             <span>OPEN DIRECT STREAM</span>
                         </button>
                     </div>
+
+                    <!-- Live Download Progress Box -->
+                    <div id="dl-progress-box" style="display: none; background: var(--bg-card); border: 1px solid var(--border-active); padding: 0.75rem; border-radius: var(--radius-sm); margin-top: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--mint); margin-bottom: 0.4rem;">
+                            <span id="dl-progress-status">Downloading via local yt-dlp...</span>
+                            <span id="dl-progress-pct">0%</span>
+                        </div>
+                        <div style="width: 100%; height: 6px; background: var(--bg-deep); border-radius: 3px; overflow: hidden; border: 1px solid var(--border-dim);">
+                            <div id="dl-progress-bar" style="width: 0%; height: 100%; background: var(--mint); transition: width 0.2s ease;"></div>
+                        </div>
+                    </div>
+
 
                 </div>
             </div>

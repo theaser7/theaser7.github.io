@@ -1,5 +1,6 @@
 /**
  * FetchFlow - Universal Client-Side Media Extractor & Stream Downloader
+ * Supports Dual Engine: Local Python Companion Server (yt-dlp) + Web Standalone Mode
  * 100% in-browser stream parsing and direct downloading. Zero telemetry.
  */
 
@@ -19,7 +20,8 @@ const FETCHFLOW_I18N = {
         labelDuration: "DURATION",
         labelPlatform: "PLATFORM",
         labelAuthor: "AUTHOR",
-        labelQuality: "TARGET FORMAT & QUALITY // RESOLUTION",
+        labelQuality: "FORMAT & QUALITY // RESOLUTION",
+        labelEngine: "DOWNLOAD ENGINE // MIRROR",
         btnDownloadVideo: "DOWNLOAD MEDIA",
         btnDownloadAudio: "DOWNLOAD AUDIO (MP3)",
         btnDownloadThumb: "DOWNLOAD COVER",
@@ -32,7 +34,9 @@ const FETCHFLOW_I18N = {
         toastCopied: "Link copied to clipboard!",
         toastSuccess: "Media extracted successfully!",
         toastDownloading: "Starting stream download...",
-        toastDownloaded: "File download initiated!",
+        toastDownloaded: "Download initiated!",
+        serverOnline: "SERVER: ONLINE (YT-DLP)",
+        serverOffline: "SERVER: OFFLINE",
         footerLeft: "FetchFlow • 100% In-Browser Media Extraction",
         footerRight: "Part of the stash"
     },
@@ -52,6 +56,7 @@ const FETCHFLOW_I18N = {
         labelPlatform: "ПЛАТФОРМА",
         labelAuthor: "АВТОР",
         labelQuality: "ФОРМАТ И КАЧЕСТВО // РАЗРЕШЕНИЕ",
+        labelEngine: "ДВИЖОК СКАЧИВАНИЯ // ЗЕРКАЛО",
         btnDownloadVideo: "СКАЧАТЬ МЕДИА",
         btnDownloadAudio: "СКАЧАТЬ АУДИО (MP3)",
         btnDownloadThumb: "СКАЧАТЬ ОБЛОЖКУ",
@@ -64,7 +69,9 @@ const FETCHFLOW_I18N = {
         toastCopied: "Ссылка скопирована в буфер!",
         toastSuccess: "Медиапоток успешно получен!",
         toastDownloading: "Скачивание медиапотока...",
-        toastDownloaded: "Файл успешно передан на загрузку!",
+        toastDownloaded: "Загрузка передана в обработку!",
+        serverOnline: "СЕРВЕР: ОНЛАЙН (YT-DLP)",
+        serverOffline: "СЕРВЕР: ВЫКЛЮЧЕН",
         footerLeft: "FetchFlow • 100% извлечение медиа в браузере",
         footerRight: "Часть the stash"
     }
@@ -76,6 +83,8 @@ class FetchFlowApp {
         this.currentMedia = null;
         this.isFetching = false;
         this.isDownloading = false;
+        this.isCompanionOnline = false;
+        this.companionUrl = 'http://127.0.0.1:7860';
         this.history = [];
         
         try {
@@ -87,6 +96,7 @@ class FetchFlowApp {
         this.initEvents();
         this.applyLanguage(this.currentLang);
         this.renderHistory();
+        this.checkCompanionServer();
     }
 
     initDOM() {
@@ -94,6 +104,10 @@ class FetchFlowApp {
         this.btnPaste = document.getElementById('btn-paste');
         this.btnFetch = document.getElementById('btn-fetch');
         this.platformBadge = document.getElementById('input-platform-badge');
+
+        this.companionBadge = document.getElementById('companion-badge');
+        this.companionDot = document.getElementById('companion-dot');
+        this.companionStatusText = document.getElementById('companion-status-text');
 
         this.previewSection = document.getElementById('preview-section');
         this.previewTitle = document.getElementById('preview-title');
@@ -110,6 +124,11 @@ class FetchFlowApp {
         this.btnDlThumb = document.getElementById('btn-dl-thumb');
         this.btnOpenStream = document.getElementById('btn-open-stream');
 
+        this.dlProgressBox = document.getElementById('dl-progress-box');
+        this.dlProgressStatus = document.getElementById('dl-progress-status');
+        this.dlProgressPct = document.getElementById('dl-progress-pct');
+        this.dlProgressBar = document.getElementById('dl-progress-bar');
+
         this.historyList = document.getElementById('history-list');
         this.emptyHistory = document.getElementById('empty-history');
         this.btnClearHistory = document.getElementById('btn-clear-history');
@@ -119,7 +138,6 @@ class FetchFlowApp {
         this.btnMute = document.getElementById('btn-mute');
         this.toast = document.getElementById('toast-notify');
     }
-
 
     initEvents() {
         if (this.urlInput) {
@@ -182,6 +200,42 @@ class FetchFlowApp {
         }
     }
 
+    async checkCompanionServer() {
+        const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1200);
+            const res = await fetch(`${this.companionUrl}/health`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.status === 'online') {
+                    this.isCompanionOnline = true;
+                    if (this.companionDot) {
+                        this.companionDot.style.background = '#00ff9d';
+                        this.companionDot.style.boxShadow = '0 0 10px #00ff9d';
+                    }
+                    if (this.companionStatusText) {
+                        this.companionStatusText.textContent = dict.serverOnline;
+                        this.companionStatusText.style.color = '#00ff9d';
+                    }
+                    return;
+                }
+            }
+        } catch (e) {}
+
+        this.isCompanionOnline = false;
+        if (this.companionDot) {
+            this.companionDot.style.background = '#64748b';
+            this.companionDot.style.boxShadow = 'none';
+        }
+        if (this.companionStatusText) {
+            this.companionStatusText.textContent = dict.serverOffline;
+            this.companionStatusText.style.color = 'var(--text-dim)';
+        }
+    }
+
     applyLanguage(lang) {
         const dict = FETCHFLOW_I18N[lang] || FETCHFLOW_I18N.en;
 
@@ -209,6 +263,8 @@ class FetchFlowApp {
         if (lblAuth) lblAuth.textContent = dict.labelAuthor;
         const lblQual = document.getElementById('lbl-quality');
         if (lblQual) lblQual.textContent = dict.labelQuality;
+        const lblEng = document.getElementById('lbl-engine');
+        if (lblEng) lblEng.textContent = dict.labelEngine;
 
         const dlVidSpan = document.querySelector('#btn-dl-video span');
         if (dlVidSpan) dlVidSpan.textContent = dict.btnDownloadVideo;
@@ -229,6 +285,9 @@ class FetchFlowApp {
         if (footerLeft) footerLeft.textContent = dict.footerLeft;
 
         this.updateMuteButton(window.fetchflowSound.isMuted);
+        if (this.companionStatusText) {
+            this.companionStatusText.textContent = this.isCompanionOnline ? dict.serverOnline : dict.serverOffline;
+        }
     }
 
     updateMuteButton(isMuted) {
@@ -334,7 +393,35 @@ class FetchFlowApp {
     async extractStream(targetUrl) {
         const platform = this.detectPlatformFromUrl(targetUrl);
 
-        // Fetch real Title & Author metadata via universal oEmbed first
+        // 1. Try Local Companion Server first if online
+        if (this.isCompanionOnline) {
+            try {
+                const res = await fetch(`${this.companionUrl}/api/extract`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: targetUrl })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        return {
+                            title: data.title,
+                            author: data.author,
+                            platform: data.platform,
+                            duration: data.duration,
+                            thumbnail: data.thumbnail,
+                            sourceUrl: targetUrl,
+                            isCompanion: true,
+                            isYouTube: platform === 'YOUTUBE'
+                        };
+                    }
+                }
+            } catch (e) {
+                console.warn('Local companion extraction failed, falling back to client mode...', e);
+            }
+        }
+
+        // 2. Fetch real Title & Author metadata via universal oEmbed
         let realTitle = '';
         let realAuthor = '';
         let realThumb = '';
@@ -350,7 +437,7 @@ class FetchFlowApp {
             }
         } catch (e) {}
 
-        // 1. TikTok Direct Watermark-Free Extractor
+        // 3. TikTok Direct Watermark-Free Extractor
         if (platform === 'TIKTOK') {
             try {
                 const apiRes = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(targetUrl)}`);
@@ -373,12 +460,10 @@ class FetchFlowApp {
                         };
                     }
                 }
-            } catch (e) {
-                console.warn('TikWM extraction failed, falling back...', e);
-            }
+            } catch (e) {}
         }
 
-        // 2. YouTube Stream Extractor
+        // 4. YouTube Stream Extractor
         if (platform === 'YOUTUBE') {
             let videoId = null;
             try {
@@ -414,7 +499,7 @@ class FetchFlowApp {
             }
         }
 
-        // 3. Reddit direct fallback parser
+        // 5. Reddit direct fallback parser
         if (platform === 'REDDIT') {
             try {
                 const cleanUrl = targetUrl.split('?')[0].replace(/\/$/, '') + '.json';
@@ -442,7 +527,7 @@ class FetchFlowApp {
             } catch (e) {}
         }
 
-        // 4. Twitter / X Direct Media Parser via vxtwitter
+        // 6. Twitter / X Direct Media Parser
         if (platform === 'X / TWITTER') {
             try {
                 const apiVx = targetUrl.replace('twitter.com', 'api.vxtwitter.com').replace('x.com', 'api.vxtwitter.com');
@@ -467,7 +552,7 @@ class FetchFlowApp {
             } catch (e) {}
         }
 
-        // 5. Generic / Direct Stream Fallback
+        // 7. Generic Fallback
         return {
             title: realTitle || `${platform} Media Stream`,
             author: realAuthor || platform,
@@ -492,7 +577,7 @@ class FetchFlowApp {
 
         this.playerContainer.innerHTML = '';
 
-        if (media.isEmbed) {
+        if (media.isEmbed && media.videoUrl) {
             const iframe = document.createElement('iframe');
             iframe.src = media.videoUrl;
             iframe.style.width = '100%';
@@ -508,7 +593,7 @@ class FetchFlowApp {
             audio.src = media.audioUrl || media.streamUrl;
             audio.style.width = '100%';
             this.playerContainer.appendChild(audio);
-        } else {
+        } else if (media.videoUrl || media.streamUrl) {
             const video = document.createElement('video');
             video.controls = true;
             video.playsInline = true;
@@ -518,6 +603,14 @@ class FetchFlowApp {
             video.style.borderRadius = '8px';
             if (media.thumbnail) video.poster = media.thumbnail;
             this.playerContainer.appendChild(video);
+        } else if (media.thumbnail) {
+            const img = document.createElement('img');
+            img.src = media.thumbnail;
+            img.style.width = '100%';
+            img.style.maxHeight = '320px';
+            img.style.objectFit = 'contain';
+            img.style.borderRadius = '8px';
+            this.playerContainer.appendChild(img);
         }
 
         // Download Action Buttons
@@ -547,7 +640,7 @@ class FetchFlowApp {
             if (media.isYouTube && media.videoId) {
                 window.open(`https://www.youtube.com/watch?v=${media.videoId}`, '_blank');
             } else {
-                window.open(media.streamUrl || media.videoUrl, '_blank');
+                window.open(media.streamUrl || media.videoUrl || media.sourceUrl, '_blank');
             }
         };
 
@@ -555,7 +648,7 @@ class FetchFlowApp {
     }
 
     /**
-     * Executes download based on user selected quality and engine mirror
+     * Executes download based on Local Companion Server (if online) or High-Speed Mirrors
      */
     async executeMediaDownload(media) {
         const quality = this.qualitySelect ? this.qualitySelect.value : '720';
@@ -567,9 +660,15 @@ class FetchFlowApp {
             return;
         }
 
+        // 1. If Local Companion Server is online, download locally at full speed!
+        if (this.isCompanionOnline) {
+            await this.downloadViaCompanion(media, quality, false);
+            return;
+        }
+
         const safeName = (media.title || 'video').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
 
-        // YouTube specific stream resolution via selected high-speed mirror
+        // 2. YouTube specific stream resolution via selected high-speed mirror
         if (media.isYouTube && media.videoId) {
             const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
             this.showToast(dict.toastDownloading);
@@ -581,10 +680,8 @@ class FetchFlowApp {
                 targetDownloadUrl = `https://www.y2mate.com/youtube/${media.videoId}`;
             } else if (engine === 'savefrom') {
                 targetDownloadUrl = `https://en.savefrom.net/20/?url=https://www.youtube.com/watch?v=${media.videoId}`;
-            } else if (engine === '9xbuddy') {
-                targetDownloadUrl = `https://9xbuddy.com/process?url=https://www.youtube.com/watch?v=${media.videoId}`;
             } else {
-                targetDownloadUrl = `https://cobalt.tools`;
+                targetDownloadUrl = `https://9xbuddy.com/process?url=https://www.youtube.com/watch?v=${media.videoId}`;
             }
 
             window.open(targetDownloadUrl, '_blank');
@@ -593,12 +690,17 @@ class FetchFlowApp {
             return;
         }
 
-        // Direct in-browser blob stream download for TikTok, Twitter, Reddit, etc.
+        // 3. Direct in-browser blob stream download for TikTok, Twitter, Reddit, etc.
         const streamUrl = media.videoUrl || media.streamUrl;
         await this.forceDownloadFile(streamUrl, `${safeName}_${quality}p.mp4`);
     }
 
     async executeAudioDownload(media) {
+        if (this.isCompanionOnline) {
+            await this.downloadViaCompanion(media, 'mp3', true);
+            return;
+        }
+
         const safeName = (media.title || 'audio').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
         const engine = this.engineSelect ? this.engineSelect.value : 'ssyoutube';
 
@@ -627,6 +729,72 @@ class FetchFlowApp {
         await this.forceDownloadFile(audioUrl, `${safeName}.mp3`);
     }
 
+    /**
+     * Download via local Python Companion Server with live progress bar
+     */
+    async downloadViaCompanion(media, quality, isAudio) {
+        if (this.isDownloading) return;
+        this.isDownloading = true;
+
+        if (this.dlProgressBox) this.dlProgressBox.style.display = 'block';
+        if (this.dlProgressStatus) this.dlProgressStatus.textContent = 'Starting yt-dlp download on PC...';
+        if (this.dlProgressPct) this.dlProgressPct.textContent = '0%';
+        if (this.dlProgressBar) this.dlProgressBar.style.width = '0%';
+
+        try {
+            const res = await fetch(`${this.companionUrl}/api/download`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: media.sourceUrl,
+                    quality: quality,
+                    is_audio: isAudio
+                })
+            });
+
+            if (!res.ok) throw new Error('Download initiation failed');
+            const data = await res.json();
+            const jobId = data.job_id;
+
+            // Poll progress
+            const pollInterval = setInterval(async () => {
+                try {
+                    const pRes = await fetch(`${this.companionUrl}/api/progress/${jobId}`);
+                    if (pRes.ok) {
+                        const job = await pRes.json();
+                        const pct = Math.round(job.progress || 0);
+
+                        if (this.dlProgressPct) this.dlProgressPct.textContent = `${pct}%`;
+                        if (this.dlProgressBar) this.dlProgressBar.style.width = `${pct}%`;
+
+                        if (job.status === 'completed') {
+                            clearInterval(pollInterval);
+                            if (this.dlProgressStatus) this.dlProgressStatus.textContent = 'Saved to Downloads/the_stash!';
+                            this.showToast('Downloaded to Downloads/the_stash!');
+                            window.fetchflowSound.playStreamFound();
+                            this.isDownloading = false;
+
+                            // Also trigger stream save in browser
+                            const a = document.createElement('a');
+                            a.href = `${this.companionUrl}/api/stream/${jobId}`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        } else if (job.status === 'error') {
+                            clearInterval(pollInterval);
+                            if (this.dlProgressStatus) this.dlProgressStatus.textContent = 'Error downloading via yt-dlp';
+                            this.isDownloading = false;
+                        }
+                    }
+                } catch (pe) {}
+            }, 600);
+
+        } catch (e) {
+            console.error('Companion download error:', e);
+            if (this.dlProgressStatus) this.dlProgressStatus.textContent = 'Server download error, trying mirror...';
+            this.isDownloading = false;
+        }
+    }
 
     async forceDownloadFile(fileUrl, filename) {
         if (this.isDownloading) return;
