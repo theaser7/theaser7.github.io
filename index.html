@@ -97,10 +97,108 @@
             50% { opacity: 0.35; transform: scale(0.8); }
         }
 
+        .top-sys-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
         .sys-meta {
             color: var(--text-dim);
             font-size: 0.72rem;
         }
+
+        .hud-settings-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            color: var(--text-muted);
+            padding: 0.4rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.2s ease;
+            font-family: var(--font-mono);
+        }
+
+        .hud-settings-btn:hover {
+            border-color: var(--border-active);
+            color: var(--mint);
+            box-shadow: 0 0 12px var(--mint-soft-glow);
+            background: rgba(0, 255, 157, 0.06);
+        }
+
+        /* Settings Modal Content */
+        .settings-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin: 1.25rem 0 1.75rem;
+            text-align: left;
+        }
+
+        .setting-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-sm);
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .setting-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .setting-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .setting-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .lang-switch-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lang-btn {
+            background: var(--bg-deep);
+            border: 1px solid var(--border-dim);
+            color: var(--text-muted);
+            padding: 0.45rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-mono);
+        }
+
+        .lang-btn:hover {
+            border-color: var(--border-medium);
+            color: var(--text-main);
+        }
+
+        .lang-btn.active {
+            background: rgba(0, 255, 157, 0.12);
+            border-color: var(--border-active);
+            color: var(--mint);
+            box-shadow: 0 0 10px var(--mint-soft-glow);
+        }
+
 
         /* Wide Fluid Layout Container */
         .main-layout {
@@ -732,12 +830,19 @@
     <div class="top-sys-bar">
         <div class="sys-online-badge">
             <span class="sys-dot"></span>
-            <span>ALL SYSTEMS ONLINE</span>
+            <span id="sys-status-text">ALL SYSTEMS ONLINE</span>
         </div>
-        <div class="sys-meta">
-            CLIENT RUNTIME &bull; ZERO LATENCY
+        <div class="top-sys-actions">
+            <div class="sys-meta" id="sys-meta-text">
+                CLIENT RUNTIME &bull; ZERO LATENCY
+            </div>
+            <button id="btn-settings" class="hud-settings-btn" title="Settings / Настройки">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span id="btn-settings-label">SETTINGS</span>
+            </button>
         </div>
     </div>
+
 
     <!-- Wide Distributed Main Layout -->
     <div class="main-layout">
@@ -999,6 +1104,33 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-card">
+            <button class="modal-close" id="modal-settings-close" title="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <span class="modal-badge" id="modal-settings-badge">SYSTEM PREFERENCES</span>
+            <h3 class="modal-title" id="modal-settings-title">Preferences // Настройки</h3>
+            
+            <div class="settings-group">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name" id="lbl-setting-lang">Interface Language / Язык</span>
+                        <span class="setting-desc" id="desc-setting-lang">Choose language for the stash hub</span>
+                    </div>
+                    <div class="lang-switch-buttons">
+                        <button class="lang-btn active" id="btn-lang-en" data-lang="en">EN</button>
+                        <button class="lang-btn" id="btn-lang-ru" data-lang="ru">RU</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-action" id="btn-settings-save">Save & Close</button>
+        </div>
+    </div>
+
+
     <!-- Footer -->
     <footer>
         <span>THE STASH &bull; 2D BLUEPRINT MATRIX</span>
@@ -1179,25 +1311,254 @@
             });
         });
 
-        // Concept Modal
-        const modal = document.getElementById('concept-modal');
-        const openConceptBtn = document.getElementById('btn-concept-trigger');
-        const closeConceptBtn = document.getElementById('modal-close-btn');
-        const ackConceptBtn = document.getElementById('modal-ack-btn');
+        // --- 3. Settings Modal & Full i18n Localization Engine ---
+        const STASH_I18N = {
+            en: {
+                sysOnline: "ALL SYSTEMS ONLINE",
+                sysMeta: "CLIENT RUNTIME • ZERO LATENCY",
+                btnSettings: "SETTINGS",
+                heroDesc: "1000+ client-side experiments. Zero watermark. Zero telemetry. Free.",
+                techBanner: "Status: 100% active • local in-browser sandbox • no throttling",
+                tabAll: "All Projects",
+                tabGames: "Games",
+                tabUtils: "Utilities",
+                searchLabel: "// SEARCH DIRECTORY OR FILTER BY MODULE",
+                searchPlaceholder: "Type keyword, tag, or project name...",
+                tagAll: "ALL",
+                tagPlayable: "PLAYABLE",
+                tagWip: "IN PROGRESS",
+                tagConcept: "CONCEPT",
+                tagArchived: "ARCHIVED",
+                cardFlexleDesc: "Flexible Wordle game with custom word lengths from 4 to 11+ letters, bracket drum picker for random ranges, and procedural WebAudio synthesizers.",
+                cardQuantexDesc: "Cyberpunk More/Less comparison game across 5 categories: Google searches, YouTube subs, Cinema gross, Valuations, and Trivia extremes.",
+                cardStashipDesc: "Zero-telemetry network diagnostics (IP, ISP, ASN, Geolocation, Timezone, Hostname) with 1-Click Copy and live client-side Speedtest engine.",
+                cardClarifyDesc: "Neural super-resolution tool to upscale, enhance, and denoise photos up to 4K. Features an interactive Before/After split slider and zero telemetry.",
+                cardFetchflowDesc: "High-throughput media extraction & stream scraper concept powered by yt-dlp & ffmpeg. 4K streams, lossless audio, section trimming, and batch scripts.",
+                btnLaunchFlexle: "Launch Flexle →",
+                btnLaunchQuantex: "Launch Quantex →",
+                btnLaunchStaship: "Launch StashIP →",
+                btnLaunchClarify: "Launch Clarify →",
+                btnConceptSpecs: "Concept Specs →",
+                previewMain: "select any module",
+                previewSub: "to inspect sandbox parameters",
+                metricPossibilities: "Possibilities",
+                metricClientSide: "Client-Side",
+                metricForever: "Forever",
+                stackHeading: "SUPPORTED PLATFORMS & STACK",
+                footerText: "THE STASH • 2D BLUEPRINT MATRIX",
+                settingsBadge: "SYSTEM PREFERENCES",
+                settingsTitle: "Preferences // Settings",
+                lblLang: "Interface Language",
+                descLang: "Choose language for the stash hub",
+                btnSave: "Save & Close",
+                statusPlayable: "Playable",
+                statusWip: "In Progress",
+                statusConcept: "Concept",
+                statusArchived: "Archived"
+            },
+            ru: {
+                sysOnline: "ВСЕ СИСТЕМЫ В СЕТИ",
+                sysMeta: "КЛИЕНТСКИЙ РАНТАЙМ • НУЛЕВАЯ ЗАДЕРЖКА",
+                btnSettings: "НАСТРОЙКИ",
+                heroDesc: "1000+ экспериментов в браузере. Без вотермарок. Без телеметрии. Бесплатно.",
+                techBanner: "Статус: 100% активно • локальная песочница в браузере • без ограничений",
+                tabAll: "Все проекты",
+                tabGames: "Игры",
+                tabUtils: "Утилиты",
+                searchLabel: "// ПОИСК ПО КАТАЛОГУ ИЛИ ФИЛЬТРАЦИЯ ПО МОДУЛЯМ",
+                searchPlaceholder: "Введите ключевое слово, тег или название...",
+                tagAll: "ВСЕ",
+                tagPlayable: "ГОТОВЫЕ",
+                tagWip: "В РАЗРАБОТКЕ",
+                tagConcept: "КОНЦЕПТЫ",
+                tagArchived: "АРХИВ",
+                cardFlexleDesc: "Гибкий Wordle с выбором длины слова от 4 до 11+ букв, барабанным выбором случайных диапазонов и процедурным WebAudio звуком.",
+                cardQuantexDesc: "Киберпанк игра сравнения «больше/меньше» по 5 категориям: поисковые тренды, YouTube, киносборы, капитализации и рекорды науки.",
+                cardStashipDesc: "Диагностика сети без телеметрии (IP, провайдер, ASN, геолокация, таймзона) с копированием в 1 клик и встроенным спидометром скорости.",
+                cardClarifyDesc: "Нейросетевой апскейлер для улучшения детализации и удаления шума на фото до 4K. Интерактивный слайдер «До/После» и нулевая телеметрия.",
+                cardFetchflowDesc: "Концепт скоростной загрузки медиапотоков на базе yt-dlp и ffmpeg. Видео 4K, звук без потерь, нарезка фрагментов и bat-скрипты.",
+                btnLaunchFlexle: "Запустить Flexle →",
+                btnLaunchQuantex: "Запустить Quantex →",
+                btnLaunchStaship: "Запустить StashIP →",
+                btnLaunchClarify: "Запустить Clarify →",
+                btnConceptSpecs: "Спецификация концепта →",
+                previewMain: "выберите любой модуль",
+                previewSub: "для просмотра параметров песочницы",
+                metricPossibilities: "Возможностей",
+                metricClientSide: "В браузере",
+                metricForever: "Бесплатно",
+                stackHeading: "ПОДДЕРЖИВАЕМЫЕ ТЕХНОЛОГИИ И СТЕК",
+                footerText: "THE STASH • 2D МАТРИЦА БЛУПРИНТОВ",
+                settingsBadge: "СИСТЕМНЫЕ НАСТРОЙКИ",
+                settingsTitle: "Настройки // Preferences",
+                lblLang: "Язык интерфейса",
+                descLang: "Выберите язык отображения хаба the stash",
+                btnSave: "Сохранить и закрыть",
+                statusPlayable: "Готово",
+                statusWip: "В разработке",
+                statusConcept: "Концепт",
+                statusArchived: "В архиве"
+            }
+        };
 
-        function openModal() { modal.classList.add('active'); }
-        function closeModal() { modal.classList.remove('active'); }
+        let currentLang = localStorage.getItem('the_stash_lang') || 'en';
 
-        if (openConceptBtn) openConceptBtn.addEventListener('click', openModal);
-        if (closeConceptBtn) closeConceptBtn.addEventListener('click', closeModal);
-        if (ackConceptBtn) ackConceptBtn.addEventListener('click', closeModal);
+        function applyLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('the_stash_lang', lang);
+            const dict = STASH_I18N[lang] || STASH_I18N.en;
 
-        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+            // Header & system
+            const sysStatus = document.getElementById('sys-status-text');
+            if (sysStatus) sysStatus.textContent = dict.sysOnline;
+            const sysMeta = document.getElementById('sys-meta-text');
+            if (sysMeta) sysMeta.textContent = dict.sysMeta;
+            const btnSettingsLabel = document.getElementById('btn-settings-label');
+            if (btnSettingsLabel) btnSettingsLabel.textContent = dict.btnSettings;
+
+            // Hero
+            const heroDesc = document.querySelector('.hero-desc');
+            if (heroDesc) heroDesc.textContent = dict.heroDesc;
+            const techBannerSpan = document.querySelector('.tech-banner span');
+            if (techBannerSpan) techBannerSpan.textContent = dict.techBanner;
+
+            // Tabs
+            const tabAllSpan = document.querySelector('.tab-btn[data-tab="all"] span:first-child');
+            if (tabAllSpan) tabAllSpan.textContent = dict.tabAll;
+            const tabGamesSpan = document.querySelector('.tab-btn[data-tab="games"] span:first-child');
+            if (tabGamesSpan) tabGamesSpan.textContent = dict.tabGames;
+            const tabUtilsSpan = document.querySelector('.tab-btn[data-tab="utilities"] span:first-child');
+            if (tabUtilsSpan) tabUtilsSpan.textContent = dict.tabUtils;
+
+            // Search & Tags
+            const searchLabel = document.querySelector('.search-label');
+            if (searchLabel) searchLabel.textContent = dict.searchLabel;
+            if (searchInput) searchInput.placeholder = dict.searchPlaceholder;
+
+            const tagAll = document.querySelector('.quick-tag-chip[data-status="all"]');
+            if (tagAll) tagAll.textContent = dict.tagAll;
+            const tagPlayable = document.querySelector('.quick-tag-chip[data-status="playable"]');
+            if (tagPlayable) tagPlayable.textContent = dict.tagPlayable;
+            const tagWip = document.querySelector('.quick-tag-chip[data-status="wip"]');
+            if (tagWip) tagWip.textContent = dict.tagWip;
+            const tagConcept = document.querySelector('.quick-tag-chip[data-status="concept"]');
+            if (tagConcept) tagConcept.textContent = dict.tagConcept;
+            const tagArchived = document.querySelector('.quick-tag-chip[data-status="archived"]');
+            if (tagArchived) tagArchived.textContent = dict.tagArchived;
+
+            // Project cards
+            const cardFlexle = document.querySelector('a[href="./games/flexle/"]')?.closest('.project-card');
+            if (cardFlexle) {
+                const desc = cardFlexle.querySelector('.card-desc');
+                if (desc) desc.textContent = dict.cardFlexleDesc;
+                const btn = cardFlexle.querySelector('.btn-action');
+                if (btn) btn.textContent = dict.btnLaunchFlexle;
+            }
+
+            const cardQuantex = document.querySelector('a[href="./games/quantex/"]')?.closest('.project-card');
+            if (cardQuantex) {
+                const desc = cardQuantex.querySelector('.card-desc');
+                if (desc) desc.textContent = dict.cardQuantexDesc;
+                const btn = cardQuantex.querySelector('.btn-action');
+                if (btn) btn.textContent = dict.btnLaunchQuantex;
+            }
+
+            const cardStaship = document.querySelector('a[href="./utilities/staship/"]')?.closest('.project-card');
+            if (cardStaship) {
+                const desc = cardStaship.querySelector('.card-desc');
+                if (desc) desc.textContent = dict.cardStashipDesc;
+                const btn = cardStaship.querySelector('.btn-action');
+                if (btn) btn.textContent = dict.btnLaunchStaship;
+            }
+
+            const cardClarify = document.querySelector('a[href="./utilities/clarify/"]')?.closest('.project-card');
+            if (cardClarify) {
+                const desc = cardClarify.querySelector('.card-desc');
+                if (desc) desc.textContent = dict.cardClarifyDesc;
+                const btn = cardClarify.querySelector('.btn-action');
+                if (btn) btn.textContent = dict.btnLaunchClarify;
+            }
+
+            const cardFetchflow = document.getElementById('btn-concept-trigger')?.closest('.project-card');
+            if (cardFetchflow) {
+                const desc = cardFetchflow.querySelector('.card-desc');
+                if (desc) desc.textContent = dict.cardFetchflowDesc;
+                const btn = cardFetchflow.querySelector('.btn-action');
+                if (btn) btn.textContent = dict.btnConceptSpecs;
+            }
+
+            // Status badges on cards
+            document.querySelectorAll('.status-playable').forEach(p => p.textContent = dict.statusPlayable);
+            document.querySelectorAll('.status-wip').forEach(p => p.textContent = dict.statusWip);
+            document.querySelectorAll('.status-concept').forEach(p => p.textContent = dict.statusConcept);
+            document.querySelectorAll('.status-archived').forEach(p => p.textContent = dict.statusArchived);
+
+            // Right sidebar
+            const prevMain = document.querySelector('.preview-text-main');
+            if (prevMain) prevMain.textContent = dict.previewMain;
+            const prevSub = document.querySelector('.preview-text-sub');
+            if (prevSub) prevSub.textContent = dict.previewSub;
+
+            const metricLbls = document.querySelectorAll('.metric-lbl');
+            if (metricLbls.length >= 3) {
+                metricLbls[0].textContent = dict.metricPossibilities;
+                metricLbls[1].textContent = dict.metricClientSide;
+                metricLbls[2].textContent = dict.metricForever;
+            }
+
+            const stackHeading = document.querySelector('.stack-heading');
+            if (stackHeading) stackHeading.textContent = dict.stackHeading;
+
+            // Footer
+            const footerSpan = document.querySelector('footer span');
+            if (footerSpan) footerSpan.textContent = dict.footerText;
+
+            // Modal Settings Texts
+            const modalSetBadge = document.getElementById('modal-settings-badge');
+            if (modalSetBadge) modalSetBadge.textContent = dict.settingsBadge;
+            const modalSetTitle = document.getElementById('modal-settings-title');
+            if (modalSetTitle) modalSetTitle.textContent = dict.settingsTitle;
+            const lblLang = document.getElementById('lbl-setting-lang');
+            if (lblLang) lblLang.textContent = dict.lblLang;
+            const descLang = document.getElementById('desc-setting-lang');
+            if (descLang) descLang.textContent = dict.descLang;
+            const btnSave = document.getElementById('btn-settings-save');
+            if (btnSave) btnSave.textContent = dict.btnSave;
+
+            // Switch active buttons
+            document.querySelectorAll('.lang-btn').forEach(b => {
+                if (b.getAttribute('data-lang') === lang) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+        }
+
+        // Settings Modal Handlers
+        const settingsModal = document.getElementById('settings-modal');
+        const btnOpenSettings = document.getElementById('btn-settings');
+        const btnCloseSettings = document.getElementById('modal-settings-close');
+        const btnSaveSettings = document.getElementById('btn-settings-save');
+
+        if (btnOpenSettings) btnOpenSettings.addEventListener('click', () => settingsModal.classList.add('active'));
+        if (btnCloseSettings) btnCloseSettings.addEventListener('click', () => settingsModal.classList.remove('active'));
+        if (btnSaveSettings) btnSaveSettings.addEventListener('click', () => settingsModal.classList.remove('active'));
+
+        if (settingsModal) {
+            settingsModal.addEventListener('click', (e) => {
+                if (e.target === settingsModal) settingsModal.classList.remove('active');
+            });
+        }
+
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const selectedLang = btn.getAttribute('data-lang');
+                applyLanguage(selectedLang);
+            });
         });
 
+        // Initialize language
+        applyLanguage(currentLang);
         updateGrid();
     </script>
 </body>
 </html>
+
