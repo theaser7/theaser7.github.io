@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StashIP &bull; Network Intelligence &bull; the stash</title>
+    <meta name="description" content="StashIP - Zero-telemetry network diagnostics, IP intelligence, and client-side bandwidth speedtest.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/><line x1=%222%22 y1=%2212%22 x2=%2222%22 y2=%2212%22/><path d=%22M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z%22/></svg>">
+
+    <style>
+        :root {
+            --bg-deep: #050807;
+            --bg-surface: rgba(9, 15, 12, 0.85);
+            --bg-surface-hover: rgba(14, 24, 19, 0.95);
+            --bg-card: rgba(11, 19, 15, 0.9);
+            --bg-input: rgba(7, 12, 10, 0.9);
+            
+            --border-dim: #13221b;
+            --border-medium: #1c362a;
+            --border-active: #00ff9d;
+            
+            --mint: #00ff9d;
+            --mint-dark: #04251a;
+            --mint-glow: rgba(0, 255, 157, 0.35);
+            --mint-soft-glow: rgba(0, 255, 157, 0.12);
+            --danger: #ff3366;
+            --warning: #facc15;
+            
+            --text-main: #f0fdf4;
+            --text-muted: #86a896;
+            --text-dim: #436353;
+            
+            --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 2D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Layout Container */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 900px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: var(--mint-dark);
+            border: 1px solid var(--border-active);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mint);
+            box-shadow: 0 0 12px var(--mint-glow);
+        }
+
+        .brand-logo svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--mint);
+            text-shadow: 0 0 10px var(--mint-glow);
+        }
+
+        .brand-badge {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            padding: 0.15rem 0.4rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
+            border-radius: 4px;
+            margin-left: 0.35rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .hud-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
+            color: var(--text-muted);
+            padding: 0.45rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: var(--font-mono);
+        }
+
+        .hud-btn:hover {
+            border-color: var(--border-active);
+            color: var(--mint);
+            box-shadow: 0 0 10px var(--mint-soft-glow);
+            background: rgba(0, 255, 157, 0.05);
+        }
+
+        .hud-btn.muted {
+            color: var(--text-dim);
+        }
+
+        .hud-btn.rotating svg {
+            animation: spin 0.6s linear;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hero IP Section */
+        .hero-ip-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: 2.25rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-ip-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--mint), transparent);
+        }
+
+        .hero-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ip-display-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .ip-address-text {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--mint);
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 20px var(--mint-glow);
+            font-family: var(--font-mono);
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .ip-type-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: var(--mint-dark);
+            color: var(--mint);
+            border: 1px solid var(--border-active);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            box-shadow: 0 0 10px var(--mint-soft-glow);
+        }
+
+        .ip-controls {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-copy-ip {
+            background: var(--mint);
+            color: var(--bg-deep);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0.65rem 1.4rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px var(--mint-glow);
+        }
+
+        .btn-copy-ip:hover {
+            background: #05f0a5;
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px var(--mint-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text-muted);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-sm);
+            padding: 0.65rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--border-active);
+            color: var(--mint);
+        }
+
+        /* Diagnostics Details Grid */
+        .diag-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+        }
+
+        .diag-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .diag-card:hover {
+            border-color: var(--border-medium);
+            transform: translateY(-2px);
+        }
+
+        .diag-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            letter-spacing: 0.08em;
+        }
+
+        .diag-header svg {
+            width: 16px;
+            height: 16px;
+            color: var(--mint);
+        }
+
+        .diag-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            word-break: break-all;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        /* Speedtest Section */
+        .speedtest-panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: 2.25rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .speedtest-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--mint);
+            letter-spacing: 0.08em;
+            margin-bottom: 0.35rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .speedtest-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        /* SVG Speedometer Gauge */
+        .gauge-container {
+            width: 300px;
+            height: 200px;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .gauge-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .gauge-digital-overlay {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .gauge-digital-val {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--mint);
+            text-shadow: 0 0 15px var(--mint-glow);
+            line-height: 1;
+        }
+
+        .gauge-digital-unit {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            letter-spacing: 0.08em;
+            margin-top: 0.2rem;
+        }
+
+        .speed-status-banner {
+            font-size: 0.75rem;
+            color: var(--mint);
+            letter-spacing: 0.08em;
+            margin-bottom: 1.5rem;
+            min-height: 1.2rem;
+        }
+
+        /* Speed Metrics Row */
+        .speed-metrics-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            width: 100%;
+            margin-bottom: 1.75rem;
+        }
+
+        .metric-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-sm);
+            padding: 0.85rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            letter-spacing: 0.08em;
+        }
+
+        .metric-val {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--mint);
+        }
+
+        .btn-speed-run {
+            background: var(--mint);
+            color: var(--bg-deep);
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0.95rem 2.8rem;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 25px var(--mint-glow);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-speed-run:hover {
+            background: #05f0a5;
+            box-shadow: 0 0 35px var(--mint-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-speed-run.testing {
+            background: rgba(255, 51, 102, 0.15);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+        }
+
+        .btn-speed-run.testing:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .spinner-icon {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: inline-block;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(50px);
+            background: var(--mint-dark);
+            border: 1px solid var(--border-active);
+            color: var(--mint);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 700;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--mint);
+        }
+
+        @media (max-width: 650px) {
+            .ip-address-text {
+                font-size: 1.85rem;
+            }
+            .speed-metrics-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 2D Cyber Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <header>
+            <a href="../../index.html" class="brand-link">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <div>
+                    <span class="brand-title">StashIP</span>
+                    <span class="brand-badge">v1.0</span>
+                </div>
+            </a>
+
+            <div class="header-actions">
+                <button id="btn-refresh-ip" class="hud-btn" title="Refresh network data">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    <span>REFRESH</span>
+                </button>
+                <button id="btn-mute" class="hud-btn" title="Toggle audio effects">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    <span>SOUND</span>
+                </button>
+                <a href="../../index.html" class="hud-btn" title="Return to the stash hub">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>HUB</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Primary Hero IP Card -->
+        <section class="hero-ip-card">
+            <div class="hero-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
+                <span>YOUR EXTERNAL IP ADDRESS</span>
+            </div>
+
+            <div class="ip-display-row">
+                <div id="val-ip" class="ip-address-text">Fetching...</div>
+                <span id="badge-ip-type" class="ip-type-badge">IPv4</span>
+            </div>
+
+            <div class="ip-controls">
+                <button id="btn-copy-ip" class="btn-copy-ip">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span>COPY IP</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Diagnostics Grid -->
+        <section class="diag-grid">
+            <!-- ISP -->
+            <div class="diag-card">
+                <div class="diag-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                    <span>INTERNET PROVIDER (ISP)</span>
+                </div>
+                <div id="val-isp" class="diag-value">Resolving...</div>
+            </div>
+
+            <!-- ASN -->
+            <div class="diag-card">
+                <div class="diag-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+                    <span>AUTONOMOUS SYSTEM (ASN)</span>
+                </div>
+                <div id="val-asn" class="diag-value">Resolving...</div>
+            </div>
+
+            <!-- Location -->
+            <div class="diag-card">
+                <div class="diag-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span>GEOLOCATION</span>
+                </div>
+                <div id="val-location" class="diag-value">Locating...</div>
+            </div>
+
+            <!-- Timezone -->
+            <div class="diag-card">
+                <div class="diag-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>TIMEZONE</span>
+                </div>
+                <div id="val-timezone" class="diag-value">UTC</div>
+            </div>
+
+            <!-- Hostname -->
+            <div class="diag-card" style="grid-column: 1 / -1;">
+                <div class="diag-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                    <span>REVERSE HOSTNAME</span>
+                </div>
+                <div id="val-hostname" class="diag-value">Resolving...</div>
+            </div>
+        </section>
+
+        <!-- Speedtest Panel -->
+        <section class="speedtest-panel">
+            <h2 class="speedtest-title">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>SPEEDTEST PROTOCOL</span>
+            </h2>
+            <p class="speedtest-subtitle">Measure live download bandwidth, ping latency, and jitter variance</p>
+
+            <!-- Cyberpunk SVG Speedometer Gauge -->
+            <div class="gauge-container">
+                <svg class="gauge-svg" viewBox="0 0 300 200">
+                    <defs>
+                        <linearGradient id="gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#00ff9d" stop-opacity="0.3"/>
+                            <stop offset="100%" stop-color="#00ff9d" stop-opacity="1"/>
+                        </linearGradient>
+                        <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="3" result="blur" />
+                            <feMerge>
+                                <feMergeNode in="blur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <!-- Background Track Arc (240 deg) -->
+                    <path d="M 72.13 213.63 A 90 90 0 1 1 227.87 213.63" 
+                          fill="none" 
+                          stroke="#13221b" 
+                          stroke-width="12" 
+                          stroke-linecap="round"/>
+
+                    <!-- Active Fill Arc -->
+                    <path id="gauge-fill-arc" 
+                          d="M 72.13 213.63 A 90 90 0 1 1 227.87 213.63" 
+                          fill="none" 
+                          stroke="url(#gauge-grad)" 
+                          stroke-width="12" 
+                          stroke-linecap="round"
+                          stroke-dasharray="0, 377"
+                          filter="url(#glow-filter)"/>
+
+                    <!-- Center Pivot Base -->
+                    <circle cx="150" cy="150" r="14" fill="#04251a" stroke="#00ff9d" stroke-width="2"/>
+                    <circle cx="150" cy="150" r="5" fill="#00ff9d"/>
+
+                    <!-- Animated Needle (Rotates around 150, 150) -->
+                    <g id="gauge-needle" transform="rotate(-120, 150, 150)">
+                        <polygon points="147,150 153,150 150.5,65" fill="#00ff9d" filter="url(#glow-filter)"/>
+                        <circle cx="150" cy="65" r="3.5" fill="#ffffff"/>
+                    </g>
+                </svg>
+
+                <!-- Central Digital Readout -->
+                <div class="gauge-digital-overlay">
+                    <div id="speed-digital-val" class="gauge-digital-val">0.0</div>
+                    <div id="speed-digital-unit" class="gauge-digital-unit">MBPS DOWNLOAD</div>
+                </div>
+            </div>
+
+            <div id="speed-status-text" class="speed-status-banner">STANDBY // READY</div>
+
+            <!-- Metrics Row -->
+            <div class="speed-metrics-row">
+                <div class="metric-box">
+                    <span class="metric-label">PING</span>
+                    <span id="metric-ping" class="metric-val">-- ms</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">JITTER</span>
+                    <span id="metric-jitter" class="metric-val">-- ms</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">DOWNLOAD</span>
+                    <span id="metric-download" class="metric-val">0.0 Mbps</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">TRANSFERRED</span>
+                    <span id="metric-data" class="metric-val">0.0 MB</span>
+                </div>
+            </div>
+
+            <button id="btn-start-speed" class="btn-speed-run">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>START SPEEDTEST</span>
+            </button>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <span>StashIP &bull; Zero-Telemetry Network Diagnostics</span>
+            <span>Part of <a href="../../index.html">the stash</a></span>
+        </footer>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast-copy" class="toast">IP Copied to Clipboard!</div>
+
+    <!-- Background Grid Script -->
+    <script>
+        (function() {
+            const canvas = document.getElementById('bg-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w, h;
+
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            const gridSize = 40;
+            let offset = 0;
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+                ctx.strokeStyle = '#13221b';
+                ctx.lineWidth = 1;
+
+                offset = (offset + 0.15) % gridSize;
+
+                for (let x = offset; x < w; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, h);
+                    ctx.stroke();
+                }
+
+                for (let y = offset; y < h; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = 'rgba(0, 255, 157, 0.15)';
+                for (let x = offset; x < w; x += gridSize * 2) {
+                    for (let y = offset; y < h; y += gridSize * 2) {
+                        ctx.fillRect(x - 1, y - 1, 2, 2);
+                    }
+                }
+
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+    </script>
+
+    <!-- StashIP Scripts -->
+    <script src="sound.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
