@@ -855,8 +855,9 @@
         <header class="hero-section">
             <div class="brand-heading">
                 <h1 class="brand-title">the stash</h1>
-                <span class="brand-version">v0.8.0</span>
+                <span class="brand-version">v0.8.1</span>
             </div>
+
 
 
 
@@ -891,7 +892,7 @@
                 <div class="segment-tabs">
                     <button class="tab-btn active" data-tab="all">
                         <span>All Projects</span>
-                        <span class="tab-badge" id="count-all">5</span>
+                        <span class="tab-badge" id="count-all">7</span>
                     </button>
                     <button class="tab-btn" data-tab="games">
                         <span>Games</span>
@@ -899,8 +900,9 @@
                     </button>
                     <button class="tab-btn" data-tab="utilities">
                         <span>Utilities</span>
-                        <span class="tab-badge" id="count-utilities">4</span>
+                        <span class="tab-badge" id="count-utilities">5</span>
                     </button>
+
 
                 </div>
 
@@ -1045,8 +1047,8 @@
                         <a href="./utilities/clarify/" class="btn-action">Launch Clarify &rarr;</a>
                     </article>
 
-                    <!-- 3. FetchFlow (Universal Media Extractor) -->
-                    <article class="project-card" data-type="utilities" data-category="wip">
+                    <!-- 5. FetchFlow Card -->
+                    <article class="project-card" data-type="utilities" data-category="playable">
                         <div>
                             <div class="card-top">
                                 <div class="card-glyph-box" style="color: #00ff9d; border-color: rgba(0, 255, 157, 0.3);">
@@ -1056,7 +1058,7 @@
                                         <line x1="12" y1="15" x2="12" y2="3"></line>
                                     </svg>
                                 </div>
-                                <span class="status-pill status-wip">In Progress</span>
+                                <span class="status-pill status-playable">Playable</span>
                             </div>
                             <h2 class="card-title">FetchFlow</h2>
                             <p class="card-desc">Universal client-side media parser and stream extractor. Direct in-browser video & audio downloads for YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud & more.</p>
@@ -1070,12 +1072,12 @@
                         <a href="./utilities/fetchflow/" class="btn-action">Launch FetchFlow &rarr;</a>
                     </article>
 
-                    <!-- 6. The Stash Companion Server Card -->
+                    <!-- 6. StashCompanion Card -->
                     <article class="project-card" data-type="utilities" data-category="playable">
                         <div>
-                            <div class="card-header">
-                                <div class="card-icon-box">
-                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                            <div class="card-top">
+                                <div class="card-glyph-box" style="color: #00ff9d; border-color: rgba(0, 255, 157, 0.3);">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
                                         <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
                                         <line x1="6" y1="6" x2="6.01" y2="6"/>
@@ -1084,8 +1086,8 @@
                                 </div>
                                 <span class="status-pill status-playable">Playable</span>
                             </div>
-                            <h2 class="card-title">Companion Server</h2>
-                            <p class="card-desc" id="desc-companion">1-Click Local Python backend for Hardware-Accelerated Clarify AI Super-Resolution (GPU) and FetchFlow 4K yt-dlp downloading. Zero telemetry.</p>
+                            <h2 class="card-title">StashCompanion</h2>
+                            <p class="card-desc" id="desc-companion">Local Python backend for GPU AI photo upscaling in Clarify and 4K yt-dlp media extraction in FetchFlow. Zero telemetry.</p>
                             <div class="card-tags">
                                 <span class="tag-pill">#Python</span>
                                 <span class="tag-pill">#HardwareAccel</span>
@@ -1305,9 +1307,30 @@
         let activeStatus = 'all';
         let searchQuery = '';
 
+        const statusHierarchy = {
+            'playable': 1,
+            'wip': 2,
+            'concept': 3,
+            'archived': 4
+        };
+
         const searchInput = document.getElementById('search-input');
         const emptyState = document.getElementById('empty-state');
         const cards = document.querySelectorAll('.project-card');
+
+        function sortCardsByHierarchy() {
+            const grid = document.getElementById('projects-grid');
+            if (!grid) return;
+            const cardArray = Array.from(grid.querySelectorAll('.project-card'));
+            cardArray.sort((a, b) => {
+                const catA = a.getAttribute('data-category') || 'playable';
+                const catB = b.getAttribute('data-category') || 'playable';
+                const rankA = statusHierarchy[catA] || 99;
+                const rankB = statusHierarchy[catB] || 99;
+                return rankA - rankB;
+            });
+            cardArray.forEach(card => grid.appendChild(card));
+        }
 
         function updateCounters() {
             let totalCount = 0;
@@ -1364,6 +1387,10 @@
 
             updateCounters();
         }
+
+        sortCardsByHierarchy();
+        updateCounters();
+
 
         searchInput.addEventListener('input', (e) => {
             searchQuery = e.target.value.trim().toLowerCase();

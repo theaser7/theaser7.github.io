@@ -7,6 +7,7 @@ Zero Telemetry • Runs 100% locally on localhost:7860
 
 import os
 import sys
+import platform
 import json
 import base64
 import zipfile
@@ -18,6 +19,7 @@ import shutil
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
+
 
 PORT = 7860
 BASE_DIR = Path(__file__).resolve().parent

@@ -4,8 +4,8 @@ color 0A
 
 echo ================================================================
 echo   THE STASH - UNIFIED COMPANION SERVER (PORT 7860)
-echo   Hardware Acceleration: RTX 4060 ^& Ryzen 5 5600G
 echo   Modules: Clarify (AI Upscale) + FetchFlow (yt-dlp Engine)
+echo   Zero Telemetry - 100%% Local Processing
 echo ================================================================
 echo.
 
