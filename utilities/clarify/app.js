@@ -555,90 +555,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Advanced Deep-Edge Super-Resolution & Acutance Synthesis Filter
-     * Performs continuous adaptive sharpening in YCbCr color space without gradient posterization.
+     * Performs streaming row-buffered adaptive sharpening in YCbCr color space without memory overhead.
      */
     function enhanceImageSuperResolution(data, width, height, sharpness, denoise) {
         const w = width;
         const h = height;
-        const totalPixels = w * h;
-
-        const Y = new Float32Array(totalPixels);
-        const Cb = new Float32Array(totalPixels);
-        const Cr = new Float32Array(totalPixels);
-
-        for (let i = 0; i < totalPixels; i++) {
-            const idx = i * 4;
-            const r = data[idx];
-            const g = data[idx + 1];
-            const b = data[idx + 2];
-
-            Y[i] = 0.299 * r + 0.587 * g + 0.114 * b;
-            Cb[i] = -0.168736 * r - 0.331264 * g + 0.5 * b;
-            Cr[i] = 0.5 * r - 0.418688 * g - 0.081312 * b;
-        }
+        if (w < 3 || h < 3) return;
 
         const sharpFactor = (sharpness / 50) * 0.9;
         const denoiseFactor = (denoise / 100) * 0.5;
-        const newY = new Float32Array(Y);
 
-        // Pass 1: Multi-Directional High-Pass Filter with Clamped Acutance
+        // Row buffers for Y channel (only 3 rows in memory at a time = O(w) memory instead of O(w*h))
+        let rowPrev = new Float32Array(w);
+        let rowCurr = new Float32Array(w);
+        let rowNext = new Float32Array(w);
+
+        function fillYRow(rowArr, y) {
+            const offset = y * w * 4;
+            for (let x = 0; x < w; x++) {
+                const idx = offset + x * 4;
+                rowArr[x] = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+            }
+        }
+
+        fillYRow(rowPrev, 0);
+        fillYRow(rowCurr, 1);
+        fillYRow(rowNext, 2);
+
+        // Pre-allocate buffer for processed row Y
+        const processedY = new Float32Array(w);
+
         for (let y = 1; y < h - 1; y++) {
-            const rowOffset = y * w;
-            const prevRow = (y - 1) * w;
-            const nextRow = (y + 1) * w;
-
+            // Process row y
             for (let x = 1; x < w - 1; x++) {
-                const i = rowOffset + x;
-                const center = Y[i];
+                const center = rowCurr[x];
+                const up = rowPrev[x];
+                const down = rowNext[x];
+                const left = rowCurr[x - 1];
+                const right = rowCurr[x + 1];
 
-                const up = Y[prevRow + x];
-                const down = Y[nextRow + x];
-                const left = Y[rowOffset + x - 1];
-                const right = Y[rowOffset + x + 1];
+                const ul = rowPrev[x - 1];
+                const ur = rowPrev[x + 1];
+                const dl = rowNext[x - 1];
+                const dr = rowNext[x + 1];
 
-                const ul = Y[prevRow + x - 1];
-                const ur = Y[prevRow + x + 1];
-                const dl = Y[nextRow + x - 1];
-                const dr = Y[nextRow + x + 1];
-
-                // Laplacian 8-neighbor curvature
                 const laplacian = (8 * center) - (up + down + left + right + ul + ur + dl + dr);
-                
-                // Sobel gradient magnitude
                 const gx = (ur + 2 * right + dr) - (ul + 2 * left + dl);
                 const gy = (dl + 2 * down + dr) - (ul + 2 * up + ur);
                 const grad = Math.sqrt(gx * gx + gy * gy);
 
                 let edgeBoost = laplacian * 0.16 * sharpFactor;
-                // Soft sigmoid clamp to prevent ringing / posterization
                 edgeBoost = Math.max(-28, Math.min(28, edgeBoost));
 
                 let val = center + edgeBoost;
-
-                // Bilateral smoothing in flat noise regions
                 if (denoiseFactor > 0 && grad < 20) {
                     const avg = (up + down + left + right + center) * 0.2;
                     val = val * (1 - denoiseFactor) + avg * denoiseFactor;
                 }
 
-                newY[i] = Math.max(0, Math.min(255, val));
+                processedY[x] = Math.max(0, Math.min(255, val));
             }
-        }
 
-        // Pass 2: Reconstruct RGB with enhanced sharp Luminance
-        for (let i = 0; i < totalPixels; i++) {
-            const idx = i * 4;
-            const yVal = newY[i];
-            const cbVal = Cb[i];
-            const crVal = Cr[i];
+            // Write back enhanced pixels for row y
+            const rowOffset = y * w * 4;
+            for (let x = 1; x < w - 1; x++) {
+                const idx = rowOffset + x * 4;
+                const r = data[idx];
+                const g = data[idx + 1];
+                const b = data[idx + 2];
 
-            const r = yVal + 1.402 * crVal;
-            const g = yVal - 0.344136 * cbVal - 0.714136 * crVal;
-            const b = yVal + 1.772 * cbVal;
+                const cb = -0.168736 * r - 0.331264 * g + 0.5 * b;
+                const cr = 0.5 * r - 0.418688 * g - 0.081312 * b;
+                const yVal = processedY[x];
 
-            data[idx] = Math.max(0, Math.min(255, r));
-            data[idx + 1] = Math.max(0, Math.min(255, g));
-            data[idx + 2] = Math.max(0, Math.min(255, b));
+                data[idx] = Math.max(0, Math.min(255, yVal + 1.402 * cr));
+                data[idx + 1] = Math.max(0, Math.min(255, yVal - 0.344136 * cb - 0.714136 * cr));
+                data[idx + 2] = Math.max(0, Math.min(255, yVal + 1.772 * cb));
+            }
+
+            // Shift sliding rows
+            if (y + 2 < h) {
+                const temp = rowPrev;
+                rowPrev = rowCurr;
+                rowCurr = rowNext;
+                rowNext = temp;
+                fillYRow(rowNext, y + 2);
+            }
         }
     }
 

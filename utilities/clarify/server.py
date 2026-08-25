@@ -173,12 +173,13 @@ class ClarifyHandler(BaseHTTPRequestHandler):
                 res1 = subprocess.run(cmd1, capture_output=True, text=True, cwd=str(BIN_DIR))
 
                 if res1.returncode == 0 and os.path.exists(mid_path):
+                    pass2_model = "realesr-animevideov3-x2" if (BIN_DIR / "models" / "realesr-animevideov3-x2.bin").exists() else model_name
                     cmd2 = [
                         str(EXE_PATH),
                         "-i", str(mid_path),
                         "-o", str(out_path),
                         "-s", "2",
-                        "-n", model_name,
+                        "-n", pass2_model,
                         "-m", str(BIN_DIR / "models")
                     ]
                     res = subprocess.run(cmd2, capture_output=True, text=True, cwd=str(BIN_DIR))

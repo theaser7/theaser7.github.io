@@ -256,15 +256,112 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
 
                 print(f"[CLARIFY] Model: {model_name} | Scale: {scale}x | GPU Active...")
 
-                cmd = [
-                    str(CLARIFY_EXE),
-                    "-i", str(in_path),
-                    "-o", str(out_path),
-                    "-s", str(scale),
-                    "-n", model_name,
-                    "-m", str(BIN_DIR / "models")
-                ]
-                res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BIN_DIR))
+                models_dir = str(BIN_DIR / "models")
+
+                if scale == 2:
+                    cmd = [
+                        str(CLARIFY_EXE),
+                        "-i", str(in_path),
+                        "-o", str(out_path),
+                        "-s", "2",
+                        "-n", model_name,
+                        "-m", models_dir
+                    ]
+                    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BIN_DIR))
+
+                elif scale == 4:
+                    cmd = [
+                        str(CLARIFY_EXE),
+                        "-i", str(in_path),
+                        "-o", str(out_path),
+                        "-s", "4",
+                        "-n", model_name,
+                        "-m", models_dir
+                    ]
+                    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BIN_DIR))
+
+                elif scale == 8:
+                    # 2-Pass neural super-resolution: 4x pass + 2x pass = 8x true AI scaling
+                    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as mid_f:
+                        mid_path = mid_f.name
+
+                    cmd1 = [
+                        str(CLARIFY_EXE),
+                        "-i", str(in_path),
+                        "-o", str(mid_path),
+                        "-s", "4",
+                        "-n", model_name,
+                        "-m", models_dir
+                    ]
+                    res1 = subprocess.run(cmd1, capture_output=True, text=True, cwd=str(BIN_DIR))
+
+                    if res1.returncode == 0 and os.path.exists(mid_path) and os.path.getsize(mid_path) > 0:
+                        pass2_model = "realesr-animevideov3-x2" if (BIN_DIR / "models" / "realesr-animevideov3-x2.bin").exists() else model_name
+                        cmd2 = [
+                            str(CLARIFY_EXE),
+                            "-i", str(mid_path),
+                            "-o", str(out_path),
+                            "-s", "2",
+                            "-n", pass2_model,
+                            "-m", models_dir
+                        ]
+                        res = subprocess.run(cmd2, capture_output=True, text=True, cwd=str(BIN_DIR))
+                    else:
+                        res = res1
+
+                    try:
+                        if os.path.exists(mid_path):
+                            os.remove(mid_path)
+                    except Exception:
+                        pass
+
+                elif scale == 6:
+                    # 4x neural pass + high-quality Lanczos resize to 6x
+                    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as mid_f:
+                        mid_path = mid_f.name
+
+                    cmd1 = [
+                        str(CLARIFY_EXE),
+                        "-i", str(in_path),
+                        "-o", str(mid_path),
+                        "-s", "4",
+                        "-n", model_name,
+                        "-m", models_dir
+                    ]
+                    res1 = subprocess.run(cmd1, capture_output=True, text=True, cwd=str(BIN_DIR))
+
+                    if res1.returncode == 0 and os.path.exists(mid_path) and os.path.getsize(mid_path) > 0:
+                        try:
+                            from PIL import Image
+                            im_mid = Image.open(mid_path)
+                            orig_im = Image.open(in_path)
+                            target_w = orig_im.width * 6
+                            target_h = orig_im.height * 6
+                            im_6x = im_mid.resize((target_w, target_h), Image.Resampling.LANCZOS)
+                            im_6x.save(out_path, format="PNG")
+                            res = res1
+                        except Exception as resize_err:
+                            print(f"[CLARIFY WARNING] Lanczos resize fallback: {resize_err}")
+                            shutil.copy(mid_path, out_path)
+                            res = res1
+                    else:
+                        res = res1
+
+                    try:
+                        if os.path.exists(mid_path):
+                            os.remove(mid_path)
+                    except Exception:
+                        pass
+                else:
+                    cmd = [
+                        str(CLARIFY_EXE),
+                        "-i", str(in_path),
+                        "-o", str(out_path),
+                        "-s", "4",
+                        "-n", model_name,
+                        "-m", models_dir
+                    ]
+                    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BIN_DIR))
 
                 if os.path.exists(out_path) and os.path.getsize(out_path) > 0:
                     with open(out_path, "rb") as out_f:
