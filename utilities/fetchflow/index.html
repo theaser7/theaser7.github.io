@@ -434,6 +434,11 @@
             color: var(--mint);
             font-weight: 800;
             letter-spacing: 0.08em;
+            height: 2.2em;
+            display: flex;
+            align-items: flex-end;
+            margin-bottom: 0.2rem;
+            line-height: 1.1;
         }
 
         .quality-dropdown {
@@ -447,8 +452,12 @@
             border-radius: var(--radius-sm);
             outline: none;
             cursor: pointer;
+            height: 40px;
+            box-sizing: border-box;
+            width: 100%;
             box-shadow: 0 0 10px var(--mint-soft-glow);
         }
+
 
         .quality-dropdown option {
             background: #090f0c;
@@ -775,7 +784,7 @@
 
                     <div class="quality-selector-row">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
-                            <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <div style="display: flex; flex-direction: column;">
                                 <label class="quality-label" id="lbl-quality">FORMAT & QUALITY // КАЧЕСТВО</label>
                                 <select id="quality-select" class="quality-dropdown">
                                     <option value="1080">1080p Full HD (MP4)</option>
@@ -786,14 +795,14 @@
                                     <option value="m4a">Audio M4A / AAC</option>
                                 </select>
                             </div>
-                            <div style="display: flex; flex-direction: column; gap: 0.3rem;">
-                                <label class="quality-label" id="lbl-engine">DOWNLOAD ENGINE // ЗЕРКАЛО</label>
+                            <div style="display: flex; flex-direction: column;">
+                                <label class="quality-label" id="lbl-engine">DOWNLOAD ENGINE // ДВИЖОК</label>
                                 <select id="engine-select" class="quality-dropdown">
-                                    <option value="ssyoutube" selected>SSYouTube (Instant)</option>
+                                    <option value="ytdlp" selected>Local yt-dlp (Ultra Speed)</option>
+                                    <option value="ssyoutube">SSYouTube (Instant)</option>
                                     <option value="y2mate">Y2Mate (High Speed)</option>
                                     <option value="savefrom">SaveFrom (Direct)</option>
                                     <option value="9xbuddy">9xBuddy (4K/HD)</option>
-                                    <option value="cobalt">Cobalt Web</option>
                                 </select>
                             </div>
                         </div>
@@ -805,10 +814,6 @@
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             <span>DOWNLOAD MEDIA</span>
                         </button>
-                        <button class="btn-dl-action btn-dl-audio" id="btn-dl-audio">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                            <span>DOWNLOAD AUDIO (MP3)</span>
-                        </button>
                         <button class="btn-dl-action btn-dl-thumb" id="btn-dl-thumb">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                             <span>DOWNLOAD COVER</span>
@@ -818,6 +823,7 @@
                             <span>OPEN DIRECT STREAM</span>
                         </button>
                     </div>
+
 
                     <!-- Live Download Progress Box -->
                     <div id="dl-progress-box" style="display: none; background: var(--bg-card); border: 1px solid var(--border-active); padding: 0.75rem; border-radius: var(--radius-sm); margin-top: 0.5rem;">

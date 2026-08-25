@@ -120,9 +120,9 @@ class FetchFlowApp {
         this.engineSelect = document.getElementById('engine-select');
 
         this.btnDlVideo = document.getElementById('btn-dl-video');
-        this.btnDlAudio = document.getElementById('btn-dl-audio');
         this.btnDlThumb = document.getElementById('btn-dl-thumb');
         this.btnOpenStream = document.getElementById('btn-open-stream');
+
 
         this.dlProgressBox = document.getElementById('dl-progress-box');
         this.dlProgressStatus = document.getElementById('dl-progress-status');
@@ -268,12 +268,11 @@ class FetchFlowApp {
 
         const dlVidSpan = document.querySelector('#btn-dl-video span');
         if (dlVidSpan) dlVidSpan.textContent = dict.btnDownloadVideo;
-        const dlAudSpan = document.querySelector('#btn-dl-audio span');
-        if (dlAudSpan) dlAudSpan.textContent = dict.btnDownloadAudio;
         const dlThmSpan = document.querySelector('#btn-dl-thumb span');
         if (dlThmSpan) dlThmSpan.textContent = dict.btnDownloadThumb;
         const openStrSpan = document.querySelector('#btn-open-stream span');
         if (openStrSpan) openStrSpan.textContent = dict.btnOpenStream;
+
 
         const histHeader = document.querySelector('.history-header-title span');
         if (histHeader) histHeader.textContent = dict.historyTitle;
@@ -619,11 +618,6 @@ class FetchFlowApp {
             this.executeMediaDownload(media);
         };
 
-        this.btnDlAudio.onclick = () => {
-            window.fetchflowSound.playClick();
-            this.executeAudioDownload(media);
-        };
-
         if (media.thumbnail) {
             this.btnDlThumb.style.display = 'inline-flex';
             this.btnDlThumb.onclick = () => {
@@ -652,21 +646,28 @@ class FetchFlowApp {
      */
     async executeMediaDownload(media) {
         const quality = this.qualitySelect ? this.qualitySelect.value : '720';
-        const engine = this.engineSelect ? this.engineSelect.value : 'ssyoutube';
+        const engine = this.engineSelect ? this.engineSelect.value : 'ytdlp';
         const isAudioFormat = quality === 'mp3' || quality === 'm4a';
 
-        if (isAudioFormat) {
-            this.executeAudioDownload(media);
-            return;
+        // 1. If yt-dlp is selected
+        if (engine === 'ytdlp') {
+            if (this.isCompanionOnline) {
+                await this.downloadViaCompanion(media, quality, isAudioFormat);
+                return;
+            } else {
+                const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
+                this.showToast('Сервер выключен! Запустите start_companion.bat или выберите зеркало');
+                if (this.dlProgressBox) {
+                    this.dlProgressBox.style.display = 'block';
+                    this.dlProgressStatus.textContent = 'Локальный сервер выключен! Запустите start_companion.bat или выберите зеркало выше';
+                    this.dlProgressPct.textContent = 'OFFLINE';
+                    this.dlProgressBar.style.width = '0%';
+                }
+                return;
+            }
         }
 
-        // 1. If Local Companion Server is online, download locally at full speed!
-        if (this.isCompanionOnline) {
-            await this.downloadViaCompanion(media, quality, false);
-            return;
-        }
-
-        const safeName = (media.title || 'video').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
+        const safeName = (media.title || 'media').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
 
         // 2. YouTube specific stream resolution via selected high-speed mirror
         if (media.isYouTube && media.videoId) {
@@ -677,7 +678,9 @@ class FetchFlowApp {
             if (engine === 'ssyoutube') {
                 targetDownloadUrl = `https://ssyoutube.com/watch?v=${media.videoId}`;
             } else if (engine === 'y2mate') {
-                targetDownloadUrl = `https://www.y2mate.com/youtube/${media.videoId}`;
+                targetDownloadUrl = isAudioFormat
+                    ? `https://www.y2mate.is/youtube-mp3/${media.videoId}`
+                    : `https://www.y2mate.is/youtube/${media.videoId}`;
             } else if (engine === 'savefrom') {
                 targetDownloadUrl = `https://en.savefrom.net/20/?url=https://www.youtube.com/watch?v=${media.videoId}`;
             } else {
@@ -691,43 +694,11 @@ class FetchFlowApp {
         }
 
         // 3. Direct in-browser blob stream download for TikTok, Twitter, Reddit, etc.
-        const streamUrl = media.videoUrl || media.streamUrl;
-        await this.forceDownloadFile(streamUrl, `${safeName}_${quality}p.mp4`);
+        const streamUrl = isAudioFormat ? (media.audioUrl || media.streamUrl) : (media.videoUrl || media.streamUrl);
+        const ext = isAudioFormat ? (quality === 'm4a' ? 'm4a' : 'mp3') : `${quality}p.mp4`;
+        await this.forceDownloadFile(streamUrl, `${safeName}_${ext}`);
     }
 
-    async executeAudioDownload(media) {
-        if (this.isCompanionOnline) {
-            await this.downloadViaCompanion(media, 'mp3', true);
-            return;
-        }
-
-        const safeName = (media.title || 'audio').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
-        const engine = this.engineSelect ? this.engineSelect.value : 'ssyoutube';
-
-        if (media.isYouTube && media.videoId) {
-            const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
-            this.showToast(dict.toastDownloading);
-
-            let targetAudioUrl = '';
-            if (engine === 'y2mate') {
-                targetAudioUrl = `https://www.y2mate.com/youtube-mp3/${media.videoId}`;
-            } else if (engine === 'savefrom') {
-                targetAudioUrl = `https://en.savefrom.net/20/?url=https://www.youtube.com/watch?v=${media.videoId}`;
-            } else if (engine === '9xbuddy') {
-                targetAudioUrl = `https://9xbuddy.com/process?url=https://www.youtube.com/watch?v=${media.videoId}`;
-            } else {
-                targetAudioUrl = `https://ssyoutube.com/watch?v=${media.videoId}`;
-            }
-
-            window.open(targetAudioUrl, '_blank');
-            this.showToast(dict.toastDownloaded);
-            window.fetchflowSound.playStreamFound();
-            return;
-        }
-
-        const audioUrl = media.audioUrl || media.streamUrl;
-        await this.forceDownloadFile(audioUrl, `${safeName}.mp3`);
-    }
 
     /**
      * Download via local Python Companion Server with live progress bar
