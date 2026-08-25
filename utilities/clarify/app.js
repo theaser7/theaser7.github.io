@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 900);
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
 
             const res = await fetch('http://127.0.0.1:7860/health', {
                 method: 'GET',

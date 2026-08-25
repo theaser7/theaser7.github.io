@@ -2,4 +2,8 @@
 .DS_Store
 Thumbs.db
 utilities/clarify/bin/
+server/bin/
 __pycache__/
+build/
+dist/
+scratch/

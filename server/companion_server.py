@@ -17,12 +17,18 @@ import urllib.parse
 import subprocess
 import shutil
 from pathlib import Path
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import threading
 
 
 PORT = 7860
-BASE_DIR = Path(__file__).resolve().parent
+
+# When compiled with PyInstaller, use exe directory so downloads/binaries persist
+if getattr(sys, 'frozen', False):
+    BASE_DIR = Path(sys.executable).resolve().parent
+else:
+    BASE_DIR = Path(__file__).resolve().parent
+
 BIN_DIR = BASE_DIR / "bin"
 CLARIFY_EXE = BIN_DIR / "realesrgan-ncnn-vulkan.exe"
 CLARIFY_URL = "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip"
@@ -32,6 +38,7 @@ DOWNLOADS_DIR = Path.home() / "Downloads" / "the_stash"
 
 # In-memory download jobs
 download_jobs = {}
+HARDWARE_INFO = None
 
 
 def detect_hardware():
@@ -57,6 +64,14 @@ def detect_hardware():
             pass
 
     return f"{gpu_name} / {cpu_name}"
+
+
+def get_hardware_info():
+    """Return cached hardware string to prevent latency on health checks."""
+    global HARDWARE_INFO
+    if HARDWARE_INFO is None:
+        HARDWARE_INFO = detect_hardware()
+    return HARDWARE_INFO
 
 
 def ensure_clarify_installed():
@@ -127,7 +142,9 @@ def get_ytdlp_cmd():
         return ["yt-dlp"]
     if YTDLP_EXE.exists():
         return [str(YTDLP_EXE)]
-    return [sys.executable, "-m", "yt_dlp"]
+    if not getattr(sys, 'frozen', False):
+        return [sys.executable, "-m", "yt_dlp"]
+    return [str(YTDLP_EXE)]
 
 
 class StashCompanionHandler(BaseHTTPRequestHandler):
@@ -136,7 +153,8 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, *")
+        self.send_header("Access-Control-Allow-Private-Network", "true")
         self.end_headers()
 
     def do_OPTIONS(self):
@@ -151,19 +169,24 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
                 "status": "online",
                 "server": "the-stash-companion",
                 "modules": ["clarify", "fetchflow"],
-                "hardware": detect_hardware(),
+                "hardware": get_hardware_info(),
                 "ytdlp_ready": YTDLP_EXE.exists() or bool(shutil.which("yt-dlp")),
                 "clarify_ready": CLARIFY_EXE.exists()
             }
             self._set_cors_headers(200)
-            self.wfile.write(json.dumps(data).encode("utf-8"))
-
+            try:
+                self.wfile.write(json.dumps(data).encode("utf-8"))
+            except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
+                pass
 
         elif path.startswith("/api/progress/"):
             job_id = path.split("/api/progress/")[1]
             job = download_jobs.get(job_id, {"status": "unknown", "progress": 0, "speed": "0 MB/s"})
             self._set_cors_headers(200)
-            self.wfile.write(json.dumps(job).encode("utf-8"))
+            try:
+                self.wfile.write(json.dumps(job).encode("utf-8"))
+            except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
+                pass
 
         elif path.startswith("/api/stream/"):
             job_id = path.split("/api/stream/")[1]
@@ -178,16 +201,26 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
                 self.send_header("Content-Length", str(file_size))
                 self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Access-Control-Allow-Private-Network", "true")
                 self.end_headers()
 
-                with open(file_path, "rb") as f:
-                    shutil.copyfileobj(f, self.wfile)
+                try:
+                    with open(file_path, "rb") as f:
+                        shutil.copyfileobj(f, self.wfile)
+                except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
+                    pass
             else:
                 self._set_cors_headers(404)
-                self.wfile.write(b'{"error": "File not found"}')
+                try:
+                    self.wfile.write(b'{"error": "File not found"}')
+                except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
+                    pass
         else:
             self._set_cors_headers(404)
-            self.wfile.write(b'{"error": "Not Found"}')
+            try:
+                self.wfile.write(b'{"error": "Not Found"}')
+            except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
+                pass
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -438,7 +471,7 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
 
 
 def main():
-    hw_info = detect_hardware()
+    hw_info = get_hardware_info()
     print("=" * 60)
     print("  THE STASH • UNIFIED COMPANION SERVER")
     print(f"  Port: http://127.0.0.1:{PORT}")
@@ -447,11 +480,11 @@ def main():
     print("  Zero Telemetry • 100% Local Sandbox")
     print("=" * 60)
 
-
     ensure_clarify_installed()
     ensure_ytdlp_installed()
 
-    server = HTTPServer(("127.0.0.1", PORT), StashCompanionHandler)
+    server = ThreadingHTTPServer(("127.0.0.1", PORT), StashCompanionHandler)
+    server.daemon_threads = True
     print(f"\n  Ready! Server listening on http://127.0.0.1:{PORT}")
     try:
         server.serve_forever()

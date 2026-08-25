@@ -13,7 +13,7 @@ import zipfile
 import tempfile
 import urllib.request
 from pathlib import Path
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 PORT = 7860
 BASE_DIR = Path(__file__).resolve().parent
@@ -79,7 +79,8 @@ class ClarifyHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, *")
+        self.send_header("Access-Control-Allow-Private-Network", "true")
         self.end_headers()
 
     def do_OPTIONS(self):
@@ -270,7 +271,8 @@ def run():
         print("[CRITICAL] Could not setup Real-ESRGAN Vulkan engine.")
         sys.exit(1)
 
-    server = HTTPServer(("127.0.0.1", PORT), ClarifyHandler)
+    server = ThreadingHTTPServer(("127.0.0.1", PORT), ClarifyHandler)
+    server.daemon_threads = True
     print("\n" + "=" * 60)
     print(f"  Clarify AI Companion Server is RUNNING on http://127.0.0.1:{PORT}")
     print("  Hardware: NVIDIA RTX 4060 (Vulkan)")

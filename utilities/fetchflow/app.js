@@ -204,7 +204,7 @@ class FetchFlowApp {
         const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 1200);
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
             const res = await fetch(`${this.companionUrl}/health`, { signal: controller.signal });
             clearTimeout(timeoutId);
 
