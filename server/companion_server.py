@@ -279,7 +279,14 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
                         })
 
                 dur_sec = info.get("duration") or 0
-                dur_str = f"{int(dur_sec // 60)}:{int(dur_sec % 60):02d}" if dur_sec else "HD"
+                if dur_sec:
+                    hours = int(dur_sec // 3600)
+                    mins = int((dur_sec % 3600) // 60)
+                    secs = int(dur_sec % 60)
+                    dur_str = f"{hours}:{mins:02d}:{secs:02d}" if hours > 0 else f"{mins}:{secs:02d}"
+                else:
+                    dur_str = "HD"
+
 
                 resp_data = {
                     "status": "success",

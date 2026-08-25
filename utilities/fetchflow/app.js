@@ -649,17 +649,17 @@ class FetchFlowApp {
         const engine = this.engineSelect ? this.engineSelect.value : 'ytdlp';
         const isAudioFormat = quality === 'mp3' || quality === 'm4a';
 
-        // 1. If yt-dlp is selected
+        // 1. If Local yt-dlp Engine is selected
         if (engine === 'ytdlp') {
             if (this.isCompanionOnline) {
                 await this.downloadViaCompanion(media, quality, isAudioFormat);
                 return;
             } else {
                 const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
-                this.showToast('Сервер выключен! Запустите start_companion.bat или выберите зеркало');
+                this.showToast('Локальный сервер выключен! Запустите start_companion.bat или выберите зеркало');
                 if (this.dlProgressBox) {
                     this.dlProgressBox.style.display = 'block';
-                    this.dlProgressStatus.textContent = 'Локальный сервер выключен! Запустите start_companion.bat или выберите зеркало выше';
+                    this.dlProgressStatus.textContent = 'Сервер выключен! Запустите start_companion.bat или выберите зеркало (SSYouTube/Y2Mate)';
                     this.dlProgressPct.textContent = 'OFFLINE';
                     this.dlProgressBar.style.width = '0%';
                 }
@@ -667,38 +667,31 @@ class FetchFlowApp {
             }
         }
 
-        const safeName = (media.title || 'media').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
+        // 2. Web Mirror Selected (SSYouTube, Y2Mate, SaveFrom, 9xBuddy): ALWAYS open mirror site!
+        const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
+        this.showToast(dict.toastDownloading);
 
-        // 2. YouTube specific stream resolution via selected high-speed mirror
-        if (media.isYouTube && media.videoId) {
-            const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.en;
-            this.showToast(dict.toastDownloading);
+        let targetDownloadUrl = '';
+        const videoId = media.videoId || '';
 
-            let targetDownloadUrl = '';
-            if (engine === 'ssyoutube') {
-                targetDownloadUrl = `https://ssyoutube.com/watch?v=${media.videoId}`;
-            } else if (engine === 'y2mate') {
-                targetDownloadUrl = isAudioFormat
-                    ? `https://www.y2mate.is/youtube-mp3/${media.videoId}`
-                    : `https://www.y2mate.is/youtube/${media.videoId}`;
-            } else if (engine === 'savefrom') {
-                targetDownloadUrl = `https://en.savefrom.net/20/?url=https://www.youtube.com/watch?v=${media.videoId}`;
-            } else {
-                targetDownloadUrl = `https://9xbuddy.com/process?url=https://www.youtube.com/watch?v=${media.videoId}`;
-            }
-
-            window.open(targetDownloadUrl, '_blank');
-            this.showToast(dict.toastDownloaded);
-            window.fetchflowSound.playStreamFound();
-            return;
+        if (engine === 'ssyoutube') {
+            targetDownloadUrl = videoId
+                ? `https://ssyoutube.com/watch?v=${videoId}`
+                : `https://ssyoutube.com/?url=${encodeURIComponent(media.sourceUrl)}`;
+        } else if (engine === 'y2mate') {
+            targetDownloadUrl = isAudioFormat
+                ? (videoId ? `https://www.y2mate.is/youtube-mp3/${videoId}` : `https://www.y2mate.is/`)
+                : (videoId ? `https://www.y2mate.is/youtube/${videoId}` : `https://www.y2mate.is/`);
+        } else if (engine === 'savefrom') {
+            targetDownloadUrl = `https://en.savefrom.net/20/?url=${encodeURIComponent(media.sourceUrl)}`;
+        } else if (engine === '9xbuddy') {
+            targetDownloadUrl = `https://9xbuddy.com/process?url=${encodeURIComponent(media.sourceUrl)}`;
         }
 
-        // 3. Direct in-browser blob stream download for TikTok, Twitter, Reddit, etc.
-        const streamUrl = isAudioFormat ? (media.audioUrl || media.streamUrl) : (media.videoUrl || media.streamUrl);
-        const ext = isAudioFormat ? (quality === 'm4a' ? 'm4a' : 'mp3') : `${quality}p.mp4`;
-        await this.forceDownloadFile(streamUrl, `${safeName}_${ext}`);
+        window.open(targetDownloadUrl, '_blank');
+        this.showToast(dict.toastDownloaded);
+        window.fetchflowSound.playStreamFound();
     }
-
 
     /**
      * Download via local Python Companion Server with live progress bar
@@ -744,31 +737,23 @@ class FetchFlowApp {
 
                         if (job.status === 'completed') {
                             clearInterval(pollInterval);
-                            if (this.dlProgressStatus) this.dlProgressStatus.textContent = 'Ready! Saved to Downloads/the_stash';
+                            if (this.dlProgressStatus) this.dlProgressStatus.textContent = '✓ Ready! Saved to Downloads/the_stash';
                             this.showToast('Downloaded to Downloads/the_stash!');
                             window.fetchflowSound.playStreamFound();
                             this.isDownloading = false;
-
-                            // Trigger browser stream save
-                            const a = document.createElement('a');
-                            a.href = `${this.companionUrl}/api/stream/${jobId}`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
                         } else if (job.status === 'error') {
                             clearInterval(pollInterval);
                             const errMsg = job.error_msg ? `yt-dlp error: ${job.error_msg.slice(0, 70)}` : 'Error downloading via yt-dlp';
                             if (this.dlProgressStatus) this.dlProgressStatus.textContent = errMsg;
                             this.isDownloading = false;
                         }
-
                     }
                 } catch (pe) {}
             }, 600);
 
         } catch (e) {
             console.error('Companion download error:', e);
-            if (this.dlProgressStatus) this.dlProgressStatus.textContent = 'Server download error, trying mirror...';
+            if (this.dlProgressStatus) this.dlProgressStatus.textContent = 'Server download error, please check companion window';
             this.isDownloading = false;
         }
     }
@@ -828,6 +813,7 @@ class FetchFlowApp {
         this.history.unshift({
             title: media.title,
             platform: media.platform,
+            duration: media.duration || '--',
             sourceUrl: media.sourceUrl,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
@@ -851,10 +837,11 @@ class FetchFlowApp {
         this.history.forEach(item => {
             const card = document.createElement('div');
             card.className = 'history-item';
+            const durBadge = item.duration && item.duration !== '--' ? ` [${item.duration}]` : '';
             card.innerHTML = `
                 <div class="history-item-info">
                     <span class="history-item-title" title="${item.title}">${item.title}</span>
-                    <span class="history-item-meta">${item.platform} &bull; ${item.timestamp}</span>
+                    <span class="history-item-meta">${item.platform}${durBadge} &bull; ${item.timestamp}</span>
                 </div>
                 <button class="btn-history-load" title="Load Link">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
