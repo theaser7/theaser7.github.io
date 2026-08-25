@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FetchFlow &bull; Universal Media Extractor &bull; the stash</title>
+    <meta name="description" content="FetchFlow - Universal client-side media parser and stream extractor. Direct in-browser video & audio downloads for YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud & more.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><path d=%22M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4%22/><polyline points=%227 10 12 15 17 10%22/><line x1=%2212%22 y1=%2215%22 x2=%2212%22 y2=%223%22/></svg>">
+
+    <style>
+        :root {
+            --bg-deep: #050807;
+            --bg-surface: rgba(9, 15, 12, 0.85);
+            --bg-surface-hover: rgba(14, 24, 19, 0.95);
+            --bg-card: rgba(11, 19, 15, 0.9);
+            --bg-input: rgba(7, 12, 10, 0.95);
+            
+            --border-dim: #13221b;
+            --border-medium: #1c362a;
+            --border-active: #00ff9d;
+            
+            --mint: #00ff9d;
+            --mint-dark: #04251a;
+            --mint-glow: rgba(0, 255, 157, 0.35);
+            --mint-soft-glow: rgba(0, 255, 157, 0.12);
+            --cyan: #38bdf8;
+            --purple: #c084fc;
+            --amber: #facc15;
+            --danger: #ff3366;
+            
+            --text-main: #f0fdf4;
+            --text-muted: #86a896;
+            --text-dim: #436353;
+            
+            --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1000px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: var(--mint-dark);
+            border: 1px solid var(--border-active);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mint);
+            box-shadow: 0 0 12px var(--mint-glow);
+        }
+
+        .brand-logo svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--mint);
+            text-shadow: 0 0 10px var(--mint-glow);
+        }
+
+        .brand-badge {
+            font-size: 0.65rem;
+            color: var(--amber);
+            padding: 0.15rem 0.4rem;
+            background: rgba(250, 204, 21, 0.1);
+            border: 1px solid rgba(250, 204, 21, 0.3);
+            border-radius: 4px;
+            margin-left: 0.35rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .hud-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
+            color: var(--text-muted);
+            padding: 0.45rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: var(--font-mono);
+        }
+
+        .hud-btn:hover {
+            border-color: var(--border-active);
+            color: var(--mint);
+            box-shadow: 0 0 10px var(--mint-soft-glow);
+            background: rgba(0, 255, 157, 0.05);
+        }
+
+        .hud-btn.muted {
+            color: var(--text-dim);
+        }
+
+        .hero-banner {
+            text-align: center;
+            padding: 0.5rem 1rem;
+        }
+
+        .hero-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--mint);
+            letter-spacing: 0.08em;
+            text-shadow: 0 0 15px var(--mint-glow);
+            margin-bottom: 0.4rem;
+        }
+
+        .hero-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            max-width: 650px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Search / Input Box */
+        .extractor-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .input-bar-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            padding: 0.4rem 0.6rem 0.4rem 1rem;
+            gap: 0.6rem;
+            transition: all 0.2s ease;
+        }
+
+        .input-bar-wrapper:focus-within {
+            border-color: var(--mint);
+            box-shadow: 0 0 20px var(--mint-soft-glow);
+        }
+
+        .platform-pill {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+        }
+
+        .platform-auto { background: var(--bg-deep); color: var(--text-dim); border: 1px solid var(--border-dim); }
+        .platform-youtube { background: rgba(255, 0, 0, 0.15); color: #ff4444; border: 1px solid #ff4444; }
+        .platform-tiktok { background: rgba(0, 242, 234, 0.15); color: #00f2ea; border: 1px solid #00f2ea; }
+        .platform-twitter { background: rgba(29, 155, 240, 0.15); color: #1d9bf0; border: 1px solid #1d9bf0; }
+        .platform-vk { background: rgba(0, 119, 255, 0.15); color: #0077ff; border: 1px solid #0077ff; }
+        .platform-reddit { background: rgba(255, 69, 0, 0.15); color: #ff4500; border: 1px solid #ff4500; }
+        .platform-soundcloud { background: rgba(255, 85, 0, 0.15); color: #ff5500; border: 1px solid #ff5500; }
+        .platform-twitch { background: rgba(145, 70, 255, 0.15); color: #9146ff; border: 1px solid #9146ff; }
+        .platform-instagram { background: rgba(225, 48, 108, 0.15); color: #e1306c; border: 1px solid #e1306c; }
+        .platform-generic { background: rgba(0, 255, 157, 0.15); color: var(--mint); border: 1px solid var(--mint); }
+
+        #media-url-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            outline: none;
+            user-select: text;
+        }
+
+        .btn-input-action {
+            background: var(--bg-deep);
+            border: 1px solid var(--border-medium);
+            color: var(--text-muted);
+            padding: 0.5rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-input-action:hover {
+            border-color: var(--mint);
+            color: var(--mint);
+        }
+
+        .btn-fetch-main {
+            background: var(--mint);
+            color: var(--bg-deep);
+            border: 1px solid var(--mint);
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px var(--mint-glow);
+        }
+
+        .btn-fetch-main:hover {
+            background: #05f0a5;
+            transform: translateY(-2px);
+        }
+
+        .btn-fetch-main.loading {
+            background: var(--mint-dark);
+            color: var(--mint);
+            border-color: var(--border-active);
+            pointer-events: none;
+        }
+
+        /* Supported Services Chips */
+        .supported-services-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .service-chip {
+            padding: 0.2rem 0.5rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        /* Preview Card */
+        .preview-card {
+            display: none;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-active);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            flex-direction: column;
+            gap: 1.25rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 25px var(--mint-soft-glow);
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .preview-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .preview-header-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--mint);
+            letter-spacing: 0.08em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .preview-layout {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        .player-box {
+            background: var(--bg-deep);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        .meta-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .media-title-text {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.4;
+            user-select: text;
+        }
+
+        .meta-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            padding: 0.75rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .meta-stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .meta-stat-label {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            font-weight: 800;
+            letter-spacing: 0.06em;
+        }
+
+        .meta-stat-val {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--mint);
+        }
+
+        .action-download-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn-dl-action {
+            padding: 0.65rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            letter-spacing: 0.06em;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: 1px solid transparent;
+        }
+
+        .btn-dl-video {
+            background: var(--mint);
+            color: var(--bg-deep);
+            box-shadow: 0 0 12px var(--mint-glow);
+        }
+
+        .btn-dl-video:hover {
+            background: #05f0a5;
+            transform: translateY(-2px);
+        }
+
+        .btn-dl-audio {
+            background: var(--bg-input);
+            color: var(--cyan);
+            border-color: var(--cyan);
+        }
+
+        .btn-dl-audio:hover {
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .btn-dl-thumb {
+            background: var(--bg-input);
+            color: var(--text-muted);
+            border-color: var(--border-dim);
+        }
+
+        .btn-dl-thumb:hover {
+            border-color: var(--border-active);
+            color: var(--mint);
+        }
+
+        .btn-open-stream {
+            background: var(--bg-deep);
+            color: var(--text-dim);
+            border-color: var(--border-dim);
+        }
+
+        .btn-open-stream:hover {
+            color: var(--text-main);
+            border-color: var(--border-medium);
+        }
+
+        /* Recent History */
+        .history-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .history-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-header-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--mint);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .empty-history-msg {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 0.8rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            border-color: var(--border-medium);
+            background: var(--bg-surface-hover);
+        }
+
+        .history-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            overflow: hidden;
+        }
+
+        .history-item-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 600px;
+        }
+
+        .history-item-meta {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .btn-history-load {
+            background: transparent;
+            border: none;
+            color: var(--mint);
+            cursor: pointer;
+            padding: 0.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-history-load:hover {
+            transform: translateX(2px);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(50px);
+            background: var(--mint-dark);
+            border: 1px solid var(--border-active);
+            color: var(--mint);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 700;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        footer {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--mint);
+        }
+
+        @media (max-width: 768px) {
+            .preview-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <a href="../../index.html" class="brand-link">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </div>
+                <div>
+                    <span class="brand-title">FetchFlow</span>
+                    <span class="brand-badge">BETA</span>
+                </div>
+            </a>
+
+            <div class="header-actions">
+                <button id="btn-lang" class="hud-btn" title="Toggle language / Сменить язык">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span id="btn-lang-text">RU</span>
+                </button>
+                <button id="btn-mute" class="hud-btn" title="Toggle audio effects">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    <span>SOUND</span>
+                </button>
+                <a href="../../index.html" class="hud-btn" title="Return to the stash hub">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span id="txt-btn-hub">HUB</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Hero -->
+        <section class="hero-banner">
+            <h1 class="hero-title">FetchFlow</h1>
+            <p class="hero-subtitle">Universal client-side media parser and stream extractor. Direct in-browser video & audio downloads for YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud & more.</p>
+        </section>
+
+        <!-- Input Extractor Card -->
+        <section class="extractor-card">
+            <div class="input-bar-wrapper">
+                <span class="platform-pill platform-auto" id="input-platform-badge">DETECT</span>
+                <input type="text" id="media-url-input" placeholder="Paste video or audio link (YouTube, TikTok, VK, X, Reddit, SoundCloud, Twitch...)" autocomplete="off">
+                <button class="btn-input-action" id="btn-paste">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                    <span>PASTE</span>
+                </button>
+                <button class="btn-fetch-main" id="btn-fetch">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    <span>FETCH MEDIA</span>
+                </button>
+            </div>
+
+            <div class="supported-services-row">
+                <span>SUPPORTED:</span>
+                <span class="service-chip">YouTube</span>
+                <span class="service-chip">TikTok</span>
+                <span class="service-chip">VK Video</span>
+                <span class="service-chip">X / Twitter</span>
+                <span class="service-chip">Reddit</span>
+                <span class="service-chip">SoundCloud</span>
+                <span class="service-chip">Twitch</span>
+                <span class="service-chip">Instagram</span>
+            </div>
+        </section>
+
+        <!-- Preview & Download Card -->
+        <section class="preview-card" id="preview-section">
+            <div class="preview-header-bar">
+                <h3 class="preview-header-title">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span id="preview-title">MEDIA PREVIEW // READY FOR DOWNLOAD</span>
+                </h3>
+            </div>
+
+            <div class="preview-layout">
+                <!-- Player Box -->
+                <div class="player-box" id="player-container"></div>
+
+                <!-- Meta & Actions -->
+                <div class="meta-box">
+                    <h2 class="media-title-text" id="media-title">Media Title</h2>
+
+                    <div class="meta-stats-grid">
+                        <div class="meta-stat-item">
+                            <span class="meta-stat-label" id="lbl-meta-duration">DURATION</span>
+                            <span class="meta-stat-val" id="media-duration">--</span>
+                        </div>
+                        <div class="meta-stat-item">
+                            <span class="meta-stat-label" id="lbl-meta-platform">PLATFORM</span>
+                            <span class="meta-stat-val" id="media-platform">--</span>
+                        </div>
+                        <div class="meta-stat-item" style="grid-column: 1 / -1;">
+                            <span class="meta-stat-label" id="lbl-meta-author">AUTHOR</span>
+                            <span class="meta-stat-val" id="media-author">--</span>
+                        </div>
+                    </div>
+
+                    <div class="action-download-buttons">
+                        <button class="btn-dl-action btn-dl-video" id="btn-dl-video">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <span>DOWNLOAD VIDEO (HD)</span>
+                        </button>
+                        <button class="btn-dl-action btn-dl-audio" id="btn-dl-audio">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                            <span>DOWNLOAD AUDIO (MP3)</span>
+                        </button>
+                        <button class="btn-dl-action btn-dl-thumb" id="btn-dl-thumb">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                            <span>DOWNLOAD COVER</span>
+                        </button>
+                        <button class="btn-dl-action btn-open-stream" id="btn-open-stream">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            <span>OPEN DIRECT STREAM</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Streams History -->
+        <section class="history-section">
+            <div class="history-top-bar">
+                <h3 class="history-header-title">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>RECENT STREAMS</span>
+                </h3>
+                <button class="hud-btn" id="btn-clear-history">
+                    <span>CLEAR HISTORY</span>
+                </button>
+            </div>
+
+            <div class="history-list" id="history-list">
+                <div class="empty-history-msg" id="empty-history">No recent extractions yet. Paste a link above to begin.</div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <span>FetchFlow &bull; 100% In-Browser Media Extraction</span>
+            <span>Part of <a href="../../index.html">the stash</a></span>
+        </footer>
+    </div>
+
+    <div id="toast-notify" class="toast">Stream extracted!</div>
+
+    <!-- 2D Canvas Background -->
+    <script>
+        (function() {
+            const canvas = document.getElementById('bg-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w, h;
+
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            const gridSize = 40;
+            let offset = 0;
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+                ctx.strokeStyle = '#13221b';
+                ctx.lineWidth = 1;
+
+                offset = (offset + 0.12) % gridSize;
+
+                for (let x = offset; x < w; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, h);
+                    ctx.stroke();
+                }
+
+                for (let y = offset; y < h; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = 'rgba(0, 255, 157, 0.15)';
+                for (let x = offset; x < w; x += gridSize * 2) {
+                    for (let y = offset; y < h; y += gridSize * 2) {
+                        ctx.fillRect(x - 1, y - 1, 2, 2);
+                    }
+                }
+
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+    </script>
+
+    <script src="sound.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

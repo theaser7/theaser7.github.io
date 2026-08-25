@@ -850,8 +850,9 @@
         <header class="hero-section">
             <div class="brand-heading">
                 <h1 class="brand-title">the stash</h1>
-                <span class="brand-version">v0.7.0</span>
+                <span class="brand-version">v0.7.1</span>
             </div>
+
 
 
 
@@ -1030,30 +1031,31 @@
                         <a href="./utilities/clarify/" class="btn-action">Launch Clarify &rarr;</a>
                     </article>
 
-                    <!-- 3. FetchFlow (yt-dlp concept) -->
-                    <article class="project-card" data-type="utilities" data-category="concept">
+                    <!-- 3. FetchFlow (Universal Media Extractor) -->
+                    <article class="project-card" data-type="utilities" data-category="wip">
                         <div>
                             <div class="card-top">
-                                <div class="card-glyph-box" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">
+                                <div class="card-glyph-box" style="color: #00ff9d; border-color: rgba(0, 255, 157, 0.3);">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                         <polyline points="7 10 12 15 17 10"></polyline>
                                         <line x1="12" y1="15" x2="12" y2="3"></line>
                                     </svg>
                                 </div>
-                                <span class="status-pill status-concept">Concept</span>
+                                <span class="status-pill status-wip">In Progress</span>
                             </div>
                             <h2 class="card-title">FetchFlow</h2>
-                            <p class="card-desc">High-throughput media extraction & stream scraper concept powered by <code>yt-dlp</code> & <code>ffmpeg</code>. 4K streams, lossless audio, section trimming, and batch scripts.</p>
+                            <p class="card-desc">Universal client-side media parser and stream extractor. Direct in-browser video & audio downloads for YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud & more.</p>
                             <div class="card-tags">
-                                <span class="tag-pill">#yt-dlp</span>
-                                <span class="tag-pill">#MediaStream</span>
-                                <span class="tag-pill">#FFmpeg</span>
-                                <span class="tag-pill">#Automation</span>
+                                <span class="tag-pill">#MediaExtractor</span>
+                                <span class="tag-pill">#YouTube</span>
+                                <span class="tag-pill">#TikTok</span>
+                                <span class="tag-pill">#DirectStream</span>
                             </div>
                         </div>
-                        <button class="btn-action btn-concept-action" id="btn-concept-trigger">Concept Specs &rarr;</button>
+                        <a href="./utilities/fetchflow/" class="btn-action">Launch FetchFlow &rarr;</a>
                     </article>
+
 
                     <!-- Empty State -->
                     <div class="empty-state" id="empty-state" style="display: none;">
@@ -1368,12 +1370,13 @@
                 cardStashconvertDesc: "Universal client-side converter for Video, Images, Audio, and Data/Docs. Supports video-to-GIF, video-to-audio extraction, batch queues, and zero telemetry.",
                 cardStashipDesc: "Zero-telemetry network diagnostics (IP, ISP, ASN, Geolocation, Timezone, Hostname) with 1-Click Copy and live client-side Speedtest engine.",
                 cardClarifyDesc: "Neural super-resolution tool to upscale, enhance, and denoise photos up to 4K. Features an interactive Before/After split slider and zero telemetry.",
-                cardFetchflowDesc: "High-throughput media extraction & stream scraper concept powered by yt-dlp & ffmpeg. 4K streams, lossless audio, section trimming, and batch scripts.",
+                cardFetchflowDesc: "Universal client-side media parser and stream extractor. Direct in-browser video & audio downloads for YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud & more.",
                 btnLaunchFlexle: "Launch Flexle →",
                 btnLaunchQuantex: "Launch Quantex →",
                 btnLaunchStashconvert: "Launch StashConvert →",
                 btnLaunchStaship: "Launch StashIP →",
                 btnLaunchClarify: "Launch Clarify →",
+                btnLaunchFetchflow: "Launch FetchFlow →",
                 btnConceptSpecs: "Concept Specs →",
                 previewMain: "select any module",
                 previewSub: "to inspect sandbox parameters",
@@ -1421,12 +1424,13 @@
                 cardStashconvertDesc: "Универсальный клиентский конвертер видео, картинок, аудио и данных. Видео в GIF, извлечение аудио, пакетная очередь и нулевая телеметрия.",
                 cardStashipDesc: "Диагностика сети без телеметрии (IP, провайдер, ASN, геолокация, таймзона) с копированием в 1 клик и встроенным спидометром скорости.",
                 cardClarifyDesc: "Нейросетевой апскейлер для улучшения детализации и удаления шума на фото до 4K. Интерактивный слайдер «До/После» и нулевая телеметрия.",
-                cardFetchflowDesc: "Концепт скоростной загрузки медиапотоков на базе yt-dlp и ffmpeg. Видео 4K, звук без потерь, нарезка фрагментов и bat-скрипты.",
+                cardFetchflowDesc: "Универсальный клиентский веб-парсер и загрузчик медиа. Прямое скачивание видео и аудио для YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud и других.",
                 btnLaunchFlexle: "Запустить Flexle →",
                 btnLaunchQuantex: "Запустить Quantex →",
                 btnLaunchStashconvert: "Запустить StashConvert →",
                 btnLaunchStaship: "Запустить StashIP →",
                 btnLaunchClarify: "Запустить Clarify →",
+                btnLaunchFetchflow: "Запустить FetchFlow →",
                 btnConceptSpecs: "Спецификация концепта →",
                 previewMain: "выберите любой модуль",
                 previewSub: "для просмотра параметров песочницы",
@@ -1541,13 +1545,14 @@
                 if (btn) btn.textContent = dict.btnLaunchClarify;
             }
 
-            const cardFetchflow = document.getElementById('btn-concept-trigger')?.closest('.project-card');
+            const cardFetchflow = document.querySelector('a[href="./utilities/fetchflow/"]')?.closest('.project-card');
             if (cardFetchflow) {
                 const desc = cardFetchflow.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardFetchflowDesc;
                 const btn = cardFetchflow.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnConceptSpecs;
+                if (btn) btn.textContent = dict.btnLaunchFetchflow;
             }
+
 
             // Status badges on cards
             document.querySelectorAll('.status-playable').forEach(p => p.textContent = dict.statusPlayable);
