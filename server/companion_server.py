@@ -96,10 +96,10 @@ def ensure_ytdlp_installed():
 
 def get_ytdlp_cmd():
     if shutil.which("yt-dlp"):
-        return "yt-dlp"
+        return ["yt-dlp"]
     if YTDLP_EXE.exists():
-        return str(YTDLP_EXE)
-    return sys.executable + " -m yt_dlp"
+        return [str(YTDLP_EXE)]
+    return [sys.executable, "-m", "yt_dlp"]
 
 
 class StashCompanionHandler(BaseHTTPRequestHandler):
@@ -132,7 +132,7 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
 
         elif path.startswith("/api/progress/"):
             job_id = path.split("/api/progress/")[1]
-            job = download_jobs.get(job_id, {"status": "unknown", "progress": 0})
+            job = download_jobs.get(job_id, {"status": "unknown", "progress": 0, "speed": "0 MB/s"})
             self._set_cors_headers(200)
             self.wfile.write(json.dumps(job).encode("utf-8"))
 
@@ -221,7 +221,6 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
                         "message": res.stderr or "Upscaling failed"
                     }).encode("utf-8"))
 
-                # Cleanup
                 try:
                     os.unlink(in_path)
                     os.unlink(out_path)
@@ -248,12 +247,16 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
                     return
 
                 print(f"[FETCHFLOW] Extracting info for: {media_url}")
-                ytdlp_bin = get_ytdlp_cmd()
+                ytdlp_cmd = get_ytdlp_cmd()
 
-                # Run yt-dlp --dump-single-json
-                cmd = [ytdlp_bin, "--dump-single-json", "--no-warnings", "--skip-download", media_url]
-                if " " in ytdlp_bin:
-                    cmd = ytdlp_bin.split() + ["--dump-single-json", "--no-warnings", "--skip-download", media_url]
+                cmd = ytdlp_cmd + [
+                    "--dump-single-json",
+                    "--no-warnings",
+                    "--skip-download",
+                    "--extractor-args", "youtube:player_client=android,web",
+                    "--windows-filenames",
+                    media_url
+                ]
 
                 proc = subprocess.run(cmd, capture_output=True, text=True, timeout=25)
                 if proc.returncode != 0:
@@ -261,7 +264,6 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
 
                 info = json.loads(proc.stdout)
 
-                # Format selection
                 formats = []
                 for f in info.get("formats", []):
                     if f.get("vcodec") != "none" or f.get("acodec") != "none":
@@ -317,58 +319,69 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
                     "status": "downloading",
                     "progress": 0,
                     "speed": "0 MB/s",
-                    "file_path": None
+                    "file_path": None,
+                    "error_msg": ""
                 }
 
                 def run_dl(jid, url, q, audio):
-                    ytdlp_bin = get_ytdlp_cmd()
-                    out_template = str(DOWNLOADS_DIR / "%(title)s.%(ext)s")
+                    ytdlp_cmd = get_ytdlp_cmd()
+                    out_template = str(DOWNLOADS_DIR / "%(title).100B.%(ext)s")
 
                     if audio:
                         fmt_args = ["-x", "--audio-format", "mp3", "--audio-quality", "0"]
                     else:
                         if q == "1080":
-                            fmt_args = ["-f", "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best"]
+                            fmt_args = ["-f", "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best[ext=mp4]/best"]
                         elif q == "480":
-                            fmt_args = ["-f", "bestvideo[height<=480]+bestaudio/best[height<=480]/best"]
+                            fmt_args = ["-f", "bestvideo[height<=480]+bestaudio/best[height<=480]/best[ext=mp4]/best"]
                         elif q == "360":
-                            fmt_args = ["-f", "bestvideo[height<=360]+bestaudio/best[height<=360]/best"]
+                            fmt_args = ["-f", "bestvideo[height<=360]+bestaudio/best[height<=360]/best[ext=mp4]/best"]
                         else:
-                            fmt_args = ["-f", "bestvideo[height<=720]+bestaudio/best[height<=720]/best"]
+                            fmt_args = ["-f", "bestvideo[height<=720]+bestaudio/best[height<=720]/best[ext=mp4]/best"]
 
-                    cmd = [ytdlp_bin, "--no-warnings", "-o", out_template, "--newline"] + fmt_args + [url]
-                    if " " in ytdlp_bin:
-                        cmd = ytdlp_bin.split() + ["--no-warnings", "-o", out_template, "--newline"] + fmt_args + [url]
+                    cmd = ytdlp_cmd + [
+                        "--no-warnings",
+                        "-o", out_template,
+                        "--newline",
+                        "--windows-filenames",
+                        "--extractor-args", "youtube:player_client=android,web",
+                        "--no-check-certificates"
+                    ] + fmt_args + [url]
 
                     print(f"[FETCHFLOW DOWNLOAD] Job {jid}: Running yt-dlp...")
                     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
-                    last_file = None
+                    last_output = []
                     for line in p.stdout:
+                        last_output.append(line.strip())
+                        if len(last_output) > 10:
+                            last_output.pop(0)
+
                         if "[download]" in line and "%" in line:
                             parts = line.split()
-                            for part in parts:
+                            for idx, part in enumerate(parts):
                                 if "%" in part:
                                     try:
                                         pct = float(part.replace("%", ""))
                                         download_jobs[jid]["progress"] = pct
                                     except Exception:
                                         pass
-                        if "[Merger] Merging formats into" in line or "[download] Destination:" in line:
-                            last_file = line.split(":", 1)[-1].strip().strip('"')
+                                if "at" in part and idx + 1 < len(parts):
+                                    download_jobs[jid]["speed"] = parts[idx + 1]
 
                     p.wait()
 
                     if p.returncode == 0:
                         download_jobs[jid]["status"] = "completed"
                         download_jobs[jid]["progress"] = 100
-                        # Find most recently modified file in Downloads folder
                         files = list(DOWNLOADS_DIR.glob("*"))
                         if files:
                             latest_file = max(files, key=os.path.getmtime)
                             download_jobs[jid]["file_path"] = str(latest_file)
                     else:
                         download_jobs[jid]["status"] = "error"
+                        download_jobs[jid]["error_msg"] = " | ".join(last_output[-3:]) if last_output else "Download error"
+                        print(f"[FETCHFLOW ERROR] Download failed: {download_jobs[jid]['error_msg']}")
 
                 t = threading.Thread(target=run_dl, args=(job_id, media_url, quality, is_audio), daemon=True)
                 t.start()

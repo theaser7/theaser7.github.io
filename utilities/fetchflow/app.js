@@ -767,14 +767,18 @@ class FetchFlowApp {
                         if (this.dlProgressPct) this.dlProgressPct.textContent = `${pct}%`;
                         if (this.dlProgressBar) this.dlProgressBar.style.width = `${pct}%`;
 
+                        if (job.speed && job.speed !== '0 MB/s') {
+                            if (this.dlProgressStatus) this.dlProgressStatus.textContent = `Downloading via yt-dlp (${job.speed})...`;
+                        }
+
                         if (job.status === 'completed') {
                             clearInterval(pollInterval);
-                            if (this.dlProgressStatus) this.dlProgressStatus.textContent = 'Saved to Downloads/the_stash!';
+                            if (this.dlProgressStatus) this.dlProgressStatus.textContent = 'Ready! Saved to Downloads/the_stash';
                             this.showToast('Downloaded to Downloads/the_stash!');
                             window.fetchflowSound.playStreamFound();
                             this.isDownloading = false;
 
-                            // Also trigger stream save in browser
+                            // Trigger browser stream save
                             const a = document.createElement('a');
                             a.href = `${this.companionUrl}/api/stream/${jobId}`;
                             document.body.appendChild(a);
@@ -782,9 +786,11 @@ class FetchFlowApp {
                             document.body.removeChild(a);
                         } else if (job.status === 'error') {
                             clearInterval(pollInterval);
-                            if (this.dlProgressStatus) this.dlProgressStatus.textContent = 'Error downloading via yt-dlp';
+                            const errMsg = job.error_msg ? `yt-dlp error: ${job.error_msg.slice(0, 70)}` : 'Error downloading via yt-dlp';
+                            if (this.dlProgressStatus) this.dlProgressStatus.textContent = errMsg;
                             this.isDownloading = false;
                         }
+
                     }
                 } catch (pe) {}
             }, 600);
