@@ -68,9 +68,34 @@ const STASHCONVERT_I18N = {
 
 /**
  * Pure JavaScript Animated GIF89a Encoder with LZW compression
-
- * Produces genuine, compliant animated .gif files directly in browser.
+ * Produces crisp, glitch-free animated .gif files directly in browser.
  */
+class GifBitWriter {
+    constructor() {
+        this.bytes = [];
+        this.curAcc = 0;
+        this.curBits = 0;
+    }
+
+    write(code, nBits) {
+        this.curAcc |= (code << this.curBits);
+        this.curBits += nBits;
+        while (this.curBits >= 8) {
+            this.bytes.push(this.curAcc & 0xFF);
+            this.curAcc >>>= 8;
+            this.curBits -= 8;
+        }
+    }
+
+    flush() {
+        if (this.curBits > 0) {
+            this.bytes.push(this.curAcc & 0xFF);
+            this.curAcc = 0;
+            this.curBits = 0;
+        }
+    }
+}
+
 class AnimatedGifEncoder {
     constructor(width, height, delayMs = 100) {
         this.width = width;
@@ -86,46 +111,41 @@ class AnimatedGifEncoder {
     quantizeFrame(imgData) {
         const data = imgData.data;
         const len = data.length;
-        const colorMap = new Map();
+        const numPixels = len / 4;
+
+        // 256-color palette: 216 uniform RGB cube + 40 grayscales
         const palette = [];
-        const indexedPixels = new Uint8Array(len / 4);
-
-        for (let i = 0, p = 0; i < len; i += 4, p++) {
-            const r = data[i] >> 3;
-            const g = data[i + 1] >> 3;
-            const b = data[i + 2] >> 3;
-            const key = (r << 10) | (g << 5) | b;
-
-            let idx = colorMap.get(key);
-            if (idx === undefined) {
-                if (palette.length < 256) {
-                    idx = palette.length;
-                    palette.push([(r << 3) | 4, (g << 3) | 4, (b << 3) | 4]);
-                    colorMap.set(key, idx);
-                } else {
-                    idx = 0;
-                    let minDist = Infinity;
-                    const cr = (r << 3) | 4;
-                    const cg = (g << 3) | 4;
-                    const cb = (b << 3) | 4;
-                    for (let k = 0; k < palette.length; k++) {
-                        const pr = palette[k][0];
-                        const pg = palette[k][1];
-                        const pb = palette[k][2];
-                        const dist = (cr - pr) * (cr - pr) + (cg - pg) * (cg - pg) + (cb - pb) * (cb - pb);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            idx = k;
-                        }
-                    }
-                    colorMap.set(key, idx);
+        for (let r = 0; r < 6; r++) {
+            for (let g = 0; g < 6; g++) {
+                for (let b = 0; b < 6; b++) {
+                    palette.push([r * 51, g * 51, b * 51]);
                 }
             }
-            indexedPixels[p] = idx;
+        }
+        for (let i = 0; i < 40; i++) {
+            const v = Math.round((i / 39) * 255);
+            palette.push([v, v, v]);
         }
 
-        while (palette.length < 256) {
-            palette.push([0, 0, 0]);
+        const indexedPixels = new Uint8Array(numPixels);
+
+        for (let i = 0, p = 0; i < len; i += 4, p++) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            const maxC = Math.max(r, g, b);
+            const minC = Math.min(r, g, b);
+
+            if (maxC - minC < 8) {
+                const grayIdx = Math.min(39, Math.max(0, Math.round((r / 255) * 39)));
+                indexedPixels[p] = 216 + grayIdx;
+            } else {
+                const ri = Math.min(5, Math.max(0, Math.round(r / 51)));
+                const gi = Math.min(5, Math.max(0, Math.round(g / 51)));
+                const bi = Math.min(5, Math.max(0, Math.round(b / 51)));
+                indexedPixels[p] = ri * 36 + gi * 6 + bi;
+            }
         }
 
         return { palette, indexedPixels };
@@ -195,81 +215,61 @@ class AnimatedGifEncoder {
     }
 
     lzwEncode(minCodeSize, pixels) {
-        const clearCode = 1 << minCodeSize;
-        const eoiCode = clearCode + 1;
+        const clearCode = 1 << minCodeSize; // 256
+        const eoiCode = clearCode + 1;       // 257
         let nextCode = eoiCode + 1;
         let codeSize = minCodeSize + 1;
-        let maxCode = (1 << codeSize) - 1;
 
+        const writer = new GifBitWriter();
         const table = new Map();
-        for (let i = 0; i < clearCode; i++) {
-            table.set(String.fromCharCode(i), i);
-        }
 
-        const out = [];
-        let curBit = 0;
-        let curByte = 0;
-
-        const writeBits = (code, nBits) => {
-            curByte |= (code << curBit);
-            curBit += nBits;
-            while (curBit >= 8) {
-                out.push(curByte & 0xFF);
-                curByte >>= 8;
-                curBit -= 8;
+        const resetTable = () => {
+            table.clear();
+            for (let i = 0; i < clearCode; i++) {
+                table.set(i, i);
             }
+            codeSize = minCodeSize + 1;
+            nextCode = eoiCode + 1;
         };
 
-        writeBits(clearCode, codeSize);
+        resetTable();
+        writer.write(clearCode, codeSize);
 
-        let prefix = String.fromCharCode(pixels[0]);
+        let prefix = pixels[0];
 
         for (let i = 1; i < pixels.length; i++) {
-            const char = String.fromCharCode(pixels[i]);
-            const combined = prefix + char;
+            const k = pixels[i];
+            const combinedKey = (prefix << 8) | k;
 
-            if (table.has(combined)) {
-                prefix = combined;
+            if (table.has(combinedKey)) {
+                prefix = table.get(combinedKey);
             } else {
-                writeBits(table.get(prefix), codeSize);
+                writer.write(prefix, codeSize);
 
                 if (nextCode < 4096) {
-                    table.set(combined, nextCode++);
-                    if (nextCode > maxCode && codeSize < 12) {
+                    table.set(combinedKey, nextCode++);
+                    if (nextCode > (1 << codeSize) && codeSize < 12) {
                         codeSize++;
-                        maxCode = (1 << codeSize) - 1;
                     }
                 } else {
-                    writeBits(clearCode, codeSize);
-                    table.clear();
-                    for (let c = 0; c < clearCode; c++) {
-                        table.set(String.fromCharCode(c), c);
-                    }
-                    codeSize = minCodeSize + 1;
-                    maxCode = (1 << codeSize) - 1;
-                    nextCode = eoiCode + 1;
+                    writer.write(clearCode, codeSize);
+                    resetTable();
                 }
-                prefix = char;
+                prefix = k;
             }
         }
 
-        if (prefix.length > 0) {
-            writeBits(table.get(prefix), codeSize);
-        }
-
-        writeBits(eoiCode, codeSize);
-
-        if (curBit > 0) {
-            out.push(curByte & 0xFF);
-        }
+        writer.write(prefix, codeSize);
+        writer.write(eoiCode, codeSize);
+        writer.flush();
 
         const result = [minCodeSize];
         let offset = 0;
-        while (offset < out.length) {
-            const blockSize = Math.min(255, out.length - offset);
+        while (offset < writer.bytes.length) {
+            const blockSize = Math.min(255, writer.bytes.length - offset);
             result.push(blockSize);
             for (let b = 0; b < blockSize; b++) {
-                result.push(out[offset + b]);
+                result.push(writer.bytes[offset + b]);
             }
             offset += blockSize;
         }
@@ -278,6 +278,7 @@ class AnimatedGifEncoder {
         return result;
     }
 }
+
 
 class StashConvertApp {
 
@@ -824,7 +825,7 @@ class StashConvertApp {
             video.playsInline = true;
 
             video.onloadeddata = async () => {
-                const duration = Math.min(video.duration || 4, 6); // Max 6 sec GIF
+                const duration = Math.min(video.duration || 4, 6);
                 const fps = 10;
                 const totalFrames = Math.max(1, Math.floor(duration * fps));
                 const delayMs = Math.round(1000 / fps);
@@ -834,16 +835,29 @@ class StashConvertApp {
                 const canvas = document.createElement('canvas');
                 canvas.width = targetW;
                 canvas.height = targetH;
-                const ctx = canvas.getContext('2d');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
                 const gifEncoder = new AnimatedGifEncoder(targetW, targetH, delayMs);
 
+                const captureFrame = (time) => {
+                    return new Promise((res) => {
+                        const onSeek = () => {
+                            video.removeEventListener('seeked', onSeek);
+                            requestAnimationFrame(() => {
+                                ctx.drawImage(video, 0, 0, targetW, targetH);
+                                res(ctx.getImageData(0, 0, targetW, targetH));
+                            });
+                        };
+                        video.addEventListener('seeked', onSeek);
+                        video.currentTime = time;
+                    });
+                };
+
                 for (let i = 0; i < totalFrames; i++) {
-                    video.currentTime = (i / totalFrames) * duration;
-                    await new Promise(r => { video.onseeked = r; });
-                    ctx.drawImage(video, 0, 0, targetW, targetH);
-                    gifEncoder.addFrame(ctx.getImageData(0, 0, targetW, targetH));
-                    item.progress = Math.round(25 + (i / totalFrames) * 60);
+                    const time = (i / totalFrames) * duration;
+                    const frameData = await captureFrame(time);
+                    gifEncoder.addFrame(frameData);
+                    item.progress = Math.round(20 + (i / totalFrames) * 70);
                     this.renderQueue();
                 }
 
@@ -856,6 +870,7 @@ class StashConvertApp {
             video.onerror = (e) => reject(e);
         });
     }
+
 
 
     async extractAudioFromVideo(item) {
