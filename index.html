@@ -836,11 +836,16 @@
             <div class="sys-meta" id="sys-meta-text">
                 CLIENT RUNTIME &bull; ZERO LATENCY
             </div>
+            <a href="./downloads/the-stash-companion.zip" download class="hud-settings-btn" id="btn-download-companion" title="Download Local Companion Server (.ZIP)">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span id="txt-btn-companion">COMPANION SERVER (.ZIP)</span>
+            </a>
             <button id="btn-settings" class="hud-settings-btn" title="Settings / Настройки">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 <span id="btn-settings-label">SETTINGS</span>
             </button>
         </div>
+
     </div>
 
 
@@ -850,8 +855,9 @@
         <header class="hero-section">
             <div class="brand-heading">
                 <h1 class="brand-title">the stash</h1>
-                <span class="brand-version">v0.7.8</span>
+                <span class="brand-version">v0.7.9</span>
             </div>
+
 
 
 
@@ -1062,6 +1068,34 @@
                         </div>
                         <a href="./utilities/fetchflow/" class="btn-action">Launch FetchFlow &rarr;</a>
                     </article>
+
+                    <!-- 6. The Stash Companion Server Card -->
+                    <article class="project-card" data-type="utilities" data-category="playable">
+                        <div>
+                            <div class="card-header">
+                                <div class="card-icon-box">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                                        <line x1="6" y1="6" x2="6.01" y2="6"/>
+                                        <line x1="6" y1="18" x2="6.01" y2="18"/>
+                                    </svg>
+                                </div>
+                                <span class="status-pill status-playable">Playable</span>
+                            </div>
+                            <h2 class="card-title">Companion Server</h2>
+                            <p class="card-desc" id="desc-companion">1-Click Local Python backend for Hardware-Accelerated Clarify AI Super-Resolution (RTX 4060 GPU) and FetchFlow 4K yt-dlp downloading (Ryzen 5). Zero telemetry.</p>
+                            <div class="card-tags">
+                                <span class="tag-pill">#Python</span>
+                                <span class="tag-pill">#RTX4060</span>
+                                <span class="tag-pill">#Ryzen5</span>
+                                <span class="tag-pill">#yt-dlp</span>
+                                <span class="tag-pill">#Vulkan</span>
+                            </div>
+                        </div>
+                        <a href="./downloads/the-stash-companion.zip" download class="btn-action" id="btn-launch-companion">Download Server (.zip) &rarr;</a>
+                    </article>
+
 
 
                     <!-- Empty State -->
@@ -1378,12 +1412,15 @@
                 cardStashipDesc: "Zero-telemetry network diagnostics (IP, ISP, ASN, Geolocation, Timezone, Hostname) with 1-Click Copy and live client-side Speedtest engine.",
                 cardClarifyDesc: "Neural super-resolution tool to upscale, enhance, and denoise photos up to 4K. Features an interactive Before/After split slider and zero telemetry.",
                 cardFetchflowDesc: "Universal client-side media parser and stream extractor. Direct in-browser video & audio downloads for YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud & more.",
+                cardCompanionDesc: "1-Click Local Python backend for Hardware-Accelerated Clarify AI Super-Resolution (RTX 4060 GPU) and FetchFlow 4K yt-dlp downloading (Ryzen 5). Zero telemetry.",
                 btnLaunchFlexle: "Launch Flexle →",
                 btnLaunchQuantex: "Launch Quantex →",
                 btnLaunchStashconvert: "Launch StashConvert →",
                 btnLaunchStaship: "Launch StashIP →",
                 btnLaunchClarify: "Launch Clarify →",
                 btnLaunchFetchflow: "Launch FetchFlow →",
+                btnLaunchCompanion: "Download Server (.zip) →",
+                txtBtnCompanion: "COMPANION SERVER (.ZIP)",
                 btnConceptSpecs: "Concept Specs →",
                 previewMain: "select any module",
                 previewSub: "to inspect sandbox parameters",
@@ -1432,12 +1469,15 @@
                 cardStashipDesc: "Диагностика сети без телеметрии (IP, провайдер, ASN, геолокация, таймзона) с копированием в 1 клик и встроенным спидометром скорости.",
                 cardClarifyDesc: "Нейросетевой апскейлер для улучшения детализации и удаления шума на фото до 4K. Интерактивный слайдер «До/После» и нулевая телеметрия.",
                 cardFetchflowDesc: "Универсальный клиентский веб-парсер и загрузчик медиа. Прямое скачивание видео и аудио для YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud и других.",
+                cardCompanionDesc: "Локальный Python-бэкенд для GPU-апскейлинга фото в Clarify (RTX 4060) и скачивания 4K медиа через yt-dlp в FetchFlow (Ryzen 5). Нулевая телеметрия.",
                 btnLaunchFlexle: "Запустить Flexle →",
                 btnLaunchQuantex: "Запустить Quantex →",
                 btnLaunchStashconvert: "Запустить StashConvert →",
                 btnLaunchStaship: "Запустить StashIP →",
                 btnLaunchClarify: "Запустить Clarify →",
                 btnLaunchFetchflow: "Запустить FetchFlow →",
+                btnLaunchCompanion: "Скачать сервер (.zip) →",
+                txtBtnCompanion: "COMPANION СЕРВЕР (.ZIP)",
                 btnConceptSpecs: "Спецификация концепта →",
                 previewMain: "выберите любой модуль",
                 previewSub: "для просмотра параметров песочницы",
@@ -1480,6 +1520,8 @@
             if (sysMeta) sysMeta.textContent = dict.sysMeta;
             const btnSettingsLabel = document.getElementById('btn-settings-label');
             if (btnSettingsLabel) btnSettingsLabel.textContent = dict.btnSettings;
+            const txtBtnCompanion = document.getElementById('txt-btn-companion');
+            if (txtBtnCompanion) txtBtnCompanion.textContent = dict.txtBtnCompanion;
 
             // Hero
             const heroDesc = document.querySelector('.hero-desc');
@@ -1559,6 +1601,15 @@
                 const btn = cardFetchflow.querySelector('.btn-action');
                 if (btn) btn.textContent = dict.btnLaunchFetchflow;
             }
+
+            const cardCompanion = document.querySelector('a[href="./downloads/the-stash-companion.zip"]')?.closest('.project-card');
+            if (cardCompanion) {
+                const desc = cardCompanion.querySelector('.card-desc');
+                if (desc) desc.textContent = dict.cardCompanionDesc;
+                const btn = cardCompanion.querySelector('.btn-action');
+                if (btn) btn.textContent = dict.btnLaunchCompanion;
+            }
+
 
 
             // Status badges on cards
