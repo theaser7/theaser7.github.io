@@ -382,10 +382,10 @@
 
         /* SVG Speedometer Gauge */
         .gauge-container {
-            width: 300px;
-            height: 200px;
+            width: 320px;
+            height: 220px;
             position: relative;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .gauge-svg {
@@ -396,25 +396,28 @@
 
         .gauge-digital-overlay {
             position: absolute;
-            bottom: 15px;
+            top: 75px;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
+            pointer-events: none;
         }
 
         .gauge-digital-val {
-            font-size: 2.5rem;
+            font-size: 2.85rem;
             font-weight: 800;
             color: var(--mint);
-            text-shadow: 0 0 15px var(--mint-glow);
+            text-shadow: 0 0 20px var(--mint-glow);
             line-height: 1;
+            font-family: var(--font-mono);
         }
 
         .gauge-digital-unit {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            letter-spacing: 0.08em;
-            margin-top: 0.2rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            margin-top: 0.35rem;
+            font-weight: 700;
         }
 
         .speed-status-banner {
@@ -424,6 +427,7 @@
             margin-bottom: 1.5rem;
             min-height: 1.2rem;
         }
+
 
         /* Speed Metrics Row */
         .speed-metrics-row {
@@ -672,7 +676,7 @@
 
             <!-- Cyberpunk SVG Speedometer Gauge -->
             <div class="gauge-container">
-                <svg class="gauge-svg" viewBox="0 0 300 200">
+                <svg class="gauge-svg" viewBox="0 0 300 220">
                     <defs>
                         <linearGradient id="gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
                             <stop offset="0%" stop-color="#00ff9d" stop-opacity="0.3"/>
@@ -688,7 +692,7 @@
                     </defs>
 
                     <!-- Background Track Arc (240 deg) -->
-                    <path d="M 72.13 213.63 A 90 90 0 1 1 227.87 213.63" 
+                    <path d="M 67.73 218 A 95 95 0 1 1 232.27 218" 
                           fill="none" 
                           stroke="#13221b" 
                           stroke-width="12" 
@@ -696,31 +700,32 @@
 
                     <!-- Active Fill Arc -->
                     <path id="gauge-fill-arc" 
-                          d="M 72.13 213.63 A 90 90 0 1 1 227.87 213.63" 
+                          d="M 67.73 218 A 95 95 0 1 1 232.27 218" 
                           fill="none" 
                           stroke="url(#gauge-grad)" 
                           stroke-width="12" 
                           stroke-linecap="round"
-                          stroke-dasharray="0, 377"
+                          stroke-dasharray="0, 398"
                           filter="url(#glow-filter)"/>
 
                     <!-- Center Pivot Base -->
-                    <circle cx="150" cy="150" r="14" fill="#04251a" stroke="#00ff9d" stroke-width="2"/>
-                    <circle cx="150" cy="150" r="5" fill="#00ff9d"/>
+                    <circle cx="150" cy="170" r="12" fill="#04251a" stroke="#00ff9d" stroke-width="2"/>
+                    <circle cx="150" cy="170" r="4.5" fill="#00ff9d"/>
 
-                    <!-- Animated Needle (Rotates around 150, 150) -->
-                    <g id="gauge-needle" transform="rotate(-120, 150, 150)">
-                        <polygon points="147,150 153,150 150.5,65" fill="#00ff9d" filter="url(#glow-filter)"/>
-                        <circle cx="150" cy="65" r="3.5" fill="#ffffff"/>
+                    <!-- Animated Needle (Rotates around 150, 170) -->
+                    <g id="gauge-needle" transform="rotate(-120, 150, 170)">
+                        <polygon points="148,170 152,170 150.5,75" fill="#00ff9d" filter="url(#glow-filter)"/>
+                        <circle cx="150" cy="75" r="3" fill="#ffffff"/>
                     </g>
                 </svg>
 
-                <!-- Central Digital Readout -->
+                <!-- Central Digital Readout (Elevated above pivot) -->
                 <div class="gauge-digital-overlay">
                     <div id="speed-digital-val" class="gauge-digital-val">0.0</div>
                     <div id="speed-digital-unit" class="gauge-digital-unit">MBPS DOWNLOAD</div>
                 </div>
             </div>
+
 
             <div id="speed-status-text" class="speed-status-banner">STANDBY // READY</div>
 

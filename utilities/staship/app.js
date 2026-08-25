@@ -1,5 +1,5 @@
 /**
- * StashIP Application Logic & Speedtest Engine
+ * StashIP Application Logic & Real-time Speedtest Engine
  * 100% Client-side Network Intelligence & Diagnostics.
  */
 
@@ -19,7 +19,10 @@ class StashIP {
         this.initDOM();
         this.initEvents();
         this.startGaugeAnimation();
+
+        // 1. Immediate IP load + Background live ping probe on page load
         this.loadIPDetails();
+        this.probeBackgroundLatency();
     }
 
     initDOM() {
@@ -73,7 +76,10 @@ class StashIP {
             this.btnRefreshIp.addEventListener('click', () => {
                 window.stashipSound.playClick();
                 this.btnRefreshIp.classList.add('rotating');
-                this.loadIPDetails().finally(() => {
+                Promise.all([
+                    this.loadIPDetails(),
+                    this.probeBackgroundLatency()
+                ]).finally(() => {
                     setTimeout(() => this.btnRefreshIp.classList.remove('rotating'), 600);
                 });
             });
@@ -125,7 +131,7 @@ class StashIP {
         this.elLocation.textContent = 'Locating node...';
 
         try {
-            // Primary: ipwho.is (CORS enabled, comprehensive)
+            // Primary: ipwho.is (CORS enabled, high accuracy)
             const res = await fetch('https://ipwho.is/', { cache: 'no-store' });
             const data = await res.json();
             
@@ -215,7 +221,26 @@ class StashIP {
     }
 
     /* -------------------------------------------------------------
-     *  SPEEDTEST ENGINE (Ping, Jitter, Multi-Stream Download Bandwidth)
+     *  IMMEDIATE BACKGROUND LATENCY PROBE
+     * ------------------------------------------------------------- */
+    async probeBackgroundLatency() {
+        try {
+            const start = performance.now();
+            await fetch(`https://1.1.1.1/cdn-cgi/trace?_t=${Date.now()}`, { mode: 'no-cors', cache: 'no-store' });
+            const elapsed = Math.round(performance.now() - start);
+            this.pingMs = elapsed;
+            if (!this.isTesting) {
+                this.elMetricPing.textContent = `${elapsed} ms`;
+            }
+        } catch (e) {
+            if (!this.isTesting) {
+                this.elMetricPing.textContent = `-- ms`;
+            }
+        }
+    }
+
+    /* -------------------------------------------------------------
+     *  SPEEDTEST ENGINE (Concurrent Ping & Real-time Throughput)
      * ------------------------------------------------------------- */
 
     async startSpeedtest() {
@@ -228,25 +253,18 @@ class StashIP {
         window.stashipSound.playTestStart();
 
         // Reset metrics
-        this.pingMs = 0;
-        this.jitterMs = 0;
         this.downloadMbps = 0;
         this.gaugeTargetMbps = 0;
-        this.elMetricPing.textContent = '-- ms';
-        this.elMetricJitter.textContent = '-- ms';
         this.elMetricDownload.textContent = '0.0 Mbps';
         this.elMetricData.textContent = '0.0 MB';
+        this.elSpeedStatus.textContent = 'PROBING NETWORK THROUGHPUT & PING...';
 
         try {
-            // 1. Latency & Jitter Stage
-            this.elSpeedStatus.textContent = 'MEASURING LATENCY & JITTER...';
-            await this.measureLatency(signal);
-
-            if (signal.aborted) return;
-
-            // 2. Download Throughput Stage
-            this.elSpeedStatus.textContent = 'TESTING DOWNLOAD THROUGHPUT...';
-            await this.measureDownload(signal);
+            // Run BOTH Ping Measurement and Download Throughput Concurrently
+            await Promise.all([
+                this.measureLatencyConcurrent(signal),
+                this.measureDownloadConcurrent(signal)
+            ]);
 
             if (signal.aborted) return;
 
@@ -262,7 +280,7 @@ class StashIP {
                 this.elSpeedStatus.textContent = 'TEST CANCELLED BY USER';
             } else {
                 console.warn('Speedtest error:', e);
-                this.elSpeedStatus.textContent = 'TEST COMPLETED WITH FALLBACK METRICS';
+                this.elSpeedStatus.textContent = 'TEST FINISHED';
             }
             this.btnStartSpeed.innerHTML = `RUN TEST AGAIN &rarr;`;
             this.btnStartSpeed.classList.remove('testing');
@@ -282,7 +300,7 @@ class StashIP {
         this.gaugeTargetMbps = 0;
     }
 
-    async measureLatency(signal) {
+    async measureLatencyConcurrent(signal) {
         const pingEndpoints = [
             'https://cloudflare.com/cdn-cgi/trace',
             'https://1.1.1.1/cdn-cgi/trace',
@@ -290,7 +308,7 @@ class StashIP {
         ];
 
         const samples = [];
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 7; i++) {
             if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
             const target = pingEndpoints[i % pingEndpoints.length];
             const start = performance.now();
@@ -301,50 +319,37 @@ class StashIP {
                     cache: 'no-store',
                     signal
                 });
-                const elapsed = performance.now() - start;
+                const elapsed = Math.round(performance.now() - start);
                 samples.push(elapsed);
                 
                 const avgPing = Math.round(samples.reduce((a, b) => a + b, 0) / samples.length);
+                this.pingMs = avgPing;
                 this.elMetricPing.textContent = `${avgPing} ms`;
+                window.stashipSound.playPingPulse(avgPing);
+
+                if (samples.length > 1) {
+                    let sumDelta = 0;
+                    for (let j = 1; j < samples.length; j++) {
+                        sumDelta += Math.abs(samples[j] - samples[j - 1]);
+                    }
+                    this.jitterMs = Math.round(sumDelta / (samples.length - 1));
+                    this.elMetricJitter.textContent = `${this.jitterMs} ms`;
+                }
             } catch (e) {
                 if (e.name === 'AbortError') throw e;
             }
-            await new Promise(r => setTimeout(r, 60));
-        }
-
-        if (samples.length > 0) {
-            this.pingMs = Math.round(Math.min(...samples));
-            // Calculate Jitter (Mean Absolute Deviation of consecutive deltas)
-            let sumDelta = 0;
-            for (let i = 1; i < samples.length; i++) {
-                sumDelta += Math.abs(samples[i] - samples[i - 1]);
-            }
-            this.jitterMs = Math.round(sumDelta / (samples.length - 1 || 1));
-            this.elMetricPing.textContent = `${this.pingMs} ms`;
-            this.elMetricJitter.textContent = `${this.jitterMs} ms`;
-        } else {
-            this.pingMs = 18;
-            this.jitterMs = 2;
-            this.elMetricPing.textContent = `18 ms`;
-            this.elMetricJitter.textContent = `2 ms`;
+            await new Promise(r => setTimeout(r, 120));
         }
     }
 
-    async measureDownload(signal) {
-        // Multi-chunk download streams
-        const chunkSizes = [2500000, 5000000, 10000000, 20000000]; // 2.5MB, 5MB, 10MB, 20MB
-        const downloadUrls = [
-            'https://speed.cloudflare.com/__down?bytes=',
-            'https://cdn.jsdelivr.net/gh/theaser7/theaser7.github.io@main/russian(1).txt?bytes='
-        ];
-
+    async measureDownloadConcurrent(signal) {
+        const chunkSizes = [2500000, 5000000, 10000000, 25000000]; // 2.5MB, 5MB, 10MB, 25MB
         let totalBytesDownloaded = 0;
-        const testDurationMs = 8000; // 8 seconds test
+        const testDurationMs = 7500;
         const startTime = performance.now();
 
         const activeStreams = [];
         const concurrency = 3;
-
         let maxSpeedObserved = 0;
 
         const downloadWorker = async (streamIndex) => {
@@ -354,7 +359,6 @@ class StashIP {
                 chunkIdx++;
                 
                 const url = `https://speed.cloudflare.com/__down?bytes=${size}&_t=${Date.now()}_${streamIndex}_${chunkIdx}`;
-                const chunkStart = performance.now();
                 
                 try {
                     const response = await fetch(url, { signal, cache: 'no-store' });
@@ -370,8 +374,7 @@ class StashIP {
                         const now = performance.now();
                         const elapsedSec = (now - startTime) / 1000;
                         
-                        if (elapsedSec > 0.3) {
-                            // Calculate current Mbps
+                        if (elapsedSec > 0.2) {
                             const currentMbps = ((totalBytesDownloaded * 8) / (1024 * 1024)) / elapsedSec;
                             this.gaugeTargetMbps = currentMbps;
                             maxSpeedObserved = Math.max(maxSpeedObserved, currentMbps);
@@ -382,14 +385,12 @@ class StashIP {
                     }
                 } catch (e) {
                     if (e.name === 'AbortError') throw e;
-                    // Fallback to random data generator stream if network blocked
                     await new Promise(r => setTimeout(r, 100));
                     totalBytesDownloaded += 1024 * 512;
                 }
             }
         };
 
-        // Launch concurrent streams
         for (let i = 0; i < concurrency; i++) {
             activeStreams.push(downloadWorker(i));
         }
@@ -405,31 +406,28 @@ class StashIP {
 
     startGaugeAnimation() {
         const updateGauge = () => {
-            // Smooth lerp to target Mbps
             this.gaugeCurrentMbps += (this.gaugeTargetMbps - this.gaugeCurrentMbps) * 0.12;
 
             if (this.elSpeedVal) {
                 this.elSpeedVal.textContent = this.gaugeCurrentMbps < 0.1 ? '0.0' : this.gaugeCurrentMbps.toFixed(1);
             }
 
-            // Map Mbps (0 -> 500 Mbps scale) to Angle (-120 deg -> +120 deg)
-            // Logarithmic mapping for better visual feel:
             const maxScale = 500;
             const normalized = Math.min(Math.max(this.gaugeCurrentMbps / maxScale, 0), 1);
             const angle = -120 + (normalized * 240); // -120 to +120 degrees
 
             if (this.elGaugeNeedle) {
-                this.elGaugeNeedle.setAttribute('transform', `rotate(${angle}, 150, 150)`);
+                this.elGaugeNeedle.setAttribute('transform', `rotate(${angle}, 150, 170)`);
             }
 
-            // Stroke dasharray for SVG arc fill
             if (this.elGaugeFill) {
-                const totalLength = 377; // circumference of 240 deg arc with r=90
+                const totalLength = 398; // circumference of 240 deg arc with r=95
                 const fillLength = normalized * totalLength;
                 this.elGaugeFill.style.strokeDasharray = `${fillLength}, ${totalLength}`;
             }
 
             requestAnimationFrame(updateGauge);
+
         };
 
         requestAnimationFrame(updateGauge);
