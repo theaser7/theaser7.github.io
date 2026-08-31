@@ -622,7 +622,7 @@ class FetchFlowApp {
             this.btnDlThumb.style.display = 'inline-flex';
             this.btnDlThumb.onclick = () => {
                 window.fetchflowSound.playClick();
-                const safeName = (media.title || 'cover').replace(/[/\\?%*:|"<>]/g, '-').slice(0, 60);
+                const safeName = (media.title || 'cover').replace(/[\/\\?%*:|"<>]/g, '-').slice(0, 60);
                 this.forceDownloadFile(media.thumbnail, `${safeName}.jpg`);
             };
         } else {
