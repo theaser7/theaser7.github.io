@@ -403,6 +403,12 @@
             align-items: center;
             gap: 0.2rem;
             transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .speed-dual-card:hover {
+            border-color: var(--border-medium);
+            background: rgba(0, 255, 157, 0.03);
         }
 
         .speed-dual-card.active-measuring {
@@ -640,6 +646,10 @@
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                     <span id="btn-lang-text">RU</span>
                 </button>
+                <button id="btn-unit" class="hud-btn" title="Toggle speed unit (Mbps / MB/s) / Сменить единицы скорости">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span id="btn-unit-text">MB/s</span>
+                </button>
                 <button id="btn-refresh-ip" class="hud-btn" title="Refresh network data">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                     <span id="txt-btn-refresh">REFRESH</span>
@@ -734,18 +744,18 @@
 
             <!-- Dual Download & Upload Speed Displays (Per User Sketch) -->
             <div class="speed-dual-header">
-                <div class="speed-dual-card download-card" id="dual-card-download">
+                <div class="speed-dual-card download-card" id="dual-card-download" title="Toggle unit (Mbps / MB/s) / Сменить единицы скорости">
                     <div class="dual-val-row">
                         <span id="speed-dl-val" class="dual-speed-number">0.0</span>
-                        <span class="dual-speed-unit">mb/s</span>
+                        <span id="speed-dl-unit" class="dual-speed-unit">Mbps</span>
                     </div>
                     <div class="dual-speed-label">DOWNLOAD</div>
                 </div>
 
-                <div class="speed-dual-card upload-card" id="dual-card-upload">
+                <div class="speed-dual-card upload-card" id="dual-card-upload" title="Toggle unit (Mbps / MB/s) / Сменить единицы скорости">
                     <div class="dual-val-row">
                         <span id="speed-ul-val" class="dual-speed-number">0.0</span>
-                        <span class="dual-speed-unit">mb/s</span>
+                        <span id="speed-ul-unit" class="dual-speed-unit">Mbps</span>
                     </div>
                     <div class="dual-speed-label">UPLOAD</div>
                 </div>

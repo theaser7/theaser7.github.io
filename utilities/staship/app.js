@@ -6,6 +6,8 @@
 const STASHIP_I18N = {
     en: {
         langBtn: "RU",
+        unitMbps: "Mbps",
+        unitMBs: "MB/s",
         refreshBtn: "REFRESH",
         soundBtn: "SOUND",
         muteBtn: "MUTE",
@@ -31,8 +33,10 @@ const STASHIP_I18N = {
         btnRetest: "RUN TEST AGAIN",
         statusStandby: "STANDBY // READY",
         statusProbingPing: "MEASURING LATENCY & JITTER...",
-        statusProbingDl: "TESTING DOWNLOAD SPEED (MBPS)...",
-        statusProbingUl: "TESTING UPLOAD SPEED (MBPS)...",
+        statusProbingDlMbps: "TESTING DOWNLOAD SPEED (MBPS)...",
+        statusProbingDlMBs: "TESTING DOWNLOAD SPEED (MB/S)...",
+        statusProbingUlMbps: "TESTING UPLOAD SPEED (MBPS)...",
+        statusProbingUlMBs: "TESTING UPLOAD SPEED (MB/S)...",
         statusComplete: "SPEEDTEST COMPLETE // ALL METRICS LOCKED",
         statusCancelled: "TEST CANCELLED BY USER",
         gaugeReady: "READY",
@@ -46,6 +50,8 @@ const STASHIP_I18N = {
     },
     ru: {
         langBtn: "EN",
+        unitMbps: "Мбит/с",
+        unitMBs: "МБ/с",
         refreshBtn: "ОБНОВИТЬ",
         soundBtn: "ЗВУК",
         muteBtn: "БЕЗ ЗВУКА",
@@ -71,8 +77,10 @@ const STASHIP_I18N = {
         btnRetest: "ЗАМЕРИТЬ СНОВА",
         statusStandby: "ГОТОВ К ЗАМЕРУ",
         statusProbingPing: "ЗАМЕР ПИНГА И ДЖИТТЕРА...",
-        statusProbingDl: "ТЕСТИРОВАНИЕ СКОРОСТИ СКАЧИВАНИЯ (MBPS)...",
-        statusProbingUl: "ТЕСТИРОВАНИЕ СКОРОСТИ ОТДАЧИ (MBPS)...",
+        statusProbingDlMbps: "ТЕСТИРОВАНИЕ СКОРОСТИ СКАЧИВАНИЯ (МБИТ/С)...",
+        statusProbingDlMBs: "ТЕСТИРОВАНИЕ СКОРОСТИ СКАЧИВАНИЯ (МБ/С)...",
+        statusProbingUlMbps: "ТЕСТИРОВАНИЕ СКОРОСТИ ОТДАЧИ (МБИТ/С)...",
+        statusProbingUlMBs: "ТЕСТИРОВАНИЕ СКОРОСТИ ОТДАЧИ (МБ/С)...",
         statusComplete: "ТЕСТ ЗАВЕРШЁН // ПОКАЗАТЕЛИ ЗАФИКСИРОВАНЫ",
         statusCancelled: "ТЕСТ ОТМЕНЁН ПОЛЬЗОВАТЕЛЕМ",
         gaugeReady: "ГОТОВО",
@@ -92,21 +100,25 @@ class StashIP {
         this.isTesting = false;
         this.speedtestAbortController = null;
         
-        // Language
+        // Language & Units
         this.currentLang = localStorage.getItem('the_stash_lang') || 'en';
+        this.speedUnit = localStorage.getItem('the_stash_speed_unit') || 'mbps'; // 'mbps' or 'mbyte'
 
-        // Speedtest metrics
+        // Speedtest metrics (stored in Mbps base internally)
         this.pingMs = 0;
         this.jitterMs = 0;
         this.downloadMbps = 0;
         this.uploadMbps = 0;
-        this.gaugeTargetMbps = 0;
-        this.gaugeCurrentMbps = 0;
+        this.currentDownloadMbps = 0;
+        this.currentUploadMbps = 0;
+        this.gaugeTargetValue = 0;
+        this.gaugeCurrentValue = 0;
         this.activePhase = 'idle';
 
         this.initDOM();
         this.initEvents();
         this.applyLanguage(this.currentLang);
+        this.updateUnitDisplay();
         this.startGaugeAnimation();
 
         // Initial IP load + Background live ping probe on page load
@@ -127,17 +139,21 @@ class StashIP {
         // Buttons & Actions
         this.btnLang = document.getElementById('btn-lang');
         this.btnLangText = document.getElementById('btn-lang-text');
+        this.btnUnit = document.getElementById('btn-unit');
+        this.btnUnitText = document.getElementById('btn-unit-text');
         this.btnCopyIp = document.getElementById('btn-copy-ip');
         this.btnRefreshIp = document.getElementById('btn-refresh-ip');
         this.btnStartSpeed = document.getElementById('btn-start-speed');
         this.btnMute = document.getElementById('btn-mute');
         this.toast = document.getElementById('toast-copy');
 
-        // Speedtest Dual Header Displays (Per User Sketch)
+        // Speedtest Dual Header Displays
         this.elCardDownload = document.getElementById('dual-card-download');
         this.elCardUpload = document.getElementById('dual-card-upload');
         this.elSpeedDlVal = document.getElementById('speed-dl-val');
         this.elSpeedUlVal = document.getElementById('speed-ul-val');
+        this.elSpeedDlUnit = document.getElementById('speed-dl-unit');
+        this.elSpeedUlUnit = document.getElementById('speed-ul-unit');
 
         // Speedtest Gauge UI
         this.elSpeedStatus = document.getElementById('speed-status-text');
@@ -156,10 +172,29 @@ class StashIP {
         // Language Toggle
         if (this.btnLang) {
             this.btnLang.addEventListener('click', () => {
-                window.stashipSound.playClick();
+                if (window.stashipSound) window.stashipSound.playClick();
                 this.currentLang = this.currentLang === 'en' ? 'ru' : 'en';
                 localStorage.setItem('the_stash_lang', this.currentLang);
                 this.applyLanguage(this.currentLang);
+            });
+        }
+
+        // Unit Toggle (Header Button)
+        if (this.btnUnit) {
+            this.btnUnit.addEventListener('click', () => {
+                this.toggleSpeedUnit();
+            });
+        }
+
+        // Unit Toggle via clicking Speed Cards
+        if (this.elCardDownload) {
+            this.elCardDownload.addEventListener('click', () => {
+                this.toggleSpeedUnit();
+            });
+        }
+        if (this.elCardUpload) {
+            this.elCardUpload.addEventListener('click', () => {
+                this.toggleSpeedUnit();
             });
         }
 
@@ -170,7 +205,7 @@ class StashIP {
                 if (!ip || ip === 'Fetching...' || ip === 'Unavailable') return;
                 
                 navigator.clipboard.writeText(ip).then(() => {
-                    window.stashipSound.playCopy();
+                    if (window.stashipSound) window.stashipSound.playCopy();
                     const dict = STASHIP_I18N[this.currentLang] || STASHIP_I18N.en;
                     this.showToast(dict.toastCopied.replace('{ip}', ip));
                 }).catch(() => {
@@ -182,7 +217,7 @@ class StashIP {
         // Refresh IP
         if (this.btnRefreshIp) {
             this.btnRefreshIp.addEventListener('click', () => {
-                window.stashipSound.playClick();
+                if (window.stashipSound) window.stashipSound.playClick();
                 this.btnRefreshIp.classList.add('rotating');
                 Promise.all([
                     this.loadIPDetails(),
@@ -211,6 +246,72 @@ class StashIP {
                 this.updateMuteButton(muted);
             });
             this.updateMuteButton(window.stashipSound.isMuted);
+        }
+    }
+
+    formatSpeed(mbps) {
+        if (!mbps || isNaN(mbps)) return '0.0';
+        if (this.speedUnit === 'mbyte') {
+            return (mbps / 8).toFixed(1);
+        }
+        return mbps.toFixed(1);
+    }
+
+    getUnitLabel() {
+        const dict = STASHIP_I18N[this.currentLang] || STASHIP_I18N.en;
+        return this.speedUnit === 'mbyte' ? dict.unitMBs : dict.unitMbps;
+    }
+
+    getNextUnitLabel() {
+        const dict = STASHIP_I18N[this.currentLang] || STASHIP_I18N.en;
+        return this.speedUnit === 'mbyte' ? dict.unitMbps : dict.unitMBs;
+    }
+
+    toggleSpeedUnit() {
+        if (window.stashipSound) window.stashipSound.playClick();
+        this.speedUnit = this.speedUnit === 'mbps' ? 'mbyte' : 'mbps';
+        localStorage.setItem('the_stash_speed_unit', this.speedUnit);
+        this.updateUnitDisplay();
+    }
+
+    updateUnitDisplay() {
+        const unitLabel = this.getUnitLabel();
+        const nextUnitLabel = this.getNextUnitLabel();
+
+        // Update button text in header
+        if (this.btnUnitText) {
+            this.btnUnitText.textContent = nextUnitLabel;
+        }
+
+        // Update unit indicators on cards
+        if (this.elSpeedDlUnit) this.elSpeedDlUnit.textContent = unitLabel;
+        if (this.elSpeedUlUnit) this.elSpeedUlUnit.textContent = unitLabel;
+
+        // Update values on cards & metrics
+        const dlVal = this.currentDownloadMbps || this.downloadMbps;
+        const ulVal = this.currentUploadMbps || this.uploadMbps;
+
+        if (this.elSpeedDlVal) this.elSpeedDlVal.textContent = this.formatSpeed(dlVal);
+        if (this.elSpeedUlVal) this.elSpeedUlVal.textContent = this.formatSpeed(ulVal);
+
+        if (this.elMetricDownload) this.elMetricDownload.textContent = `${this.formatSpeed(this.downloadMbps || dlVal)} ${unitLabel}`;
+        if (this.elMetricUpload) this.elMetricUpload.textContent = `${this.formatSpeed(this.uploadMbps || ulVal)} ${unitLabel}`;
+
+        // Re-adjust gauge target according to active unit
+        if (this.activePhase === 'download') {
+            const currentSpeed = this.currentDownloadMbps;
+            this.gaugeTargetValue = this.speedUnit === 'mbyte' ? (currentSpeed / 8) : currentSpeed;
+            const dict = STASHIP_I18N[this.currentLang] || STASHIP_I18N.en;
+            this.elSpeedStatus.textContent = this.speedUnit === 'mbyte' ? dict.statusProbingDlMBs : dict.statusProbingDlMbps;
+        } else if (this.activePhase === 'upload') {
+            const currentSpeed = this.currentUploadMbps;
+            this.gaugeTargetValue = this.speedUnit === 'mbyte' ? (currentSpeed / 8) : currentSpeed;
+            const dict = STASHIP_I18N[this.currentLang] || STASHIP_I18N.en;
+            this.elSpeedStatus.textContent = this.speedUnit === 'mbyte' ? dict.statusProbingUlMBs : dict.statusProbingUlMbps;
+        } else if (this.activePhase === 'complete') {
+            this.gaugeTargetValue = this.speedUnit === 'mbyte' ? (this.uploadMbps / 8) : this.uploadMbps;
+        } else {
+            this.gaugeTargetValue = 0;
         }
     }
 
@@ -267,6 +368,7 @@ class StashIP {
         if (footerLeft) footerLeft.textContent = dict.footerLeft;
 
         this.updateMuteButton(window.stashipSound.isMuted);
+        this.updateUnitDisplay();
     }
 
     updateMuteButton(isMuted) {
@@ -407,16 +509,18 @@ class StashIP {
 
         this.btnStartSpeed.innerHTML = `<span class="spinner-icon"></span> <span>${dict.btnCancel}</span>`;
         this.btnStartSpeed.classList.add('testing');
-        window.stashipSound.playTestStart();
+        if (window.stashipSound) window.stashipSound.playTestStart();
 
         // Reset metrics
         this.downloadMbps = 0;
         this.uploadMbps = 0;
-        this.gaugeTargetMbps = 0;
+        this.currentDownloadMbps = 0;
+        this.currentUploadMbps = 0;
+        this.gaugeTargetValue = 0;
         this.elSpeedDlVal.textContent = '0.0';
         this.elSpeedUlVal.textContent = '0.0';
-        this.elMetricDownload.textContent = '0.0 Mbps';
-        if (this.elMetricUpload) this.elMetricUpload.textContent = '0.0 Mbps';
+        this.elMetricDownload.textContent = `0.0 ${this.getUnitLabel()}`;
+        if (this.elMetricUpload) this.elMetricUpload.textContent = `0.0 ${this.getUnitLabel()}`;
         this.elMetricData.textContent = '0.0 MB';
 
         try {
@@ -432,7 +536,7 @@ class StashIP {
             this.activePhase = 'download';
             this.elCardDownload.classList.add('active-measuring');
             this.elCardUpload.classList.remove('active-measuring');
-            this.elSpeedStatus.textContent = dict.statusProbingDl;
+            this.elSpeedStatus.textContent = this.speedUnit === 'mbyte' ? dict.statusProbingDlMBs : dict.statusProbingDlMbps;
             this.elGaugeCenterStatus.textContent = dict.gaugeDl;
             await this.measureDownload(signal);
 
@@ -442,9 +546,9 @@ class StashIP {
             this.activePhase = 'upload';
             this.elCardDownload.classList.remove('active-measuring');
             this.elCardUpload.classList.add('active-measuring');
-            this.elSpeedStatus.textContent = dict.statusProbingUl;
+            this.elSpeedStatus.textContent = this.speedUnit === 'mbyte' ? dict.statusProbingUlMBs : dict.statusProbingUlMbps;
             this.elGaugeCenterStatus.textContent = dict.gaugeUl;
-            this.gaugeTargetMbps = 0;
+            this.gaugeTargetValue = 0;
             await new Promise(r => setTimeout(r, 400));
             await this.measureUpload(signal);
 
@@ -459,7 +563,7 @@ class StashIP {
             this.btnStartSpeed.innerHTML = `<span>${dict.btnRetest} &rarr;</span>`;
             this.btnStartSpeed.classList.remove('testing');
             this.isTesting = false;
-            window.stashipSound.playTestComplete();
+            if (window.stashipSound) window.stashipSound.playTestComplete();
 
         } catch (e) {
             if (e.name === 'AbortError') {
@@ -471,7 +575,7 @@ class StashIP {
             this.btnStartSpeed.innerHTML = `<span>${dict.btnRetest} &rarr;</span>`;
             this.btnStartSpeed.classList.remove('testing');
             this.isTesting = false;
-            this.gaugeTargetMbps = 0;
+            this.gaugeTargetValue = 0;
             this.elCardDownload.classList.remove('active-measuring');
             this.elCardUpload.classList.remove('active-measuring');
             this.elGaugeCenterStatus.textContent = dict.gaugeReady;
@@ -484,11 +588,12 @@ class StashIP {
             this.speedtestAbortController.abort();
         }
         this.isTesting = false;
+        this.activePhase = 'idle';
         this.btnStartSpeed.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>${dict.btnStart}</span>`;
         this.btnStartSpeed.classList.remove('testing');
         this.elSpeedStatus.textContent = dict.statusStandby;
         this.elGaugeCenterStatus.textContent = dict.gaugeReady;
-        this.gaugeTargetMbps = 0;
+        this.gaugeTargetValue = 0;
         this.elCardDownload.classList.remove('active-measuring');
         this.elCardUpload.classList.remove('active-measuring');
     }
@@ -518,7 +623,7 @@ class StashIP {
                 const avgPing = Math.round(samples.reduce((a, b) => a + b, 0) / samples.length);
                 this.pingMs = avgPing;
                 this.elMetricPing.textContent = `${avgPing} ms`;
-                window.stashipSound.playPingPulse(avgPing);
+                if (window.stashipSound) window.stashipSound.playPingPulse(avgPing);
 
                 if (samples.length > 1) {
                     let sumDelta = 0;
@@ -568,11 +673,12 @@ class StashIP {
                         
                         if (elapsedSec > 0.2) {
                             const currentMbps = ((totalBytes * 8) / (1024 * 1024)) / elapsedSec;
-                            this.gaugeTargetMbps = currentMbps;
+                            this.currentDownloadMbps = currentMbps;
+                            this.gaugeTargetValue = this.speedUnit === 'mbyte' ? (currentMbps / 8) : currentMbps;
                             maxSpeedObserved = Math.max(maxSpeedObserved, currentMbps);
                             
-                            this.elSpeedDlVal.textContent = currentMbps.toFixed(1);
-                            this.elMetricDownload.textContent = `${currentMbps.toFixed(1)} Mbps`;
+                            this.elSpeedDlVal.textContent = this.formatSpeed(currentMbps);
+                            this.elMetricDownload.textContent = `${this.formatSpeed(currentMbps)} ${this.getUnitLabel()}`;
                             this.elMetricData.textContent = `${(totalBytes / (1024 * 1024)).toFixed(1)} MB`;
                         }
                     }
@@ -593,8 +699,9 @@ class StashIP {
         const totalElapsedSec = (performance.now() - startTime) / 1000;
         const finalMbps = ((totalBytes * 8) / (1024 * 1024)) / (totalElapsedSec || 1);
         this.downloadMbps = Math.max(finalMbps, maxSpeedObserved);
-        this.elSpeedDlVal.textContent = this.downloadMbps.toFixed(1);
-        this.elMetricDownload.textContent = `${this.downloadMbps.toFixed(1)} Mbps`;
+        this.currentDownloadMbps = this.downloadMbps;
+        this.elSpeedDlVal.textContent = this.formatSpeed(this.downloadMbps);
+        this.elMetricDownload.textContent = `${this.formatSpeed(this.downloadMbps)} ${this.getUnitLabel()}`;
     }
 
     async measureUpload(signal) {
@@ -612,7 +719,6 @@ class StashIP {
             while (performance.now() - startTime < testDurationMs && !signal.aborted) {
                 const payload = payloads[Math.min(pIdx, payloads.length - 1)];
                 pIdx++;
-                const uploadStart = performance.now();
 
                 try {
                     await fetch(`https://speed.cloudflare.com/__up?_t=${Date.now()}_${workerIdx}`, {
@@ -627,11 +733,12 @@ class StashIP {
                     const elapsedSec = (performance.now() - startTime) / 1000;
                     if (elapsedSec > 0.2) {
                         const currentMbps = ((totalUploadedBytes * 8) / (1024 * 1024)) / elapsedSec;
-                        this.gaugeTargetMbps = currentMbps;
+                        this.currentUploadMbps = currentMbps;
+                        this.gaugeTargetValue = this.speedUnit === 'mbyte' ? (currentMbps / 8) : currentMbps;
                         maxUploadObserved = Math.max(maxUploadObserved, currentMbps);
 
-                        this.elSpeedUlVal.textContent = currentMbps.toFixed(1);
-                        if (this.elMetricUpload) this.elMetricUpload.textContent = `${currentMbps.toFixed(1)} Mbps`;
+                        this.elSpeedUlVal.textContent = this.formatSpeed(currentMbps);
+                        if (this.elMetricUpload) this.elMetricUpload.textContent = `${this.formatSpeed(currentMbps)} ${this.getUnitLabel()}`;
                     }
                 } catch (e) {
                     if (e.name === 'AbortError') throw e;
@@ -651,16 +758,17 @@ class StashIP {
         const totalElapsedSec = (performance.now() - startTime) / 1000;
         const finalUlMbps = ((totalUploadedBytes * 8) / (1024 * 1024)) / (totalElapsedSec || 1);
         this.uploadMbps = Math.max(finalUlMbps, maxUploadObserved) || (this.downloadMbps * 0.75);
-        this.gaugeTargetMbps = this.uploadMbps;
-        this.elSpeedUlVal.textContent = this.uploadMbps.toFixed(1);
-        if (this.elMetricUpload) this.elMetricUpload.textContent = `${this.uploadMbps.toFixed(1)} Mbps`;
+        this.currentUploadMbps = this.uploadMbps;
+        this.gaugeTargetValue = this.speedUnit === 'mbyte' ? (this.uploadMbps / 8) : this.uploadMbps;
+        this.elSpeedUlVal.textContent = this.formatSpeed(this.uploadMbps);
+        if (this.elMetricUpload) this.elMetricUpload.textContent = `${this.formatSpeed(this.uploadMbps)} ${this.getUnitLabel()}`;
     }
 
     /* -------------------------------------------------------------
      *  GAUGE PIECEWISE ROTATION & LERP ANIMATION
      * ------------------------------------------------------------- */
-    mbpsToAngle(mbps) {
-        // Maps 0..500 Mbps scale exactly to the 9 visual ticks on the gauge
+    speedToAngle(speedVal) {
+        // Maps 0..500 scale exactly to the 9 visual ticks on the gauge
         const scale = [
             { v: 0, deg: -120 },
             { v: 1, deg: -90 },
@@ -673,12 +781,12 @@ class StashIP {
             { v: 500, deg: 120 }
         ];
 
-        if (mbps <= 0) return -120;
-        if (mbps >= 500) return 120;
+        if (speedVal <= 0) return -120;
+        if (speedVal >= 500) return 120;
 
         for (let i = 0; i < scale.length - 1; i++) {
-            if (mbps >= scale[i].v && mbps <= scale[i + 1].v) {
-                const ratio = (mbps - scale[i].v) / (scale[i + 1].v - scale[i].v);
+            if (speedVal >= scale[i].v && speedVal <= scale[i + 1].v) {
+                const ratio = (speedVal - scale[i].v) / (scale[i + 1].v - scale[i].v);
                 return scale[i].deg + ratio * (scale[i + 1].deg - scale[i].deg);
             }
         }
@@ -687,9 +795,9 @@ class StashIP {
 
     startGaugeAnimation() {
         const updateGauge = () => {
-            this.gaugeCurrentMbps += (this.gaugeTargetMbps - this.gaugeCurrentMbps) * 0.12;
+            this.gaugeCurrentValue += (this.gaugeTargetValue - this.gaugeCurrentValue) * 0.12;
 
-            const angle = this.mbpsToAngle(this.gaugeCurrentMbps);
+            const angle = this.speedToAngle(this.gaugeCurrentValue);
             const normalized = (angle + 120) / 240; // 0 to 1
 
             if (this.elGaugeNeedle) {
@@ -698,7 +806,7 @@ class StashIP {
 
             if (this.elGaugeFill) {
                 const totalLength = 418.9; // circumference of 240 deg arc with r=100
-                const fillLength = normalized * totalLength;
+                const fillLength = Math.max(0, Math.min(normalized * totalLength, totalLength));
                 this.elGaugeFill.style.strokeDasharray = `${fillLength}, ${totalLength}`;
             }
 
