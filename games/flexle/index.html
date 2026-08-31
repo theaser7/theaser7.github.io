@@ -942,6 +942,229 @@
             color: var(--text-secondary);
             font-size: 0.95rem;
         }
+
+        /* Challenge Banner */
+        .challenge-banner {
+            max-width: 600px;
+            margin: 0.5rem auto 0;
+            padding: 0.6rem 1rem;
+            background: rgba(0, 255, 157, 0.08);
+            border: 1px solid rgba(0, 255, 157, 0.35);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.08);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .challenge-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .challenge-badge {
+            background: var(--accent);
+            color: #050807;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .challenge-text {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .btn-exit-challenge {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-secondary);
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn-exit-challenge:hover {
+            background: rgba(255, 77, 77, 0.15);
+            border-color: rgba(255, 77, 77, 0.4);
+            color: #ff6b6b;
+        }
+
+        /* Custom Word Modal */
+        .custom-word-card {
+            max-width: 460px;
+        }
+
+        .custom-field-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .custom-field-label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .custom-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .custom-word-input {
+            width: 100%;
+            background: rgba(19, 34, 27, 0.8);
+            border: 2px solid var(--card-border);
+            border-radius: 10px;
+            padding: 0.8rem 4.5rem 0.8rem 1rem;
+            color: var(--accent);
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .custom-word-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 16px var(--accent-glow);
+            background: rgba(19, 34, 27, 0.95);
+        }
+
+        .custom-len-counter {
+            position: absolute;
+            right: 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.35);
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .custom-validation-msg {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+            min-height: 1.1rem;
+            transition: color 0.2s ease;
+        }
+
+        .custom-validation-msg.valid {
+            color: var(--accent);
+        }
+
+        .custom-validation-msg.invalid {
+            color: #ff6b6b;
+        }
+
+        .custom-lang-selector {
+            margin-bottom: 1.2rem;
+        }
+
+        .custom-lang-pills {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lang-pill {
+            flex: 1;
+            padding: 0.6rem;
+            background: rgba(19, 34, 27, 0.6);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            outline: none;
+        }
+
+        .lang-pill:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .lang-pill.active {
+            background: rgba(0, 255, 157, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 10px rgba(0, 255, 157, 0.15);
+        }
+
+        .custom-link-result {
+            margin-top: 1.2rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid var(--card-border);
+            animation: fadeIn 0.25s ease;
+        }
+
+        .custom-url-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .custom-url-input {
+            flex: 1;
+            background: #0d1612;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 0.65rem 0.8rem;
+            color: #8be9fd;
+            font-family: monospace;
+            font-size: 0.82rem;
+            outline: none;
+            user-select: all;
+        }
+
+        .btn-copy-url {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--accent);
+            color: #050807;
+            border: none;
+            border-radius: 8px;
+            padding: 0 0.9rem;
+            font-size: 0.85rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn-copy-url:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .btn-secondary-challenge {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary-challenge:hover {
+            background: rgba(0, 255, 157, 0.25) !important;
+            box-shadow: 0 0 14px var(--accent-glow);
+        }
     </style>
 </head>
 <body>
@@ -971,6 +1194,12 @@
             <h1>Flexle</h1>
         </div>
         <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-icon" id="btn-custom-word" title="Create Challenge / Загадать слово">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+            </button>
             <button class="btn-icon" id="btn-sound" title="Toggle Sound">
                 <svg id="icon-sound-on" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -997,6 +1226,17 @@
             </button>
         </div>
     </header>
+
+    <!-- Active Challenge Banner -->
+    <div class="challenge-banner" id="challenge-banner" style="display: none;">
+        <div class="challenge-banner-content">
+            <span class="challenge-badge" id="challenge-badge">P2P CHALLENGE</span>
+            <span class="challenge-text" id="challenge-text">Вы играете в кастомную загадку от друга!</span>
+        </div>
+        <button class="btn-exit-challenge" id="btn-exit-challenge" title="Back to standard game">
+            <span id="btn-exit-challenge-text">Стандартная игра</span> &times;
+        </button>
+    </div>
 
     <div class="controls-bar">
         <div class="length-selector" id="length-selector">
@@ -1159,6 +1399,51 @@
         </div>
     </div>
 
+    <!-- Custom Word Challenge Modal -->
+    <div class="modal-overlay" id="modal-custom-word">
+        <div class="modal-card custom-word-card">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title" id="custom-modal-title">Загадать слово</h2>
+                    <p class="modal-subtitle" id="custom-modal-subtitle">Создайте ссылку-загадку для друга без сервера</p>
+                </div>
+                <button class="modal-close" id="close-custom-word" aria-label="Close">&times;</button>
+            </div>
+            
+            <div class="custom-field-group">
+                <label class="custom-field-label" for="custom-word-input" id="lbl-custom-input">Секретное слово:</label>
+                <div class="custom-input-wrap">
+                    <input type="text" id="custom-word-input" class="custom-word-input" maxlength="20" placeholder="ВВЕДИТЕ СЛОВО..." autocomplete="off" autocorrect="off" spellcheck="false">
+                    <span class="custom-len-counter" id="custom-len-counter">0 букв</span>
+                </div>
+                <div class="custom-validation-msg" id="custom-validation-msg">Только буквы выбранного языка (4–16 букв)</div>
+            </div>
+
+            <div class="custom-lang-selector">
+                <span class="custom-field-label" id="lbl-custom-lang">Язык слова:</span>
+                <div class="custom-lang-pills">
+                    <button type="button" class="lang-pill active" data-lang="RU" id="btn-pill-ru">Русский (RU)</button>
+                    <button type="button" class="lang-pill" data-lang="EN" id="btn-pill-en">English (EN)</button>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="btn-generate-challenge">
+                <span id="btn-generate-text">Сгенерировать ссылку</span>
+            </button>
+
+            <div class="custom-link-result" id="custom-link-result" style="display: none;">
+                <label class="custom-field-label" id="lbl-custom-share">Ссылка для друга:</label>
+                <div class="custom-url-row">
+                    <input type="text" id="custom-share-url" class="custom-url-input" readonly>
+                    <button class="btn-copy-url" id="btn-copy-challenge-url" title="Copy to clipboard">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span id="btn-copy-text">Копировать</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Game Over Modal -->
     <div class="modal-overlay" id="modal-gameover">
         <div class="modal-card">
@@ -1168,7 +1453,10 @@
             </div>
             <div class="result-desc" id="gameover-desc">The secret word was:</div>
             <div class="result-word" id="gameover-word">WORD</div>
-            <button class="btn-primary" id="btn-play-again">Play Again</button>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+                <button class="btn-primary" id="btn-play-again">Play Again</button>
+                <button class="btn-primary btn-secondary-challenge" id="btn-challenge-back" style="background: rgba(0, 255, 157, 0.12); color: var(--accent); border: 1px solid var(--accent);"><span id="btn-challenge-back-text">Загадать в ответ</span></button>
+            </div>
         </div>
     </div>
 

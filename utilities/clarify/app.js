@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSaveSettings = document.getElementById('btn-save-settings');
     const companionStatusPill = document.getElementById('companion-status-pill');
 
-    // --- Local RTX 4060 Server Health Check & Detection ---
+    // --- Local Companion Server Health Check & Detection ---
     async function checkCompanionServer() {
         const accelText = document.getElementById('accel-text');
         const accelDot = document.querySelector('.accel-dot');
@@ -81,13 +81,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok) {
                 state.isCompanionOnline = true;
                 state.activeEngine = 'local';
-                if (accelText) accelText.textContent = 'RTX 4060 Engine Active';
+                if (accelText) accelText.textContent = 'Local Engine Active';
                 if (accelDot) {
                     accelDot.style.background = '#22c55e';
                     accelDot.style.boxShadow = '0 0 10px #22c55e';
                 }
                 if (companionStatusPill) {
-                    companionStatusPill.textContent = 'Online (RTX 4060)';
+                    companionStatusPill.textContent = 'Online (Local Server)';
                     companionStatusPill.style.background = 'rgba(34, 197, 94, 0.18)';
                     companionStatusPill.style.color = '#4ade80';
                 }
@@ -412,11 +412,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let processed = false;
 
-            // --- PATH A: Local Hardware Server (Real-ESRGAN NCNN Vulkan on RTX 4060) ---
+            // --- PATH A: Local Hardware Server (Real-ESRGAN NCNN Vulkan) ---
             if (state.isCompanionOnline && state.engineBackend !== 'browser') {
                 try {
-                    progressStatus.textContent = `Executing Real-ESRGAN (${mult}×) on RTX 4060...`;
-                    await stepProgress(25, 'Sending image to RTX 4060...');
+                    progressStatus.textContent = `Executing Real-ESRGAN (${mult}×) on Local Server...`;
+                    await stepProgress(25, 'Sending image to local engine...');
 
                     // Convert source image to data URL
                     const srcCanvas = document.createElement('canvas');
@@ -476,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     await stepProgress(100, 'Complete!');
                     metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${mult}× resolution)`;
-                    showToast(`✨ ${mult}× AI Upscaled on RTX 4060!`);
+                    showToast(`✨ ${mult}× AI Upscaled on Local Server!`);
                     processed = true;
                 } catch (err) {
                     console.warn('Companion server failed, falling back to browser engine:', err);

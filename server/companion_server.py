@@ -38,40 +38,6 @@ DOWNLOADS_DIR = Path.home() / "Downloads" / "the_stash"
 
 # In-memory download jobs
 download_jobs = {}
-HARDWARE_INFO = None
-
-
-def detect_hardware():
-    """Dynamically detect CPU and GPU hardware on Windows/Linux."""
-    cpu_name = platform.processor() or "CPU"
-    gpu_name = "Vulkan / GPU Accelerated"
-
-    if sys.platform == "win32":
-        try:
-            out = subprocess.check_output('powershell -NoProfile -Command "(Get-CimInstance Win32_Processor).Name"', shell=True, text=True).strip()
-            if out:
-                cpu_name = out
-        except Exception:
-            pass
-
-        try:
-            out = subprocess.check_output('powershell -NoProfile -Command "(Get-CimInstance Win32_VideoController).Name"', shell=True, text=True).strip().split("\n")
-            gpus = [g.strip() for g in out if g.strip() and "Virtual" not in g]
-            if gpus:
-                dedicated = [g for g in gpus if any(k in g for k in ["NVIDIA", "GeForce", "RTX", "GTX", "Radeon RX", "Arc"])]
-                gpu_name = dedicated[0] if dedicated else gpus[0]
-        except Exception:
-            pass
-
-    return f"{gpu_name} / {cpu_name}"
-
-
-def get_hardware_info():
-    """Return cached hardware string to prevent latency on health checks."""
-    global HARDWARE_INFO
-    if HARDWARE_INFO is None:
-        HARDWARE_INFO = detect_hardware()
-    return HARDWARE_INFO
 
 
 def ensure_clarify_installed():
@@ -169,7 +135,6 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
                 "status": "online",
                 "server": "the-stash-companion",
                 "modules": ["clarify", "fetchflow"],
-                "hardware": get_hardware_info(),
                 "ytdlp_ready": YTDLP_EXE.exists() or bool(shutil.which("yt-dlp")),
                 "clarify_ready": CLARIFY_EXE.exists()
             }
@@ -254,7 +219,7 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
                 with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as out_f:
                     out_path = out_f.name
 
-                print(f"[CLARIFY] Model: {model_name} | Scale: {scale}x | GPU Active...")
+                print(f"[CLARIFY] Model: {model_name} | Scale: {scale}x | Processing...")
 
                 models_dir = str(BIN_DIR / "models")
 
@@ -568,11 +533,9 @@ class StashCompanionHandler(BaseHTTPRequestHandler):
 
 
 def main():
-    hw_info = get_hardware_info()
     print("=" * 60)
     print("  THE STASH • UNIFIED COMPANION SERVER")
     print(f"  Port: http://127.0.0.1:{PORT}")
-    print(f"  Hardware: {hw_info}")
     print("  Modules: Clarify (AI Upscale) + FetchFlow (yt-dlp Engine)")
     print("  Zero Telemetry • 100% Local Sandbox")
     print("=" * 60)

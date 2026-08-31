@@ -12,6 +12,8 @@ const state = {
     wordLength: 5,
     isRandomLength: false,
     isXLMode: false,
+    isCustomMode: false,
+    customWord: null,
     maxAttempts: 6,
     targetWord: '',
     currentRow: 0,
@@ -21,6 +23,84 @@ const state = {
     isGameOver: false,
     hasStarted: false
 };
+
+// P2P Custom Challenge Encoding / Decoding (URL-safe Base64 + XOR)
+const CHALLENGE_XOR_KEY = [0x53, 0x54, 0x41, 0x53, 0x48, 0x46, 0x4C, 0x45, 0x58]; // 'STASHFLEX'
+
+function encodeCustomChallenge(word, lang) {
+    try {
+        const payload = JSON.stringify({ w: word.trim().toUpperCase(), l: lang });
+        const utf8Bytes = new TextEncoder().encode(payload);
+        const xored = new Uint8Array(utf8Bytes.length);
+        for (let i = 0; i < utf8Bytes.length; i++) {
+            xored[i] = utf8Bytes[i] ^ CHALLENGE_XOR_KEY[i % CHALLENGE_XOR_KEY.length];
+        }
+        let binary = '';
+        for (let i = 0; i < xored.length; i++) {
+            binary += String.fromCharCode(xored[i]);
+        }
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    } catch (e) {
+        console.error('Error encoding custom challenge:', e);
+        return null;
+    }
+}
+
+function decodeCustomChallenge(encodedStr) {
+    if (!encodedStr) return null;
+    try {
+        let base64 = encodedStr.replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4) base64 += '=';
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        const unxored = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) {
+            unxored[i] = bytes[i] ^ CHALLENGE_XOR_KEY[i % CHALLENGE_XOR_KEY.length];
+        }
+        const jsonStr = new TextDecoder().decode(unxored);
+        const data = JSON.parse(jsonStr);
+        if (data && data.w && typeof data.w === 'string') {
+            const cleanWord = data.w.trim().toUpperCase();
+            if (cleanWord.length >= 4 && cleanWord.length <= 20) {
+                return {
+                    word: cleanWord,
+                    lang: data.l === 'EN' ? 'EN' : 'RU'
+                };
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to decode custom challenge param:', e);
+    }
+    return null;
+}
+
+function checkUrlChallenge() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let customParam = urlParams.get('custom') || urlParams.get('word');
+    if (!customParam && window.location.hash) {
+        const hash = window.location.hash.replace(/^#\/?/, '');
+        if (hash.startsWith('custom=')) {
+            customParam = hash.replace('custom=', '');
+        } else if (hash.includes('?')) {
+            const subParams = new URLSearchParams(hash.split('?')[1]);
+            customParam = subParams.get('custom') || subParams.get('word');
+        }
+    }
+
+    if (customParam) {
+        const decoded = decodeCustomChallenge(customParam);
+        if (decoded) {
+            state.isCustomMode = true;
+            state.customWord = decoded.word;
+            state.lang = decoded.lang;
+            return true;
+        }
+    }
+    return false;
+}
 
 // Keyboards Layouts
 const KEYBOARDS = {
@@ -199,13 +279,25 @@ function setControlsLocked(isLocked) {
         }
 
         lenBtns.forEach(btn => {
-            btn.classList.remove('locked');
-            btn.removeAttribute('disabled');
+            if (state.isCustomMode) {
+                btn.classList.remove('active');
+                btn.classList.add('locked');
+                btn.setAttribute('disabled', 'true');
+            } else {
+                btn.classList.remove('locked');
+                btn.removeAttribute('disabled');
+            }
         });
         if (btnDots) {
-            btnDots.removeAttribute('disabled');
-            btnDots.style.pointerEvents = 'auto';
-            btnDots.style.opacity = '1';
+            if (state.isCustomMode) {
+                btnDots.setAttribute('disabled', 'true');
+                btnDots.style.pointerEvents = 'none';
+                btnDots.style.opacity = '0.4';
+            } else {
+                btnDots.removeAttribute('disabled');
+                btnDots.style.pointerEvents = 'auto';
+                btnDots.style.opacity = '1';
+            }
         }
     }
 }
@@ -220,7 +312,10 @@ function startNewGame() {
 
     let chosenLen = state.wordLength;
 
-    if (state.isRandomLength) {
+    if (state.isCustomMode && state.customWord) {
+        state.targetWord = state.customWord.toUpperCase();
+        chosenLen = state.targetWord.length;
+    } else if (state.isRandomLength) {
         const minL = Math.min(state.rndMin, state.rndMax);
         const maxL = Math.max(state.rndMin, state.rndMax);
         const rolled = Math.floor(Math.random() * (maxL - minL + 1)) + minL;
@@ -265,7 +360,7 @@ function startNewGame() {
     state.maxAttempts = calcAttempts(chosenLen);
 
     // Auto strict mode default logic
-    if (state.isXLMode || (state.isRandomLength && chosenLen >= 11)) {
+    if (state.isXLMode || (state.isRandomLength && chosenLen >= 11) || (state.isCustomMode && chosenLen >= 11)) {
         if (localStorage.getItem('flexle_strict') === null) {
             state.strictMode = false;
         }
@@ -279,6 +374,17 @@ function startNewGame() {
 
     document.getElementById('attempts-pill').textContent = `${state.maxAttempts} attempts (${chosenLen} letters)`;
     setControlsLocked(false);
+
+    // Update challenge banner
+    const challengeBanner = document.getElementById('challenge-banner');
+    if (challengeBanner) {
+        if (state.isCustomMode) {
+            challengeBanner.style.display = 'flex';
+            updateChallengeBannerLocalization();
+        } else {
+            challengeBanner.style.display = 'none';
+        }
+    }
 
     // Initialize Grid Array
     state.grid = Array.from({ length: state.maxAttempts }, () => Array(chosenLen).fill(''));
@@ -978,6 +1084,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnLang.textContent = state.lang;
         modalLangToggle.textContent = state.lang;
         updateRangeModalLocalization();
+        updateCustomModalLocalization();
         renderAxisUI();
         startNewGame();
     });
@@ -999,6 +1106,246 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Initialize Custom Word Challenge Modal and URL Listener
+    initCustomWordModal();
+    const hasChallenge = checkUrlChallenge();
+    if (hasChallenge) {
+        btnLang.textContent = state.lang;
+        if (modalLangToggle) modalLangToggle.textContent = state.lang;
+        showToast(state.lang === 'RU' ? '🎮 Загружен челлендж от друга!' : '🎮 Custom challenge loaded!');
+    }
+
     // Start initial game
     startNewGame();
 });
+
+// Custom Word Challenge UI and Controller
+function initCustomWordModal() {
+    const btnCustomWord = document.getElementById('btn-custom-word');
+    const modalCustomWord = document.getElementById('modal-custom-word');
+    const closeCustomWord = document.getElementById('close-custom-word');
+    const wordInput = document.getElementById('custom-word-input');
+    const lenCounter = document.getElementById('custom-len-counter');
+    const valMsg = document.getElementById('custom-validation-msg');
+    const btnGenerate = document.getElementById('btn-generate-challenge');
+    const linkResult = document.getElementById('custom-link-result');
+    const shareUrlInput = document.getElementById('custom-share-url');
+    const btnCopyUrl = document.getElementById('btn-copy-challenge-url');
+    const pillRu = document.getElementById('btn-pill-ru');
+    const pillEn = document.getElementById('btn-pill-en');
+
+    let customLang = state.lang || 'RU';
+
+    function setPillActive(lang) {
+        customLang = lang;
+        if (lang === 'RU') {
+            if (pillRu) pillRu.classList.add('active');
+            if (pillEn) pillEn.classList.remove('active');
+        } else {
+            if (pillEn) pillEn.classList.add('active');
+            if (pillRu) pillRu.classList.remove('active');
+        }
+        validateCustomInput();
+    }
+
+    if (pillRu) pillRu.addEventListener('click', () => setPillActive('RU'));
+    if (pillEn) pillEn.addEventListener('click', () => setPillActive('EN'));
+
+    function validateCustomInput() {
+        if (!wordInput) return false;
+        let val = (wordInput.value || '').toUpperCase();
+        if (customLang === 'RU') {
+            val = val.replace(/[^А-ЯЁ]/g, '');
+        } else {
+            val = val.replace(/[^A-Z]/g, '');
+        }
+        wordInput.value = val;
+
+        const len = val.length;
+        if (lenCounter) lenCounter.textContent = state.lang === 'RU' ? `${len} букв` : `${len} letters`;
+
+        if (!valMsg) return false;
+
+        if (len === 0) {
+            valMsg.className = 'custom-validation-msg';
+            valMsg.textContent = state.lang === 'RU' 
+                ? 'Только буквы выбранного алфавита (от 4 до 16 букв)' 
+                : 'Only letters of chosen alphabet (4 to 16 letters)';
+            return false;
+        }
+
+        if (len < 4) {
+            valMsg.className = 'custom-validation-msg invalid';
+            valMsg.textContent = state.lang === 'RU' 
+                ? 'Слишком короткое слово (минимум 4 буквы)' 
+                : 'Word is too short (minimum 4 letters)';
+            return false;
+        }
+
+        if (len > 16) {
+            valMsg.className = 'custom-validation-msg invalid';
+            valMsg.textContent = state.lang === 'RU' 
+                ? 'Слишком длинное слово (максимум 16 букв)' 
+                : 'Word is too long (maximum 16 letters)';
+            return false;
+        }
+
+        // Check dictionary presence
+        const dict = (DICTIONARY[customLang] && (DICTIONARY[customLang][len] || DICTIONARY[customLang]["11+"])) || [];
+        const inDict = dict.includes(val);
+
+        if (inDict) {
+            valMsg.className = 'custom-validation-msg valid';
+            valMsg.textContent = state.lang === 'RU'
+                ? '✓ Слово найдено в словаре игры'
+                : '✓ Valid word found in dictionary';
+        } else {
+            valMsg.className = 'custom-validation-msg';
+            valMsg.textContent = state.lang === 'RU'
+                ? 'Слово не в стандартном словаре (но ссылка всё равно сработает)'
+                : 'Word not in standard dictionary (link will still work)';
+        }
+
+        return true;
+    }
+
+    if (wordInput) {
+        wordInput.addEventListener('input', () => {
+            validateCustomInput();
+            if (linkResult) linkResult.style.display = 'none';
+        });
+    }
+
+    if (btnCustomWord) {
+        btnCustomWord.addEventListener('click', () => {
+            setPillActive(state.lang);
+            updateCustomModalLocalization();
+            if (wordInput) {
+                wordInput.value = '';
+                validateCustomInput();
+            }
+            if (linkResult) linkResult.style.display = 'none';
+            if (modalCustomWord) modalCustomWord.classList.add('open');
+            setTimeout(() => { if (wordInput) wordInput.focus(); }, 150);
+        });
+    }
+
+    if (closeCustomWord) {
+        closeCustomWord.addEventListener('click', () => {
+            if (modalCustomWord) modalCustomWord.classList.remove('open');
+        });
+    }
+
+    if (btnGenerate) {
+        btnGenerate.addEventListener('click', () => {
+            if (!validateCustomInput()) {
+                if (sounds.playShake) sounds.playShake();
+                showToast(state.lang === 'RU' ? 'Введите слово от 4 до 16 букв' : 'Enter a word from 4 to 16 letters');
+                return;
+            }
+
+            const word = wordInput.value.trim().toUpperCase();
+            const encoded = encodeCustomChallenge(word, customLang);
+            if (!encoded) {
+                showToast('Encoding error');
+                return;
+            }
+
+            const url = `${window.location.origin}${window.location.pathname}?custom=${encoded}`;
+            if (shareUrlInput) shareUrlInput.value = url;
+            if (linkResult) linkResult.style.display = 'block';
+            if (sounds.playTick) sounds.playTick();
+            if (shareUrlInput) shareUrlInput.select();
+        });
+    }
+
+    if (btnCopyUrl) {
+        btnCopyUrl.addEventListener('click', async () => {
+            if (!shareUrlInput) return;
+            const url = shareUrlInput.value;
+            if (!url) return;
+            try {
+                await navigator.clipboard.writeText(url);
+                if (sounds.playTick) sounds.playTick();
+                showToast(state.lang === 'RU' ? '✨ Ссылка скопирована в буфер!' : '✨ Challenge link copied!');
+                const copyText = document.getElementById('btn-copy-text');
+                if (copyText) {
+                    const orig = copyText.textContent;
+                    copyText.textContent = state.lang === 'RU' ? 'Скопировано! ✓' : 'Copied! ✓';
+                    setTimeout(() => { copyText.textContent = orig; }, 1800);
+                }
+            } catch (err) {
+                shareUrlInput.select();
+                document.execCommand('copy');
+                showToast(state.lang === 'RU' ? 'Ссылка скопирована!' : 'Link copied!');
+            }
+        });
+    }
+
+    // Exit Challenge Button
+    const btnExitChallenge = document.getElementById('btn-exit-challenge');
+    if (btnExitChallenge) {
+        btnExitChallenge.addEventListener('click', () => {
+            exitCustomChallenge();
+        });
+    }
+
+    // Challenge Back from Game Over
+    const btnChallengeBack = document.getElementById('btn-challenge-back');
+    if (btnChallengeBack) {
+        btnChallengeBack.addEventListener('click', () => {
+            const modalGov = document.getElementById('modal-gameover');
+            if (modalGov) modalGov.classList.remove('open');
+            if (btnCustomWord) btnCustomWord.click();
+        });
+    }
+}
+
+function exitCustomChallenge() {
+    state.isCustomMode = false;
+    state.customWord = null;
+    try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('custom');
+        url.searchParams.delete('word');
+        const cleanSearch = url.search ? '?' + url.searchParams.toString() : '';
+        window.history.replaceState({}, '', url.pathname + cleanSearch);
+    } catch (e) {}
+
+    const banner = document.getElementById('challenge-banner');
+    if (banner) banner.style.display = 'none';
+
+    showToast(state.lang === 'RU' ? 'Возврат в стандартный режим' : 'Switched to standard mode');
+    startNewGame();
+}
+
+function updateChallengeBannerLocalization() {
+    const isRu = state.lang === 'RU';
+    const text = document.getElementById('challenge-text');
+    const exitText = document.getElementById('btn-exit-challenge-text');
+    if (text) text.textContent = isRu ? 'Вы играете в кастомную загадку от друга!' : 'You are playing a custom challenge from a friend!';
+    if (exitText) exitText.textContent = isRu ? 'Стандартная игра' : 'Standard Game';
+}
+
+function updateCustomModalLocalization() {
+    const isRu = state.lang === 'RU';
+    const title = document.getElementById('custom-modal-title');
+    const sub = document.getElementById('custom-modal-subtitle');
+    const lblInput = document.getElementById('lbl-custom-input');
+    const input = document.getElementById('custom-word-input');
+    const lblLang = document.getElementById('lbl-custom-lang');
+    const btnGen = document.getElementById('btn-generate-text');
+    const lblShare = document.getElementById('lbl-custom-share');
+    const btnCopy = document.getElementById('btn-copy-text');
+    const btnBackText = document.getElementById('btn-challenge-back-text');
+
+    if (title) title.textContent = isRu ? 'Загадать слово' : 'Create Challenge';
+    if (sub) sub.textContent = isRu ? 'Создайте ссылку-загадку для друга без сервера' : 'Generate a challenge URL for a friend (Zero server)';
+    if (lblInput) lblInput.textContent = isRu ? 'Секретное слово:' : 'Secret Word:';
+    if (input) input.placeholder = isRu ? 'ВВЕДИТЕ СЛОВО...' : 'ENTER WORD...';
+    if (lblLang) lblLang.textContent = isRu ? 'Язык слова:' : 'Word Language:';
+    if (btnGen) btnGen.textContent = isRu ? 'Сгенерировать ссылку' : 'Generate Challenge Link';
+    if (lblShare) lblShare.textContent = isRu ? 'Ссылка для друга:' : 'Share Link for Friend:';
+    if (btnCopy) btnCopy.textContent = isRu ? 'Копировать' : 'Copy Link';
+    if (btnBackText) btnBackText.textContent = isRu ? 'Загадать в ответ' : 'Challenge Back';
+}

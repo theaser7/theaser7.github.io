@@ -1,11 +1,11 @@
 @echo off
 chcp 65001 > nul
-title Clarify AI Companion Server (RTX 4060 Accelerated)
+title Clarify AI Companion Server (Hardware Accelerated)
 cls
 echo ================================================================
 echo   Clarify AI Photo Upscaler - Local Companion Server
 echo   Hardware Acceleration via Real-ESRGAN NCNN Vulkan
-echo   Zero-Bloat • 100%% Local & Private • NVIDIA RTX 4060 Ready
+echo   Zero-Bloat • 100%% Local & Private • Zero Telemetry
 echo ================================================================
 echo.
 

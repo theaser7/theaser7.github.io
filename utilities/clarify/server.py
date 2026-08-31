@@ -91,7 +91,6 @@ class ClarifyHandler(BaseHTTPRequestHandler):
             data = {
                 "status": "online",
                 "engine": "Real-ESRGAN NCNN Vulkan",
-                "hardware": "RTX 4060 / Vulkan Accelerated",
                 "models": ["realesrgan-x4plus", "realesrgan-x4plus-anime", "realesr-animevideov3-x2"]
             }
             self._set_cors_headers(200)
@@ -276,7 +275,6 @@ def run():
     server.daemon_threads = True
     print("\n" + "=" * 60)
     print(f"  Clarify AI Companion Server is RUNNING on http://127.0.0.1:{PORT}")
-    print("  Hardware: NVIDIA RTX 4060 (Vulkan)")
     print("  Zero Telemetry • 100% Local Processing")
     print("=" * 60)
     print("  Press Ctrl+C to stop the server anytime.\n")
