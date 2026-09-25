@@ -1,5 +1,6 @@
 const { app, BrowserWindow, shell, Menu } = require('electron');
 const path = require('path');
+const { fileURLToPath } = require('url');
 
 const APP_NAME = 'the stash desktop';
 app.name = APP_NAME;
@@ -91,29 +92,59 @@ function createWindow() {
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
 
-    // Keep window title strictly prefixed with "the stash desktop"
+    // Keep window title strictly formatted with "the stash desktop"
     mainWindow.on('page-title-updated', (event, title) => {
         event.preventDefault();
         if (!title || title.trim() === '' || title === 'the stash') {
             mainWindow.setTitle(APP_NAME);
+        } else if (title.startsWith('the stash •')) {
+            mainWindow.setTitle(`${APP_NAME} • ${title.replace(/^the stash\s*•\s*/, '')}`);
         } else {
             mainWindow.setTitle(`${APP_NAME} • ${title}`);
         }
     });
 
-    // Open external links in default browser
+    // Handle new-window requests (target="_blank" or window.open)
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         if (url.startsWith('http:') || url.startsWith('https:')) {
             shell.openExternal(url);
             return { action: 'deny' };
         }
-        return { action: 'allow' };
+        if (url.startsWith('file:')) {
+            try {
+                const parsed = new URL(url);
+                const filePath = fileURLToPath(url);
+                const target = (url.endsWith('/') || !path.extname(parsed.pathname))
+                    ? path.join(filePath, 'index.html')
+                    : filePath;
+                mainWindow.loadFile(target);
+            } catch (e) {
+                console.error('[the stash desktop] Window open error:', e);
+            }
+            return { action: 'deny' };
+        }
+        return { action: 'deny' };
     });
 
+    // Handle in-window navigation (resolve directory links like ./games/flexle/ to index.html)
     mainWindow.webContents.on('will-navigate', (event, url) => {
         if (url.startsWith('http:') || url.startsWith('https:')) {
             event.preventDefault();
             shell.openExternal(url);
+            return;
+        }
+        if (url.startsWith('file:')) {
+            try {
+                const parsed = new URL(url);
+                if (url.endsWith('/') || !path.extname(parsed.pathname)) {
+                    event.preventDefault();
+                    const filePath = fileURLToPath(url);
+                    const target = filePath.endsWith('index.html') ? filePath : path.join(filePath, 'index.html');
+                    mainWindow.loadFile(target);
+                }
+            } catch (e) {
+                console.error('[the stash desktop] will-navigate error:', e);
+            }
         }
     });
 

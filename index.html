@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>the stash • Client-Side Web Suite</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z%22/><polyline points=%223.27 6.96 12 12.01 20.73 6.96%22/><line x1=%2212%22 y1=%2222.08%22 x2=%2212%22 y2=%2212%22/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z%22/><polyline points=%223.27 6.96 12 12.01 20.73 6.96%22/><line x1=%2212%22 y1=%2222.08%22 x2=%2212%22 y2=%2212%22/></svg>">
     <style>
         :root {
             --bg-deep: #050807;
@@ -927,7 +927,7 @@
                                 <span class="tag-pill">#WebAudio</span>
                             </div>
                         </div>
-                        <a href="./games/flexle/" class="btn-action">Launch Flexle &rarr;</a>
+                        <a href="./games/flexle/index.html" class="btn-action">Launch Flexle &rarr;</a>
                     </article>
 
                     <!-- 2. Quantex Card (Archived) -->
@@ -948,7 +948,7 @@
                                 <span class="tag-pill">#WebAudio</span>
                             </div>
                         </div>
-                        <a href="./games/quantex/" class="btn-action" style="color: #94a3b8; border-color: rgba(148, 163, 184, 0.3); background: rgba(148, 163, 184, 0.05);">Launch Quantex &rarr;</a>
+                        <a href="./games/quantex/index.html" class="btn-action" style="color: #94a3b8; border-color: rgba(148, 163, 184, 0.3); background: rgba(148, 163, 184, 0.05);">Launch Quantex &rarr;</a>
                     </article>
 
                     <!-- StashConvert Card -->
@@ -975,7 +975,7 @@
                                 <span class="tag-pill">#ZeroTelemetry</span>
                             </div>
                         </div>
-                        <a href="./utilities/stashconvert/" class="btn-action">Launch StashConvert &rarr;</a>
+                        <a href="./utilities/stashconvert/index.html" class="btn-action">Launch StashConvert &rarr;</a>
                     </article>
 
                     <!-- StashIP Card -->
@@ -1000,7 +1000,7 @@
                                 <span class="tag-pill">#ZeroTelemetry</span>
                             </div>
                         </div>
-                        <a href="./utilities/staship/" class="btn-action">Launch StashIP &rarr;</a>
+                        <a href="./utilities/staship/index.html" class="btn-action">Launch StashIP &rarr;</a>
                     </article>
 
                     <!-- 3. Clarify Card -->
@@ -1027,7 +1027,7 @@
                                 <span class="tag-pill">#ZeroTelemetry</span>
                             </div>
                         </div>
-                        <a href="./utilities/clarify/" class="btn-action">Launch Clarify &rarr;</a>
+                        <a href="./utilities/clarify/index.html" class="btn-action">Launch Clarify &rarr;</a>
                     </article>
 
                     <!-- 5. FetchFlow Card -->
@@ -1052,7 +1052,7 @@
                                 <span class="tag-pill">#DirectStream</span>
                             </div>
                         </div>
-                        <a href="./utilities/fetchflow/" class="btn-action">Launch FetchFlow &rarr;</a>
+                        <a href="./utilities/fetchflow/index.html" class="btn-action">Launch FetchFlow &rarr;</a>
                     </article>
 
                     <!-- 6. StashCompanion Card -->
@@ -1104,7 +1104,7 @@
                                 <span class="tag-pill">#ZeroTelemetry</span>
                             </div>
                         </div>
-                        <a href="./utilities/stashlist/" class="btn-action">Launch StashList &rarr;</a>
+                        <a href="./utilities/stashlist/index.html" class="btn-action">Launch StashList &rarr;</a>
                     </article>
 
                     <!-- Empty State -->
@@ -1592,7 +1592,7 @@
             if (tagArchived) tagArchived.textContent = dict.tagArchived;
 
             // Project cards
-            const cardFlexle = document.querySelector('a[href="./games/flexle/"]')?.closest('.project-card');
+            const cardFlexle = document.querySelector('a[href^="./games/flexle"]')?.closest('.project-card');
             if (cardFlexle) {
                 const desc = cardFlexle.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardFlexleDesc;
@@ -1600,7 +1600,7 @@
                 if (btn) btn.textContent = dict.btnLaunchFlexle;
             }
 
-            const cardQuantex = document.querySelector('a[href="./games/quantex/"]')?.closest('.project-card');
+            const cardQuantex = document.querySelector('a[href^="./games/quantex"]')?.closest('.project-card');
             if (cardQuantex) {
                 const desc = cardQuantex.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardQuantexDesc;
@@ -1608,7 +1608,7 @@
                 if (btn) btn.textContent = dict.btnLaunchQuantex;
             }
 
-            const cardStashconvert = document.querySelector('a[href="./utilities/stashconvert/"]')?.closest('.project-card');
+            const cardStashconvert = document.querySelector('a[href^="./utilities/stashconvert"]')?.closest('.project-card');
             if (cardStashconvert) {
                 const desc = cardStashconvert.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardStashconvertDesc;
@@ -1616,7 +1616,7 @@
                 if (btn) btn.textContent = dict.btnLaunchStashconvert;
             }
 
-            const cardStaship = document.querySelector('a[href="./utilities/staship/"]')?.closest('.project-card');
+            const cardStaship = document.querySelector('a[href^="./utilities/staship"]')?.closest('.project-card');
             if (cardStaship) {
                 const desc = cardStaship.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardStashipDesc;
@@ -1624,7 +1624,7 @@
                 if (btn) btn.textContent = dict.btnLaunchStaship;
             }
 
-            const cardClarify = document.querySelector('a[href="./utilities/clarify/"]')?.closest('.project-card');
+            const cardClarify = document.querySelector('a[href^="./utilities/clarify"]')?.closest('.project-card');
             if (cardClarify) {
                 const desc = cardClarify.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardClarifyDesc;
@@ -1632,7 +1632,7 @@
                 if (btn) btn.textContent = dict.btnLaunchClarify;
             }
 
-            const cardFetchflow = document.querySelector('a[href="./utilities/fetchflow/"]')?.closest('.project-card');
+            const cardFetchflow = document.querySelector('a[href^="./utilities/fetchflow"]')?.closest('.project-card');
             if (cardFetchflow) {
                 const desc = cardFetchflow.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardFetchflowDesc;
@@ -1645,7 +1645,7 @@
             const btnCompanion = document.getElementById('btn-launch-companion');
             if (btnCompanion) btnCompanion.textContent = dict.btnLaunchCompanion;
 
-            const cardStashlist = document.querySelector('a[href="./utilities/stashlist/"]')?.closest('.project-card');
+            const cardStashlist = document.querySelector('a[href^="./utilities/stashlist"]')?.closest('.project-card');
             if (cardStashlist) {
                 const desc = cardStashlist.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardStashlistDesc;
