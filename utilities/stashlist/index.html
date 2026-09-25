@@ -1,0 +1,2611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StashList &bull; Recurring Checklist & Routine Tracker &bull; the stash</title>
+    <meta name="description" content="StashList - Pure client-side recurring daily checklist and routine tracker. Active day scheduling, custom reminder alerts with audio notifications, zero telemetry, offline-first.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M9 11l3 3L22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>">
+
+    <style>
+        :root {
+            --bg-deep: #050807;
+            --bg-surface: rgba(9, 15, 12, 0.85);
+            --bg-surface-hover: rgba(14, 24, 19, 0.95);
+            --bg-card: rgba(11, 19, 15, 0.9);
+            --bg-card-hover: rgba(16, 28, 22, 0.95);
+            --bg-input: rgba(7, 12, 10, 0.9);
+            --bg-modal: #080f0c;
+
+            --border-dim: #13221b;
+            --border-medium: #1c362a;
+            --border-active: #00ff9d;
+
+            --mint: #00ff9d;
+            --mint-hover: #05f0a5;
+            --mint-dark: #04251a;
+            --mint-glow: rgba(0, 255, 157, 0.35);
+            --mint-soft-glow: rgba(0, 255, 157, 0.12);
+
+            --text-main: #f0fdf4;
+            --text-muted: #86a896;
+            --text-dim: #436353;
+            --danger: #ff3366;
+            --danger-bg: rgba(255, 51, 102, 0.12);
+
+            --cat-work: #38bdf8;
+            --cat-routine: #c084fc;
+            --cat-health: #10b981;
+            --cat-dev: #00ff9d;
+            --cat-habit: #f59e0b;
+            --cat-personal: #f43f5e;
+
+            --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 2D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* App Container */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1040px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 1.25rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: var(--mint-dark);
+            border: 1px solid var(--border-active);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mint);
+            box-shadow: 0 0 12px var(--mint-glow);
+            flex-shrink: 0;
+        }
+
+        .brand-logo svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .brand-info {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--mint);
+            font-family: var(--font-mono);
+            text-shadow: 0 0 10px var(--mint-glow);
+        }
+
+        .brand-version {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            padding: 0.15rem 0.45rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .header-date-badge {
+            background: rgba(0, 255, 157, 0.05);
+            border: 1px solid var(--border-medium);
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            color: var(--mint);
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .hud-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            color: var(--text-muted);
+            padding: 0.45rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: var(--font-mono);
+            user-select: none;
+        }
+
+        .hud-btn:hover {
+            border-color: var(--border-active);
+            color: var(--mint);
+            box-shadow: 0 0 12px var(--mint-soft-glow);
+            background: rgba(0, 255, 157, 0.06);
+        }
+
+        .hud-btn.active {
+            border-color: var(--mint);
+            color: var(--mint);
+            background: rgba(0, 255, 157, 0.1);
+        }
+
+        .hud-btn.primary {
+            background: rgba(0, 255, 157, 0.12);
+            border-color: var(--mint);
+            color: var(--mint);
+            box-shadow: 0 0 12px var(--mint-soft-glow);
+        }
+
+        .hud-btn.primary:hover {
+            background: var(--mint);
+            color: #050807;
+            box-shadow: 0 0 20px var(--mint-glow);
+        }
+
+        /* Dashboard Banner / Progress Box */
+        .dash-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.35);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .dash-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dash-title-group h2 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .dash-title-group p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+            font-family: var(--font-mono);
+        }
+
+        .dash-stats {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: right;
+            font-family: var(--font-mono);
+        }
+
+        .stat-val {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--mint);
+            line-height: 1;
+        }
+
+        .stat-lbl {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.2rem;
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .progress-bar-bg {
+            height: 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff9d, #38bdf8);
+            border-radius: 999px;
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 10px var(--mint-glow);
+        }
+
+        /* Controls: Views & Filters */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .tabs-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .view-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            padding: 0.35rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.45rem 1rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            background: var(--mint-dark);
+            color: var(--mint);
+            border: 1px solid var(--border-active);
+            box-shadow: 0 0 10px var(--mint-soft-glow);
+        }
+
+        .tab-pill-count {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0.1rem 0.4rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+        }
+
+        .search-filter-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-sm);
+            padding: 0.55rem 0.85rem 0.55rem 2.2rem;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--border-active);
+            box-shadow: 0 0 10px var(--mint-soft-glow);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            pointer-events: none;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-chip {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-dim);
+            color: var(--text-muted);
+            padding: 0.35rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .filter-chip:hover {
+            border-color: var(--border-medium);
+            color: var(--text-main);
+        }
+
+        .filter-chip.active {
+            border-color: var(--border-active);
+            color: var(--mint);
+            background: rgba(0, 255, 157, 0.08);
+        }
+
+        /* Task List Section */
+        .tasks-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .task-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(8px);
+            position: relative;
+        }
+
+        .task-card:hover {
+            border-color: var(--border-medium);
+            background: var(--bg-card-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-card.completed {
+            border-color: rgba(28, 54, 42, 0.5);
+            background: rgba(8, 14, 11, 0.6);
+            opacity: 0.8;
+        }
+
+        .task-card.completed:hover {
+            opacity: 1;
+        }
+
+        .task-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Checkbox Custom Button */
+        .task-checkbox-btn {
+            background: var(--bg-input);
+            border: 2px solid var(--border-medium);
+            border-radius: 6px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            margin-top: 0.15rem;
+            color: transparent;
+        }
+
+        .task-checkbox-btn:hover {
+            border-color: var(--mint);
+            box-shadow: 0 0 10px var(--mint-soft-glow);
+        }
+
+        .task-card.completed .task-checkbox-btn {
+            background: var(--mint);
+            border-color: var(--mint);
+            color: #050807;
+            box-shadow: 0 0 12px var(--mint-glow);
+        }
+
+        .task-checkbox-btn svg {
+            width: 15px;
+            height: 15px;
+            stroke-width: 3.2;
+            transition: transform 0.2s ease;
+            transform: scale(0.6);
+        }
+
+        .task-card.completed .task-checkbox-btn svg {
+            transform: scale(1);
+        }
+
+        .task-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .task-header-line {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .task-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-word;
+            transition: all 0.2s ease;
+        }
+
+        .task-card.completed .task-title {
+            text-decoration: line-through;
+            color: var(--text-dim);
+        }
+
+        .cat-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex-shrink: 0;
+        }
+
+        .task-notes {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .task-card.completed .task-notes {
+            color: var(--text-dim);
+        }
+
+        /* Schedule & Reminder Badges */
+        .task-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 0.15rem;
+        }
+
+        .days-mini-row {
+            display: flex;
+            gap: 3px;
+        }
+
+        .day-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            font-size: 0.6rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-dim);
+            color: var(--text-dim);
+        }
+
+        .day-dot.active {
+            background: rgba(0, 255, 157, 0.08);
+            border-color: var(--border-medium);
+            color: var(--text-muted);
+        }
+
+        .day-dot.today {
+            border-color: var(--mint);
+            color: var(--mint);
+            font-weight: 800;
+            box-shadow: 0 0 6px var(--mint-soft-glow);
+        }
+
+        .reminder-pill {
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-dim);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .reminder-pill.active {
+            color: var(--mint);
+            border-color: rgba(0, 255, 157, 0.3);
+            background: rgba(0, 255, 157, 0.06);
+        }
+
+        .task-right-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-dim);
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--border-medium);
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .icon-btn.danger:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+
+        /* Empty State */
+        .empty-tasks-card {
+            background: var(--bg-surface);
+            border: 1px dashed var(--border-medium);
+            border-radius: var(--radius-md);
+            padding: 3rem 1.5rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .empty-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(0, 255, 157, 0.06);
+            border: 1px solid var(--border-medium);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mint);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .empty-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            max-width: 420px;
+            line-height: 1.5;
+        }
+
+        /* Modal Overlay & Card */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 8, 7, 0.82);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: var(--bg-modal);
+            border: 1px solid var(--border-active);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.75rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 25px var(--mint-soft-glow);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--mint);
+            font-family: var(--font-mono);
+            letter-spacing: 0.04em;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.35rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--mint);
+            background: rgba(0, 255, 157, 0.08);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .form-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: var(--font-mono);
+        }
+
+        .form-input, .form-textarea, .form-select {
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-sm);
+            padding: 0.65rem 0.85rem;
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            border-color: var(--mint);
+            box-shadow: 0 0 10px var(--mint-soft-glow);
+        }
+
+        /* Category Selector Chips */
+        .cat-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .cat-chip-radio {
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 0.4rem;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+
+        .cat-chip-radio:hover {
+            border-color: var(--border-medium);
+        }
+
+        .cat-chip-radio.selected {
+            border-color: var(--mint);
+            box-shadow: 0 0 10px var(--mint-soft-glow);
+        }
+
+        /* Days of Week Selector */
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.35rem;
+        }
+
+        .day-toggle-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 0.2rem;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--text-dim);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .day-toggle-btn:hover {
+            border-color: var(--border-medium);
+            color: var(--text-muted);
+        }
+
+        .day-toggle-btn.active {
+            background: rgba(0, 255, 157, 0.1);
+            border-color: var(--mint);
+            color: var(--mint);
+            box-shadow: 0 0 8px var(--mint-soft-glow);
+        }
+
+        .presets-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            background: transparent;
+            border: 1px dashed var(--border-dim);
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--border-medium);
+            color: var(--mint);
+        }
+
+        /* Reminders Block in Modal */
+        .reminders-block {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-sm);
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+        }
+
+        .switch-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-dim);
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+            background-color: var(--mint);
+            box-shadow: 0 0 8px var(--mint);
+        }
+
+        .reminder-config {
+            display: none;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed var(--border-dim);
+        }
+
+        .reminder-config.active {
+            display: flex;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-active);
+            color: var(--text-main);
+            padding: 0.85rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7), 0 0 15px var(--mint-soft-glow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            max-width: 400px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Banner Notification (For triggered reminders) */
+        .reminder-banner {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #081a13;
+            border: 1px solid var(--mint);
+            color: var(--text-main);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px var(--mint-glow);
+            z-index: 210;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 90vw;
+        }
+
+        .reminder-banner.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .reminder-banner-icon {
+            color: var(--mint);
+            animation: ring 1s ease infinite;
+        }
+
+        @keyframes ring {
+            0%, 100% { transform: rotate(0); }
+            20% { transform: rotate(-15deg); }
+            40% { transform: rotate(15deg); }
+            60% { transform: rotate(-10deg); }
+            80% { transform: rotate(10deg); }
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding: 1.5rem 0 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-family: var(--font-mono);
+            border-top: 1px solid var(--border-dim);
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        footer a:hover {
+            color: var(--mint);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .app-container {
+                padding: 0.75rem;
+            }
+            .header-center {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+            .stat-item {
+                text-align: left;
+            }
+            .dash-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .dash-stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .task-card {
+                padding: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 2D Canvas Blueprint Background -->
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <a href="../../index.html" class="brand-link" title="Return to The Stash">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 11 12 14 22 4"></polyline>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                </div>
+                <div class="brand-info">
+                    <span class="brand-title">StashList</span>
+                    <span class="brand-version">v0.8.9</span>
+                </div>
+            </a>
+
+            <div class="header-center">
+                <div class="header-date-badge" id="live-date-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span id="txt-live-date">TODAY</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button class="hud-btn" id="btn-toggle-sound" title="Toggle audio feedback">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    <span id="txt-sound-btn">SOUND: ON</span>
+                </button>
+
+                <button class="hud-btn" id="btn-toggle-notify" title="Toggle browser notifications">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span id="txt-notify-btn">ALERTS: CHECK</span>
+                </button>
+
+                <button class="hud-btn" id="btn-backup-menu" title="Export or Import JSON">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>JSON DATA</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard Hero / Daily Progress -->
+        <section class="dash-card">
+            <div class="dash-top">
+                <div class="dash-title-group">
+                    <h2>
+                        <span>Daily Recurring Checklist</span>
+                    </h2>
+                    <p id="dash-schedule-status">Tracking routines active for today &bull; Auto-resets at midnight</p>
+                </div>
+                <div class="dash-stats">
+                    <div class="stat-item">
+                        <div class="stat-val" id="stat-completed-num">0 / 0</div>
+                        <div class="stat-lbl">Completed Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-val" id="stat-percent-num">0%</div>
+                        <div class="stat-lbl">Progress</div>
+                    </div>
+                    <button class="hud-btn primary" id="btn-open-create" style="padding: 0.65rem 1rem;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>NEW TASK</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-wrapper">
+                <div class="progress-meta">
+                    <span id="progress-summary-txt">0 of 0 tasks completed</span>
+                    <span id="progress-streak-txt">Zero Telemetry &bull; Offline First</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls: Tabs, Filters, Search -->
+        <section class="controls-panel">
+            <div class="tabs-row">
+                <div class="view-tabs">
+                    <button class="tab-btn active" data-view="today" id="tab-view-today">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>Today's Tasks</span>
+                        <span class="tab-pill-count" id="count-tab-today">0</span>
+                    </button>
+                    <button class="tab-btn" data-view="all" id="tab-view-all">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        <span>All Tasks</span>
+                        <span class="tab-pill-count" id="count-tab-all">0</span>
+                    </button>
+                </div>
+
+                <div class="filter-chips" id="status-filter-group">
+                    <button class="filter-chip active" data-status="all">ALL</button>
+                    <button class="filter-chip" data-status="pending">ACTIVE</button>
+                    <button class="filter-chip" data-status="completed">COMPLETED</button>
+                </div>
+            </div>
+
+            <div class="search-filter-row">
+                <div class="search-box">
+                    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="task-search-input" class="search-input" placeholder="Search tasks by title, note, or category..." autocomplete="off">
+                </div>
+
+                <div class="filter-chips" id="category-filter-group">
+                    <button class="filter-chip active" data-cat="all">All Categories</button>
+                    <button class="filter-chip" data-cat="Work">Work</button>
+                    <button class="filter-chip" data-cat="Routine">Routine</button>
+                    <button class="filter-chip" data-cat="Health">Health</button>
+                    <button class="filter-chip" data-cat="Dev">Dev</button>
+                    <button class="filter-chip" data-cat="Habit">Habit</button>
+                    <button class="filter-chip" data-cat="Personal">Personal</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tasks List Grid -->
+        <main class="tasks-container" id="tasks-container">
+            <!-- Dynamically populated via JS -->
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <span>StashList &bull; 100% Client-Side Recurring Checklist</span>
+            <span>Part of <a href="../../index.html">the stash</a></span>
+        </footer>
+    </div>
+
+    <!-- Modal: Create / Edit Task -->
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span class="modal-title" id="modal-heading">// NEW RECURRING TASK</span>
+                <button class="modal-close" id="btn-modal-close" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="task-form" onsubmit="return false;">
+                <input type="hidden" id="form-task-id" value="">
+
+                <!-- Title -->
+                <div class="form-group">
+                    <label class="form-label" for="form-task-title">Task Title *</label>
+                    <input type="text" id="form-task-title" class="form-input" placeholder="e.g., Daily Morning Stretches, Code Review, Backup DB..." required autocomplete="off">
+                </div>
+
+                <!-- Category -->
+                <div class="form-group">
+                    <label class="form-label">Category Badge</label>
+                    <div class="cat-selector" id="form-cat-selector">
+                        <div class="cat-chip-radio selected" data-cat="Work" style="color: var(--cat-work);">Work</div>
+                        <div class="cat-chip-radio" data-cat="Routine" style="color: var(--cat-routine);">Routine</div>
+                        <div class="cat-chip-radio" data-cat="Health" style="color: var(--cat-health);">Health</div>
+                        <div class="cat-chip-radio" data-cat="Dev" style="color: var(--cat-dev);">Dev</div>
+                        <div class="cat-chip-radio" data-cat="Habit" style="color: var(--cat-habit);">Habit</div>
+                        <div class="cat-chip-radio" data-cat="Personal" style="color: var(--cat-personal);">Personal</div>
+                    </div>
+                </div>
+
+                <!-- Notes / Description -->
+                <div class="form-group">
+                    <label class="form-label" for="form-task-notes">Notes / Instructions (Optional)</label>
+                    <textarea id="form-task-notes" class="form-textarea" placeholder="Optional details, links, or criteria for completion..."></textarea>
+                </div>
+
+                <!-- Active Days of Week -->
+                <div class="form-group">
+                    <label class="form-label">Active Days of the Week</label>
+                    <div class="days-grid" id="form-active-days">
+                        <button type="button" class="day-toggle-btn active" data-day="1">Mon</button>
+                        <button type="button" class="day-toggle-btn active" data-day="2">Tue</button>
+                        <button type="button" class="day-toggle-btn active" data-day="3">Wed</button>
+                        <button type="button" class="day-toggle-btn active" data-day="4">Thu</button>
+                        <button type="button" class="day-toggle-btn active" data-day="5">Fri</button>
+                        <button type="button" class="day-toggle-btn active" data-day="6">Sat</button>
+                        <button type="button" class="day-toggle-btn active" data-day="0">Sun</button>
+                    </div>
+                    <div class="presets-row">
+                        <button type="button" class="preset-btn" id="preset-all-days">All Days</button>
+                        <button type="button" class="preset-btn" id="preset-weekdays">Weekdays (Mon-Fri)</button>
+                        <button type="button" class="preset-btn" id="preset-weekends">Weekends (Sat-Sun)</button>
+                    </div>
+                </div>
+
+                <!-- Reminders Section -->
+                <div class="reminders-block">
+                    <div class="toggle-row">
+                        <span class="switch-label">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            Enable Scheduled Reminders
+                        </span>
+                        <label class="switch">
+                            <input type="checkbox" id="form-reminders-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="reminder-config" id="reminder-config-box">
+                        <div class="form-group">
+                            <label class="form-label" for="form-reminder-time">Reminder Time (HH:MM)</label>
+                            <input type="time" id="form-reminder-time" class="form-input" value="09:00" style="font-family: var(--font-mono); width: 140px;">
+                        </div>
+
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label class="form-label">Reminder Trigger Days</label>
+                                <button type="button" class="preset-btn" id="btn-sync-reminder-days">Same as Active Days</button>
+                            </div>
+                            <div class="days-grid" id="form-reminder-days">
+                                <button type="button" class="day-toggle-btn active" data-day="1">Mon</button>
+                                <button type="button" class="day-toggle-btn active" data-day="2">Tue</button>
+                                <button type="button" class="day-toggle-btn active" data-day="3">Wed</button>
+                                <button type="button" class="day-toggle-btn active" data-day="4">Thu</button>
+                                <button type="button" class="day-toggle-btn active" data-day="5">Fri</button>
+                                <button type="button" class="day-toggle-btn active" data-day="6">Sat</button>
+                                <button type="button" class="day-toggle-btn active" data-day="0">Sun</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="hud-btn" id="btn-modal-cancel">Cancel</button>
+                    <button type="submit" class="hud-btn primary" id="btn-modal-save">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Backup & Restore JSON Data -->
+    <div class="modal-overlay" id="backup-modal">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <span class="modal-title">// DATA MANAGEMENT</span>
+                <button class="modal-close" id="btn-backup-close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+                All StashList data is stored locally in your browser storage. You can backup your recurring tasks as a JSON file or restore them anytime.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <button class="hud-btn" id="btn-export-json" style="justify-content: center; padding: 0.75rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Download JSON Backup</span>
+                </button>
+
+                <label class="hud-btn" style="justify-content: center; padding: 0.75rem; cursor: pointer;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Restore from JSON File</span>
+                    <input type="file" id="file-import-json" accept=".json" style="display: none;">
+                </label>
+
+                <button class="hud-btn" id="btn-reset-today" style="justify-content: center; padding: 0.75rem; color: var(--danger); border-color: rgba(255, 51, 102, 0.3);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                    <span>Reset Today's Completions</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Reminder Banner -->
+    <div class="reminder-banner" id="reminder-banner">
+        <div class="reminder-banner-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+            <span style="font-size: 0.75rem; color: var(--mint); font-family: var(--font-mono); font-weight: 700;">STASHLIST REMINDER</span>
+            <span style="font-weight: 700;" id="banner-task-title">Task Title</span>
+        </div>
+        <button class="hud-btn primary" id="btn-banner-complete" style="margin-left: auto;">Done</button>
+        <button class="icon-btn" id="btn-banner-close" title="Dismiss" style="color: var(--text-muted);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast-notify">Notification text</div>
+
+    <!-- Web Audio Engine -->
+    <script>
+        class StashAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+                try {
+                    const saved = localStorage.getItem('stashlist_sound_muted');
+                    if (saved !== null) this.muted = JSON.parse(saved);
+                } catch (e) {}
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) this.ctx = new AudioContextClass();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggleMute() {
+                this.muted = !this.muted;
+                try {
+                    localStorage.setItem('stashlist_sound_muted', JSON.stringify(this.muted));
+                } catch (e) {}
+                return this.muted;
+            }
+
+            playClick() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(1400, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.03);
+                gain.gain.setValueAtTime(0.06, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.03);
+            }
+
+            playComplete() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                // Bright rising cyber chime: G5, C6, E6
+                const notes = [783.99, 1046.50, 1318.51];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.045);
+                    gain.gain.setValueAtTime(0.08, now + idx * 0.045);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.045 + 0.28);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.045);
+                    osc.stop(now + idx * 0.045 + 0.28);
+                });
+            }
+
+            playUncomplete() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(520, now);
+                osc.frequency.exponentialRampToValueAtTime(320, now + 0.1);
+                gain.gain.setValueAtTime(0.06, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+
+            playReminderAlert() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                // High-tech two-tone alert chime
+                [880, 1174.66, 880, 1174.66].forEach((freq, idx) => {
+                    const t = now + idx * 0.1;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, t);
+                    gain.gain.setValueAtTime(0.12, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.18);
+                });
+            }
+
+            playMidnightReset() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+                    const t = now + idx * 0.06;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, t);
+                    gain.gain.setValueAtTime(0.05, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.35);
+                });
+            }
+        }
+
+        const soundEngine = new StashAudioEngine();
+    </script>
+
+    <!-- Blueprint Canvas Background -->
+    <script>
+        (function() {
+            const canvas = document.getElementById('bg-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w, h;
+
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            const gridSize = 40;
+            let offset = 0;
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+                ctx.strokeStyle = '#13221b';
+                ctx.lineWidth = 1;
+                offset = (offset + 0.1) % gridSize;
+
+                for (let x = offset; x < w; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, h);
+                    ctx.stroke();
+                }
+                for (let y = offset; y < h; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = 'rgba(0, 255, 157, 0.12)';
+                for (let x = offset; x < w; x += gridSize * 2) {
+                    for (let y = offset; y < h; y += gridSize * 2) {
+                        ctx.fillRect(x - 1, y - 1, 2, 2);
+                    }
+                }
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+    </script>
+
+    <!-- Main Application Logic -->
+    <script>
+        // --- Data Model & Configuration ---
+        const STORAGE_KEY = 'stashlist_tasks_v1';
+
+        const CATEGORIES = {
+            Work: { color: 'var(--cat-work)', bg: 'rgba(56, 189, 248, 0.12)', border: 'rgba(56, 189, 248, 0.3)' },
+            Routine: { color: 'var(--cat-routine)', bg: 'rgba(192, 132, 252, 0.12)', border: 'rgba(192, 132, 252, 0.3)' },
+            Health: { color: 'var(--cat-health)', bg: 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.3)' },
+            Dev: { color: 'var(--cat-dev)', bg: 'rgba(0, 255, 157, 0.12)', border: 'rgba(0, 255, 157, 0.3)' },
+            Habit: { color: 'var(--cat-habit)', bg: 'rgba(245, 158, 11, 0.12)', border: 'rgba(245, 158, 11, 0.3)' },
+            Personal: { color: 'var(--cat-personal)', bg: 'rgba(244, 63, 94, 0.12)', border: 'rgba(244, 63, 94, 0.3)' }
+        };
+
+        const DAYS_MAP = [
+            { id: 1, short: 'M', name: 'Mon' },
+            { id: 2, short: 'T', name: 'Tue' },
+            { id: 3, short: 'W', name: 'Wed' },
+            { id: 4, short: 'T', name: 'Thu' },
+            { id: 5, short: 'F', name: 'Fri' },
+            { id: 6, short: 'S', name: 'Sat' },
+            { id: 0, short: 'S', name: 'Sun' }
+        ];
+
+        const STARTER_TASKS = [
+            {
+                id: 'task-starter-1',
+                title: 'Morning Hydration & Stretches',
+                notes: 'Drink a glass of water, do 5 minutes of mobility work.',
+                category: 'Routine',
+                activeDays: [1, 2, 3, 4, 5, 6, 0],
+                remindersEnabled: true,
+                reminderTime: '08:00',
+                reminderDays: [1, 2, 3, 4, 5, 6, 0],
+                lastCompletedDate: null,
+                lastNotifiedAt: null,
+                createdAt: Date.now() - 30000
+            },
+            {
+                id: 'task-starter-2',
+                title: 'Deep Work Session (2 Hours)',
+                notes: 'Focus on primary objective with zero notifications.',
+                category: 'Work',
+                activeDays: [1, 2, 3, 4, 5],
+                remindersEnabled: true,
+                reminderTime: '10:00',
+                reminderDays: [1, 2, 3, 4, 5],
+                lastCompletedDate: null,
+                lastNotifiedAt: null,
+                createdAt: Date.now() - 20000
+            },
+            {
+                id: 'task-starter-3',
+                title: 'Code Review & Git Commits',
+                notes: 'Inspect pending pull requests and sync main branches.',
+                category: 'Dev',
+                activeDays: [1, 2, 3, 4, 5],
+                remindersEnabled: true,
+                reminderTime: '16:30',
+                reminderDays: [1, 2, 3, 4, 5],
+                lastCompletedDate: null,
+                lastNotifiedAt: null,
+                createdAt: Date.now() - 10000
+            },
+            {
+                id: 'task-starter-4',
+                title: '15-Minute Outdoor Walk',
+                notes: 'Unwind eyes from screen and get fresh air.',
+                category: 'Health',
+                activeDays: [1, 2, 3, 4, 5, 6, 0],
+                remindersEnabled: true,
+                reminderTime: '18:00',
+                reminderDays: [1, 2, 3, 4, 5, 6, 0],
+                lastCompletedDate: null,
+                lastNotifiedAt: null,
+                createdAt: Date.now() - 5000
+            },
+            {
+                id: 'task-starter-5',
+                title: 'Review Accomplishments & Plan Tomorrow',
+                notes: 'Check off pending items and prioritize top 3 priorities for tomorrow.',
+                category: 'Personal',
+                activeDays: [1, 2, 3, 4, 5, 6, 0],
+                remindersEnabled: false,
+                reminderTime: '21:30',
+                reminderDays: [1, 2, 3, 4, 5, 6, 0],
+                lastCompletedDate: null,
+                lastNotifiedAt: null,
+                createdAt: Date.now()
+            }
+        ];
+
+        let tasks = [];
+        let activeView = 'today'; // 'today' | 'all'
+        let activeStatusFilter = 'all'; // 'all' | 'pending' | 'completed'
+        let activeCategoryFilter = 'all'; // 'all' | category name
+        let searchQuery = '';
+        let activeBannerTaskId = null;
+
+        // Current Date Tracking
+        function getTodayDateStr() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        let currentDateStr = getTodayDateStr();
+
+        function loadTasks() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    tasks = JSON.parse(raw);
+                } else {
+                    tasks = STARTER_TASKS;
+                    saveTasks();
+                }
+            } catch (e) {
+                console.error('Error loading tasks:', e);
+                tasks = STARTER_TASKS;
+            }
+        }
+
+        function saveTasks() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+            } catch (e) {
+                console.error('Error saving tasks:', e);
+            }
+        }
+
+        // --- Date & Midnight Reset System ---
+        function updateDateUI() {
+            const now = new Date();
+            const dayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+            const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            const dayName = dayNames[now.getDay()];
+            const monthName = monthNames[now.getMonth()];
+            const dateNum = now.getDate();
+
+            const txtLiveDate = document.getElementById('txt-live-date');
+            if (txtLiveDate) {
+                txtLiveDate.textContent = `${dayName}, ${monthName} ${dateNum}`;
+            }
+
+            const scheduleStatus = document.getElementById('dash-schedule-status');
+            if (scheduleStatus) {
+                scheduleStatus.textContent = `Today is ${dayName} • Scheduled routines active • Auto-resets at midnight`;
+            }
+        }
+
+        function checkMidnightTransition() {
+            const todayNow = getTodayDateStr();
+            if (todayNow !== currentDateStr) {
+                currentDateStr = todayNow;
+                updateDateUI();
+                renderTasks();
+                showToast('☀️ A new day has begun! Daily tasks have been reset.');
+                soundEngine.playMidnightReset();
+            }
+        }
+
+        setInterval(checkMidnightTransition, 1000);
+        window.addEventListener('focus', checkMidnightTransition);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) checkMidnightTransition();
+        });
+
+        // --- Render UI ---
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            if (!container) return;
+
+            const now = new Date();
+            const currentDayOfWeek = now.getDay();
+            const todayStr = getTodayDateStr();
+
+            // Filter tasks
+            const filtered = tasks.filter(task => {
+                // View filter
+                if (activeView === 'today') {
+                    if (!task.activeDays || !task.activeDays.includes(currentDayOfWeek)) {
+                        return false;
+                    }
+                }
+
+                // Completion status filter
+                const isCompleted = task.lastCompletedDate === todayStr;
+                if (activeStatusFilter === 'pending' && isCompleted) return false;
+                if (activeStatusFilter === 'completed' && !isCompleted) return false;
+
+                // Category filter
+                if (activeCategoryFilter !== 'all' && task.category !== activeCategoryFilter) {
+                    return false;
+                }
+
+                // Search query
+                if (searchQuery) {
+                    const matchTitle = (task.title || '').toLowerCase().includes(searchQuery);
+                    const matchNotes = (task.notes || '').toLowerCase().includes(searchQuery);
+                    const matchCat = (task.category || '').toLowerCase().includes(searchQuery);
+                    if (!matchTitle && !matchNotes && !matchCat) return false;
+                }
+
+                return true;
+            });
+
+            // Update Counters & Progress Bar
+            updateMetrics(todayStr, currentDayOfWeek);
+
+            container.innerHTML = '';
+
+            if (filtered.length === 0) {
+                const emptyCard = document.createElement('div');
+                emptyCard.className = 'empty-tasks-card';
+                emptyCard.innerHTML = `
+                    <div class="empty-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 11 12 14 22 4"></polyline>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                    </div>
+                    <div class="empty-title">NO MATCHING TASKS</div>
+                    <div class="empty-sub">
+                        ${tasks.length === 0
+                            ? 'Your checklist is empty. Create your first recurring habit or load starter tasks.'
+                            : 'No tasks match your current view or filter.'}
+                    </div>
+                    ${tasks.length === 0 ? `
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                            <button class="hud-btn primary" id="btn-load-starter">Load Starter Tasks</button>
+                            <button class="hud-btn" onclick="openTaskModal()">Create Task</button>
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(emptyCard);
+
+                const btnStarter = document.getElementById('btn-load-starter');
+                if (btnStarter) {
+                    btnStarter.addEventListener('click', () => {
+                        tasks = JSON.parse(JSON.stringify(STARTER_TASKS));
+                        saveTasks();
+                        renderTasks();
+                        showToast('Starter tasks restored!');
+                    });
+                }
+                return;
+            }
+
+            // Render Task Cards
+            filtered.forEach(task => {
+                const isCompleted = task.lastCompletedDate === todayStr;
+                const catInfo = CATEGORIES[task.category] || CATEGORIES.Routine;
+
+                const card = document.createElement('article');
+                card.className = `task-card ${isCompleted ? 'completed' : ''}`;
+                card.setAttribute('data-id', task.id);
+
+                // Days dots HTML
+                const daysDotsHtml = DAYS_MAP.map(day => {
+                    const isActive = task.activeDays && task.activeDays.includes(day.id);
+                    const isToday = day.id === currentDayOfWeek;
+                    return `<span class="day-dot ${isActive ? 'active' : ''} ${isToday ? 'today' : ''}" title="${day.name}">${day.short}</span>`;
+                }).join('');
+
+                // Reminder pill HTML
+                let reminderHtml = '';
+                if (task.remindersEnabled && task.reminderTime) {
+                    reminderHtml = `
+                        <span class="reminder-pill active" title="Reminder scheduled at ${task.reminderTime}">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            ${task.reminderTime}
+                        </span>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="task-left">
+                        <button class="task-checkbox-btn" title="${isCompleted ? 'Mark pending' : 'Mark completed'}" aria-label="Toggle task">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </button>
+                        <div class="task-details">
+                            <div class="task-header-line">
+                                <span class="cat-badge" style="color: ${catInfo.color}; background: ${catInfo.bg}; border: 1px solid ${catInfo.border};">
+                                    ${task.category}
+                                </span>
+                                <h3 class="task-title">${escapeHtml(task.title)}</h3>
+                            </div>
+                            ${task.notes ? `<p class="task-notes">${escapeHtml(task.notes)}</p>` : ''}
+                            <div class="task-meta-row">
+                                <div class="days-mini-row" title="Active days of the week">${daysDotsHtml}</div>
+                                ${reminderHtml}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-right-actions">
+                        <button class="icon-btn btn-edit" title="Edit task">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <button class="icon-btn btn-duplicate" title="Duplicate task">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                        <button class="icon-btn danger btn-delete" title="Delete task">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+
+                // Event Listeners for card buttons
+                const chkBtn = card.querySelector('.task-checkbox-btn');
+                chkBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleTaskCompletion(task.id);
+                });
+
+                const btnEdit = card.querySelector('.btn-edit');
+                btnEdit.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openTaskModal(task.id);
+                });
+
+                const btnDuplicate = card.querySelector('.btn-duplicate');
+                btnDuplicate.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    duplicateTask(task.id);
+                });
+
+                const btnDelete = card.querySelector('.btn-delete');
+                btnDelete.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTask(task.id);
+                });
+
+                container.appendChild(card);
+            });
+        }
+
+        function updateMetrics(todayStr, currentDayOfWeek) {
+            // Count for today
+            const todayTasks = tasks.filter(t => t.activeDays && t.activeDays.includes(currentDayOfWeek));
+            const todayCompleted = todayTasks.filter(t => t.lastCompletedDate === todayStr);
+
+            const countToday = todayTasks.length;
+            const completedCount = todayCompleted.length;
+            const percentage = countToday > 0 ? Math.round((completedCount / countToday) * 100) : 0;
+
+            const statCompleted = document.getElementById('stat-completed-num');
+            if (statCompleted) statCompleted.textContent = `${completedCount} / ${countToday}`;
+
+            const statPercent = document.getElementById('stat-percent-num');
+            if (statPercent) statPercent.textContent = `${percentage}%`;
+
+            const fillBar = document.getElementById('progress-bar-fill');
+            if (fillBar) fillBar.style.width = `${percentage}%`;
+
+            const summaryTxt = document.getElementById('progress-summary-txt');
+            if (summaryTxt) summaryTxt.textContent = `${completedCount} of ${countToday} tasks completed today (${percentage}%)`;
+
+            // Tab Badges
+            const badgeToday = document.getElementById('count-tab-today');
+            if (badgeToday) badgeToday.textContent = countToday;
+
+            const badgeAll = document.getElementById('count-tab-all');
+            if (badgeAll) badgeAll.textContent = tasks.length;
+        }
+
+        // --- Task Actions ---
+        function toggleTaskCompletion(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const todayStr = getTodayDateStr();
+            const wasCompleted = task.lastCompletedDate === todayStr;
+
+            if (wasCompleted) {
+                task.lastCompletedDate = null;
+                soundEngine.playUncomplete();
+            } else {
+                task.lastCompletedDate = todayStr;
+                soundEngine.playComplete();
+            }
+
+            saveTasks();
+            renderTasks();
+        }
+
+        function duplicateTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const newTask = {
+                ...JSON.parse(JSON.stringify(task)),
+                id: 'task-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+                title: task.title + ' (Copy)',
+                lastCompletedDate: null,
+                lastNotifiedAt: null,
+                createdAt: Date.now()
+            };
+
+            tasks.push(newTask);
+            saveTasks();
+            soundEngine.playClick();
+            renderTasks();
+            showToast('Task duplicated!');
+        }
+
+        function deleteTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            tasks = tasks.filter(t => t.id !== taskId);
+            saveTasks();
+            soundEngine.playClick();
+            renderTasks();
+            showToast(`Task "${task.title}" deleted.`);
+        }
+
+        // --- Task Modal (Create & Edit) ---
+        const taskModal = document.getElementById('task-modal');
+        const taskForm = document.getElementById('task-form');
+        const modalHeading = document.getElementById('modal-heading');
+        const formTaskId = document.getElementById('form-task-id');
+        const formTitle = document.getElementById('form-task-title');
+        const formNotes = document.getElementById('form-task-notes');
+        const formRemindersToggle = document.getElementById('form-reminders-toggle');
+        const reminderConfigBox = document.getElementById('reminder-config-box');
+        const formReminderTime = document.getElementById('form-reminder-time');
+
+        let selectedCategory = 'Work';
+
+        function openTaskModal(taskId = null) {
+            soundEngine.playClick();
+            if (taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                if (!task) return;
+                modalHeading.textContent = '// EDIT RECURRING TASK';
+                formTaskId.value = task.id;
+                formTitle.value = task.title;
+                formNotes.value = task.notes || '';
+                selectedCategory = task.category || 'Work';
+
+                // Select category chip
+                document.querySelectorAll('#form-cat-selector .cat-chip-radio').forEach(chip => {
+                    chip.classList.toggle('selected', chip.getAttribute('data-cat') === selectedCategory);
+                });
+
+                // Set active days
+                document.querySelectorAll('#form-active-days .day-toggle-btn').forEach(btn => {
+                    const d = parseInt(btn.getAttribute('data-day'), 10);
+                    btn.classList.toggle('active', task.activeDays && task.activeDays.includes(d));
+                });
+
+                // Set reminders
+                formRemindersToggle.checked = !!task.remindersEnabled;
+                reminderConfigBox.classList.toggle('active', !!task.remindersEnabled);
+                formReminderTime.value = task.reminderTime || '09:00';
+
+                // Set reminder days
+                const remDays = task.reminderDays || task.activeDays || [1,2,3,4,5,6,0];
+                document.querySelectorAll('#form-reminder-days .day-toggle-btn').forEach(btn => {
+                    const d = parseInt(btn.getAttribute('data-day'), 10);
+                    btn.classList.toggle('active', remDays.includes(d));
+                });
+            } else {
+                modalHeading.textContent = '// NEW RECURRING TASK';
+                formTaskId.value = '';
+                formTitle.value = '';
+                formNotes.value = '';
+                selectedCategory = 'Work';
+
+                document.querySelectorAll('#form-cat-selector .cat-chip-radio').forEach(chip => {
+                    chip.classList.toggle('selected', chip.getAttribute('data-cat') === selectedCategory);
+                });
+
+                // Default all active days
+                document.querySelectorAll('#form-active-days .day-toggle-btn').forEach(btn => {
+                    btn.classList.add('active');
+                });
+
+                formRemindersToggle.checked = true;
+                reminderConfigBox.classList.add('active');
+                formReminderTime.value = '09:00';
+
+                document.querySelectorAll('#form-reminder-days .day-toggle-btn').forEach(btn => {
+                    btn.classList.add('active');
+                });
+            }
+
+            taskModal.classList.add('active');
+            setTimeout(() => formTitle.focus(), 50);
+        }
+
+        function closeTaskModal() {
+            taskModal.classList.remove('active');
+        }
+
+        // Category selection
+        document.querySelectorAll('#form-cat-selector .cat-chip-radio').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('#form-cat-selector .cat-chip-radio').forEach(c => c.classList.remove('selected'));
+                chip.classList.add('selected');
+                selectedCategory = chip.getAttribute('data-cat');
+                soundEngine.playClick();
+            });
+        });
+
+        // Day toggle buttons (Active days & Reminder days)
+        function setupDayToggleButtons(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('.day-toggle-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('active');
+                    soundEngine.playClick();
+                });
+            });
+        }
+        setupDayToggleButtons('form-active-days');
+        setupDayToggleButtons('form-reminder-days');
+
+        // Presets for Active Days
+        document.getElementById('preset-all-days').addEventListener('click', () => {
+            document.querySelectorAll('#form-active-days .day-toggle-btn').forEach(b => b.classList.add('active'));
+            soundEngine.playClick();
+        });
+
+        document.getElementById('preset-weekdays').addEventListener('click', () => {
+            document.querySelectorAll('#form-active-days .day-toggle-btn').forEach(b => {
+                const day = parseInt(b.getAttribute('data-day'), 10);
+                b.classList.toggle('active', day >= 1 && day <= 5);
+            });
+            soundEngine.playClick();
+        });
+
+        document.getElementById('preset-weekends').addEventListener('click', () => {
+            document.querySelectorAll('#form-active-days .day-toggle-btn').forEach(b => {
+                const day = parseInt(b.getAttribute('data-day'), 10);
+                b.classList.toggle('active', day === 0 || day === 6);
+            });
+            soundEngine.playClick();
+        });
+
+        // Sync reminder days with active days
+        document.getElementById('btn-sync-reminder-days').addEventListener('click', () => {
+            const activeDays = getSelectedDays('form-active-days');
+            document.querySelectorAll('#form-reminder-days .day-toggle-btn').forEach(b => {
+                const day = parseInt(b.getAttribute('data-day'), 10);
+                b.classList.toggle('active', activeDays.includes(day));
+            });
+            soundEngine.playClick();
+            showToast('Reminder days synced with active days!');
+        });
+
+        // Reminders Toggle
+        formRemindersToggle.addEventListener('change', () => {
+            reminderConfigBox.classList.toggle('active', formRemindersToggle.checked);
+            soundEngine.playClick();
+        });
+
+        function getSelectedDays(containerId) {
+            const days = [];
+            document.querySelectorAll(`#${containerId} .day-toggle-btn.active`).forEach(btn => {
+                days.push(parseInt(btn.getAttribute('data-day'), 10));
+            });
+            return days;
+        }
+
+        // Save Form
+        taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = formTitle.value.trim();
+            if (!title) return;
+
+            const activeDays = getSelectedDays('form-active-days');
+            if (activeDays.length === 0) {
+                alert('Please select at least one active day of the week.');
+                return;
+            }
+
+            const remindersEnabled = formRemindersToggle.checked;
+            const reminderTime = formReminderTime.value || '09:00';
+            const reminderDays = getSelectedDays('form-reminder-days');
+
+            const id = formTaskId.value;
+            if (id) {
+                // Update
+                const task = tasks.find(t => t.id === id);
+                if (task) {
+                    task.title = title;
+                    task.notes = formNotes.value.trim();
+                    task.category = selectedCategory;
+                    task.activeDays = activeDays;
+                    task.remindersEnabled = remindersEnabled;
+                    task.reminderTime = reminderTime;
+                    task.reminderDays = reminderDays.length > 0 ? reminderDays : activeDays;
+                    task.updatedAt = Date.now();
+                }
+                showToast('Task updated successfully.');
+            } else {
+                // Create
+                const newTask = {
+                    id: 'task-' + Date.now(),
+                    title,
+                    notes: formNotes.value.trim(),
+                    category: selectedCategory,
+                    activeDays,
+                    remindersEnabled,
+                    reminderTime,
+                    reminderDays: reminderDays.length > 0 ? reminderDays : activeDays,
+                    lastCompletedDate: null,
+                    lastNotifiedAt: null,
+                    createdAt: Date.now()
+                };
+                tasks.unshift(newTask);
+                showToast('New recurring task created.');
+            }
+
+            saveTasks();
+            soundEngine.playClick();
+            closeTaskModal();
+            renderTasks();
+        });
+
+        document.getElementById('btn-open-create').addEventListener('click', () => openTaskModal());
+        document.getElementById('btn-modal-close').addEventListener('click', closeTaskModal);
+        document.getElementById('btn-modal-cancel').addEventListener('click', closeTaskModal);
+
+        // --- Reminders & Notifications Engine ---
+        function checkReminders() {
+            const now = new Date();
+            const todayStr = getTodayDateStr();
+            const currentDay = now.getDay();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const currentHHMM = `${hours}:${minutes}`;
+
+            tasks.forEach(task => {
+                if (!task.remindersEnabled || !task.reminderTime) return;
+
+                const targetDays = task.reminderDays && task.reminderDays.length > 0 ? task.reminderDays : task.activeDays;
+                if (!targetDays.includes(currentDay)) return;
+
+                if (task.reminderTime === currentHHMM) {
+                    const notifyKey = `${todayStr}_${currentHHMM}`;
+                    if (task.lastNotifiedAt === notifyKey) return;
+
+                    task.lastNotifiedAt = notifyKey;
+                    saveTasks();
+
+                    triggerReminderAlert(task);
+                }
+            });
+        }
+        setInterval(checkReminders, 4000);
+
+        function triggerReminderAlert(task) {
+            soundEngine.playReminderAlert();
+
+            // Native Browser Notification
+            if (window.Notification && Notification.permission === 'granted') {
+                try {
+                    const n = new Notification(`StashList: ${task.title}`, {
+                        body: task.notes || 'Time to complete your recurring routine!',
+                        icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
+                    });
+                    n.onclick = function() {
+                        window.focus();
+                        this.close();
+                    };
+                } catch (e) {
+                    console.error('Notification error:', e);
+                }
+            }
+
+            // In-App Banner
+            const banner = document.getElementById('reminder-banner');
+            const bannerTitle = document.getElementById('banner-task-title');
+            if (banner && bannerTitle) {
+                activeBannerTaskId = task.id;
+                bannerTitle.textContent = task.title;
+                banner.classList.add('show');
+            }
+        }
+
+        const bannerCompleteBtn = document.getElementById('btn-banner-complete');
+        const bannerCloseBtn = document.getElementById('btn-banner-close');
+        if (bannerCompleteBtn) {
+            bannerCompleteBtn.addEventListener('click', () => {
+                if (activeBannerTaskId) {
+                    toggleTaskCompletion(activeBannerTaskId);
+                }
+                document.getElementById('reminder-banner').classList.remove('show');
+                activeBannerTaskId = null;
+            });
+        }
+        if (bannerCloseBtn) {
+            bannerCloseBtn.addEventListener('click', () => {
+                document.getElementById('reminder-banner').classList.remove('show');
+                activeBannerTaskId = null;
+            });
+        }
+
+        // --- Notification Permission HUD Button ---
+        const btnToggleNotify = document.getElementById('btn-toggle-notify');
+        const txtNotifyBtn = document.getElementById('txt-notify-btn');
+
+        function updateNotifyBtnState() {
+            if (!window.Notification) {
+                txtNotifyBtn.textContent = 'ALERTS: N/A';
+                btnToggleNotify.disabled = true;
+                return;
+            }
+            if (Notification.permission === 'granted') {
+                txtNotifyBtn.textContent = 'ALERTS: ON';
+                btnToggleNotify.classList.add('active');
+            } else if (Notification.permission === 'denied') {
+                txtNotifyBtn.textContent = 'ALERTS: BLOCKED';
+                btnToggleNotify.classList.remove('active');
+            } else {
+                txtNotifyBtn.textContent = 'ENABLE ALERTS';
+                btnToggleNotify.classList.remove('active');
+            }
+        }
+
+        btnToggleNotify.addEventListener('click', () => {
+            soundEngine.playClick();
+            if (!window.Notification) {
+                alert('Web Notifications API is not supported by your browser.');
+                return;
+            }
+            if (Notification.permission === 'granted') {
+                showToast('Browser notifications are already enabled!');
+            } else {
+                Notification.requestPermission().then(permission => {
+                    updateNotifyBtnState();
+                    if (permission === 'granted') {
+                        showToast('Notifications granted! You will receive reminder alerts.');
+                        try {
+                            new Notification('StashList', {
+                                body: 'Test notification: reminder alerts are now active.',
+                                icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
+                            });
+                        } catch (e) {}
+                    } else {
+                        showToast('Notification permission was not granted.');
+                    }
+                });
+            }
+        });
+
+        // --- Sound Button ---
+        const btnToggleSound = document.getElementById('btn-toggle-sound');
+        const txtSoundBtn = document.getElementById('txt-sound-btn');
+        function updateSoundBtnUI() {
+            if (soundEngine.muted) {
+                txtSoundBtn.textContent = 'SOUND: OFF';
+                btnToggleSound.classList.remove('active');
+            } else {
+                txtSoundBtn.textContent = 'SOUND: ON';
+                btnToggleSound.classList.add('active');
+            }
+        }
+        btnToggleSound.addEventListener('click', () => {
+            const isMuted = soundEngine.toggleMute();
+            updateSoundBtnUI();
+            if (!isMuted) soundEngine.playClick();
+        });
+
+        // --- View Tabs ---
+        document.getElementById('tab-view-today').addEventListener('click', () => {
+            soundEngine.playClick();
+            activeView = 'today';
+            document.getElementById('tab-view-today').classList.add('active');
+            document.getElementById('tab-view-all').classList.remove('active');
+            renderTasks();
+        });
+
+        document.getElementById('tab-view-all').addEventListener('click', () => {
+            soundEngine.playClick();
+            activeView = 'all';
+            document.getElementById('tab-view-all').classList.add('active');
+            document.getElementById('tab-view-today').classList.remove('active');
+            renderTasks();
+        });
+
+        // --- Status Filters ---
+        document.querySelectorAll('#status-filter-group .filter-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                soundEngine.playClick();
+                document.querySelectorAll('#status-filter-group .filter-chip').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeStatusFilter = btn.getAttribute('data-status');
+                renderTasks();
+            });
+        });
+
+        // --- Category Filters ---
+        document.querySelectorAll('#category-filter-group .filter-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                soundEngine.playClick();
+                document.querySelectorAll('#category-filter-group .filter-chip').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeCategoryFilter = btn.getAttribute('data-cat');
+                renderTasks();
+            });
+        });
+
+        // --- Search Input ---
+        const taskSearchInput = document.getElementById('task-search-input');
+        taskSearchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim().toLowerCase();
+            renderTasks();
+        });
+
+        // --- Backup & Restore Modal ---
+        const backupModal = document.getElementById('backup-modal');
+        document.getElementById('btn-backup-menu').addEventListener('click', () => {
+            soundEngine.playClick();
+            backupModal.classList.add('active');
+        });
+        document.getElementById('btn-backup-close').addEventListener('click', () => {
+            backupModal.classList.remove('active');
+        });
+
+        // Export JSON
+        document.getElementById('btn-export-json').addEventListener('click', () => {
+            soundEngine.playClick();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tasks, null, 2));
+            const downloadAnchor = document.createElement('a');
+            const dateStr = getTodayDateStr();
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `stashlist-backup-${dateStr}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('Backup JSON downloaded successfully!');
+        });
+
+        // Import JSON
+        const fileImportInput = document.getElementById('file-import-json');
+        fileImportInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (Array.isArray(parsed)) {
+                        tasks = parsed;
+                        saveTasks();
+                        renderTasks();
+                        backupModal.classList.remove('active');
+                        showToast(`Imported ${parsed.length} tasks successfully!`);
+                    } else {
+                        alert('Invalid StashList JSON format.');
+                    }
+                } catch (err) {
+                    alert('Failed to parse JSON file.');
+                }
+            };
+            reader.readAsText(file);
+            fileImportInput.value = '';
+        });
+
+        // Reset Today's Completions
+        document.getElementById('btn-reset-today').addEventListener('click', () => {
+            soundEngine.playClick();
+            if (confirm("Reset completion status for all today's tasks?")) {
+                const todayStr = getTodayDateStr();
+                tasks.forEach(t => {
+                    if (t.lastCompletedDate === todayStr) {
+                        t.lastCompletedDate = null;
+                    }
+                });
+                saveTasks();
+                renderTasks();
+                backupModal.classList.remove('active');
+                showToast("Today's completions have been reset.");
+            }
+        });
+
+        // Outside Click & Keyboard ESC
+        window.addEventListener('click', (e) => {
+            if (e.target === taskModal) closeTaskModal();
+            if (e.target === backupModal) backupModal.classList.remove('active');
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeTaskModal();
+                backupModal.classList.remove('active');
+            }
+        });
+
+        // Toast Helper
+        let toastTimeout = null;
+        function showToast(msg) {
+            const toast = document.getElementById('toast-notify');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.classList.add('show');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#039;');
+        }
+
+        // --- Initialization ---
+        loadTasks();
+        updateDateUI();
+        updateNotifyBtnState();
+        updateSoundBtnUI();
+        renderTasks();
+    </script>
+</body>
+</html>

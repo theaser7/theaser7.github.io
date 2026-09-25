@@ -26,6 +26,7 @@
 | :--- | :--- | :--- |
 | **[StashConvert](./utilities/stashconvert/)** | In-browser batch file converter supporting image formats (PNG, JPG, WebP, AVIF, SVG, ICO, BMP, TIFF), audio, video, and documents. | Web APIs, Canvas, HTML5 FileReader |
 | **[StashIP](./utilities/staship/)** | Network diagnostic tool providing IP intelligence, ASN lookups, WebRTC leak detection, and DNS latency checks with zero logging. | Native Fetch, WebRTC API |
+| **[StashList](./utilities/stashlist/)** | Recurring daily checklist and habit tracker with weekday scheduling, custom reminder chimes, Web Notifications, and midnight auto-reset. | Web Audio API, Web Notifications, LocalStorage |
 | **[Clarify](./utilities/clarify/)** | Super-resolution AI photo upscaling (2x, 4x, 6x, 8x true neural enhancement) powered by Vulkan NCNN. | StashCompanion (Real-ESRGAN Vulkan) |
 | **[FetchFlow](./utilities/fetchflow/)** | High-throughput media stream parser and multi-format video/audio downloader. | StashCompanion (yt-dlp Engine) |
 
