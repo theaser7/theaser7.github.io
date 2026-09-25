@@ -33,13 +33,6 @@
             --danger: #ff3366;
             --danger-bg: rgba(255, 51, 102, 0.12);
 
-            --cat-work: #38bdf8;
-            --cat-routine: #c084fc;
-            --cat-health: #10b981;
-            --cat-dev: #00ff9d;
-            --cat-habit: #f59e0b;
-            --cat-personal: #f43f5e;
-
             --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
             --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
@@ -847,39 +840,7 @@
             box-shadow: 0 0 10px var(--mint-soft-glow);
         }
 
-        /* Category Selector Chips */
-        .cat-selector {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-            gap: 0.5rem;
-        }
-
-        .cat-chip-radio {
-            background: var(--bg-input);
-            border: 1px solid var(--border-dim);
-            border-radius: var(--radius-sm);
-            padding: 0.5rem 0.4rem;
-            font-size: 0.75rem;
-            font-family: var(--font-mono);
-            font-weight: 700;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.35rem;
-        }
-
-        .cat-chip-radio:hover {
-            border-color: var(--border-medium);
-        }
-
-        .cat-chip-radio.selected {
-            border-color: var(--mint);
-            box-shadow: 0 0 10px var(--mint-soft-glow);
-        }
+        
 
         /* Days of Week Selector */
         .days-grid {
@@ -1295,16 +1256,6 @@
                     </svg>
                     <input type="text" id="task-search-input" class="search-input" placeholder="Search tasks by title, note, or category..." autocomplete="off">
                 </div>
-
-                <div class="filter-chips" id="category-filter-group">
-                    <button class="filter-chip active" data-cat="all" id="btn-cat-all">All</button>
-                    <button class="filter-chip" data-cat="Work" id="btn-cat-work">Work</button>
-                    <button class="filter-chip" data-cat="Routine" id="btn-cat-routine">Routine</button>
-                    <button class="filter-chip" data-cat="Health" id="btn-cat-health">Health</button>
-                    <button class="filter-chip" data-cat="Dev" id="btn-cat-dev">Dev</button>
-                    <button class="filter-chip" data-cat="Habit" id="btn-cat-habit">Habit</button>
-                    <button class="filter-chip" data-cat="Personal" id="btn-cat-personal">Personal</button>
-                </div>
             </div>
         </section>
 
@@ -1341,18 +1292,6 @@
                     <label class="form-label" for="form-task-title" id="lbl-task-title">Task Title *</label>
                     <input type="text" id="form-task-title" class="form-input" placeholder="e.g., Daily Morning Stretches, Code Review, Backup DB..." required autocomplete="off">
                 </div>
-
-                <!-- Category -->
-                <div class="form-group">
-                    <label class="form-label" id="lbl-task-cat">Category</label>
-                    <div class="cat-selector" id="form-cat-selector">
-                        <div class="cat-chip-radio selected" data-cat="Work" style="color: var(--cat-work);">Work</div>
-                        <div class="cat-chip-radio" data-cat="Routine" style="color: var(--cat-routine);">Routine</div>
-                        <div class="cat-chip-radio" data-cat="Health" style="color: var(--cat-health);">Health</div>
-                        <div class="cat-chip-radio" data-cat="Dev" style="color: var(--cat-dev);">Dev</div>
-                        <div class="cat-chip-radio" data-cat="Habit" style="color: var(--cat-habit);">Habit</div>
-                        <div class="cat-chip-radio" data-cat="Personal" style="color: var(--cat-personal);">Personal</div>
-                    </div>
                 </div>
 
                 <!-- Notes / Description -->
@@ -1501,6 +1440,29 @@
                     <div style="display: flex; gap: 0.4rem;">
                         <button class="hud-btn lang-btn active" id="btn-lang-en" data-lang="en" style="padding: 0.35rem 0.85rem;">EN</button>
                         <button class="hud-btn lang-btn" id="btn-lang-ru" data-lang="ru" style="padding: 0.35rem 0.85rem;">RU</button>
+                    </div>
+                </div>
+
+                
+                <!-- Timezone setting -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; background: var(--bg-input); border: 1px solid var(--border-dim); border-radius: var(--radius-sm); gap: 1rem;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.88rem;" id="lbl-setting-tz">Timezone</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;" id="desc-setting-tz">Date & midnight reset calculations</div>
+                    </div>
+                    <div>
+                        <select id="sel-setting-tz" class="form-input" style="width: auto; max-width: 220px; padding: 0.35rem 0.6rem; font-size: 0.78rem; background: var(--bg-deep); border-color: var(--border-medium); color: var(--text-main); font-family: var(--font-mono);">
+                            <option value="Europe/Moscow">Europe/Moscow (UTC+3, МСК)</option>
+                            <option value="Europe/Kaliningrad">Europe/Kaliningrad (UTC+2)</option>
+                            <option value="Asia/Yekaterinburg">Asia/Yekaterinburg (UTC+5)</option>
+                            <option value="Asia/Novosibirsk">Asia/Novosibirsk (UTC+7)</option>
+                            <option value="Asia/Vladivostok">Asia/Vladivostok (UTC+10)</option>
+                            <option value="UTC">UTC / GMT (UTC+0)</option>
+                            <option value="Europe/Berlin">Europe/Berlin (UTC+1/2)</option>
+                            <option value="Europe/London">Europe/London (UTC+0/1)</option>
+                            <option value="America/New_York">America/New_York (UTC-5/4)</option>
+                            <option value="America/Los_Angeles">America/Los_Angeles (UTC-8/7)</option>
+                        </select>
                     </div>
                 </div>
 
@@ -1804,14 +1766,9 @@
                 statusAll: "ALL",
                 statusPending: "ACTIVE",
                 statusCompleted: "COMPLETED",
-                searchPlaceholder: "Search tasks by title, note, or category...",
-                catAll: "All",
-                catWork: "Work",
-                catRoutine: "Routine",
-                catHealth: "Health",
-                catDev: "Dev",
-                catHabit: "Habit",
-                catPersonal: "Personal",
+                searchPlaceholder: "Search tasks by title or notes...",
+                lblSettingTz: "Timezone",
+                descSettingTz: "Date & midnight reset calculations",
                 emptyNoTasksTitle: "NO TASKS SCHEDULED",
                 emptyNoTasksDesc: "Your checklist is empty. Create your first recurring habit!",
                 btnCreateFirst: "Create Task",
@@ -1822,7 +1779,6 @@
                 modalEditHeading: "// EDIT RECURRING TASK",
                 lblTaskTitle: "Task Title *",
                 phTaskTitle: "e.g., Daily Morning Stretches, Code Review, Backup DB...",
-                lblCategory: "Category",
                 lblNotes: "Notes / Instructions (Optional)",
                 phNotes: "Optional details, links, or criteria for completion...",
                 lblActiveDays: "Active Days of the Week",
@@ -1896,14 +1852,9 @@
                 statusAll: "ВСЕ",
                 statusPending: "АКТИВНЫЕ",
                 statusCompleted: "ВЫПОЛНЕННЫЕ",
-                searchPlaceholder: "Поиск задач по названию, заметкам или категории...",
-                catAll: "Все",
-                catWork: "Работа",
-                catRoutine: "Рутина",
-                catHealth: "Здоровье",
-                catDev: "Разработка",
-                catHabit: "Привычки",
-                catPersonal: "Личное",
+                searchPlaceholder: "Поиск задач по названию или заметкам...",
+                lblSettingTz: "Часовой пояс",
+                descSettingTz: "Расчет даты, времени и сброса в полночь",
                 emptyNoTasksTitle: "НЕТ ЗАПЛАНИРОВАННЫХ ЗАДАЧ",
                 emptyNoTasksDesc: "Ваш чеклист пуст. Создайте свою первую повторяющуюся привычку!",
                 btnCreateFirst: "Создать задачу",
@@ -1914,7 +1865,6 @@
                 modalEditHeading: "// РЕДАКТИРОВАНИЕ ЗАДАЧИ",
                 lblTaskTitle: "Название задачи *",
                 phTaskTitle: "например: Утренняя растяжка, Ревью кода, Бэкап БД...",
-                lblCategory: "Категория",
                 lblNotes: "Заметки / Инструкции (Опционально)",
                 phNotes: "Дополнительные детали, ссылки или условия выполнения...",
                 lblActiveDays: "Активные дни недели",
@@ -1969,15 +1919,6 @@
 
         let currentLang = localStorage.getItem('the_stash_lang') || 'en';
 
-        const CATEGORIES = {
-            Work: { color: 'var(--cat-work)', bg: 'rgba(56, 189, 248, 0.12)', border: 'rgba(56, 189, 248, 0.3)' },
-            Routine: { color: 'var(--cat-routine)', bg: 'rgba(192, 132, 252, 0.12)', border: 'rgba(192, 132, 252, 0.3)' },
-            Health: { color: 'var(--cat-health)', bg: 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.3)' },
-            Dev: { color: 'var(--cat-dev)', bg: 'rgba(0, 255, 157, 0.12)', border: 'rgba(0, 255, 157, 0.3)' },
-            Habit: { color: 'var(--cat-habit)', bg: 'rgba(245, 158, 11, 0.12)', border: 'rgba(245, 158, 11, 0.3)' },
-            Personal: { color: 'var(--cat-personal)', bg: 'rgba(244, 63, 94, 0.12)', border: 'rgba(244, 63, 94, 0.3)' }
-        };
-
         const DAYS_MAP = [
             { id: 1, shortEn: 'M', shortRu: 'П', nameEn: 'Mon', nameRu: 'Пн' },
             { id: 2, shortEn: 'T', shortRu: 'В', nameEn: 'Tue', nameRu: 'Вт' },
@@ -1991,13 +1932,33 @@
         let tasks = [];
         let activeView = 'today'; // 'today' | 'all'
         let activeStatusFilter = 'all'; // 'all' | 'pending' | 'completed'
-        let activeCategoryFilter = 'all'; // 'all' | category name
+        
         let searchQuery = '';
         let activeBannerTaskId = null;
 
+        // Timezone management
+        let selectedTimeZone = localStorage.getItem('stashlist_timezone');
+        if (!selectedTimeZone) {
+            try {
+                const sysTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                selectedTimeZone = (sysTz && sysTz !== 'UTC') ? sysTz : 'Europe/Moscow';
+            } catch (e) {
+                selectedTimeZone = 'Europe/Moscow';
+            }
+        }
+
+        function getNowZoned(baseDate = new Date()) {
+            try {
+                const str = baseDate.toLocaleString('en-US', { timeZone: selectedTimeZone });
+                return new Date(str);
+            } catch (e) {
+                return new Date();
+            }
+        }
+
         // Current Date Tracking
         function getTodayDateStr() {
-            const d = new Date();
+            const d = getNowZoned();
             const year = d.getFullYear();
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
@@ -2041,7 +2002,7 @@
 
         // --- Date & Midnight Reset System ---
         function updateDateUI() {
-            const now = new Date();
+            const now = getNowZoned();
             const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
             const dayName = dict.dayNames[now.getDay()];
             const monthName = dict.monthNames[now.getMonth()];
@@ -2081,7 +2042,7 @@
             const container = document.getElementById('tasks-container');
             if (!container) return;
 
-            const now = new Date();
+            const now = getNowZoned();
             const currentDayOfWeek = now.getDay();
             const todayStr = getTodayDateStr();
 
@@ -2100,15 +2061,13 @@
                 if (activeStatusFilter === 'completed' && !isCompleted) return false;
 
                 // Category filter
-                if (activeCategoryFilter !== 'all' && task.category !== activeCategoryFilter) {
-                    return false;
-                }
+                // Category filter removed
 
                 // Search query
                 if (searchQuery) {
                     const matchTitle = (task.title || '').toLowerCase().includes(searchQuery);
                     const matchNotes = (task.notes || '').toLowerCase().includes(searchQuery);
-                    const matchCat = (task.category || '').toLowerCase().includes(searchQuery);
+                    const matchCat = false;
                     if (!matchTitle && !matchNotes && !matchCat) return false;
                 }
 
@@ -2162,7 +2121,7 @@
             // Render Task Cards
             filtered.forEach(task => {
                 const isCompleted = task.lastCompletedDate === todayStr;
-                const catInfo = CATEGORIES[task.category] || CATEGORIES.Routine;
+                
 
                 const card = document.createElement('article');
                 card.className = `task-card ${isCompleted ? 'completed' : ''}`;
@@ -2366,12 +2325,7 @@
                 formTaskId.value = task.id;
                 formTitle.value = task.title;
                 formNotes.value = task.notes || '';
-                selectedCategory = task.category || 'Work';
-
-                // Select category chip
-                document.querySelectorAll('#form-cat-selector .cat-chip-radio').forEach(chip => {
-                    chip.classList.toggle('selected', chip.getAttribute('data-cat') === selectedCategory);
-                });
+                
 
                 // Set active days
                 document.querySelectorAll('#form-active-days .day-toggle-btn').forEach(btn => {
@@ -2395,11 +2349,7 @@
                 formTaskId.value = '';
                 formTitle.value = '';
                 formNotes.value = '';
-                selectedCategory = 'Work';
-
-                document.querySelectorAll('#form-cat-selector .cat-chip-radio').forEach(chip => {
-                    chip.classList.toggle('selected', chip.getAttribute('data-cat') === selectedCategory);
-                });
+                
 
                 // Default all active days
                 document.querySelectorAll('#form-active-days .day-toggle-btn').forEach(btn => {
@@ -2423,15 +2373,7 @@
             taskModal.classList.remove('active');
         }
 
-        // Category selection
-        document.querySelectorAll('#form-cat-selector .cat-chip-radio').forEach(chip => {
-            chip.addEventListener('click', () => {
-                document.querySelectorAll('#form-cat-selector .cat-chip-radio').forEach(c => c.classList.remove('selected'));
-                chip.classList.add('selected');
-                selectedCategory = chip.getAttribute('data-cat');
-                soundEngine.playClick();
-            });
-        });
+        
 
         // Day toggle buttons (Active days & Reminder days)
         function setupDayToggleButtons(containerId) {
@@ -2517,8 +2459,7 @@
                 if (task) {
                     task.title = title;
                     task.notes = formNotes.value.trim();
-                    task.category = selectedCategory;
-                    task.activeDays = activeDays;
+                                        task.activeDays = activeDays;
                     task.remindersEnabled = remindersEnabled;
                     task.reminderTime = reminderTime;
                     task.reminderDays = reminderDays.length > 0 ? reminderDays : activeDays;
@@ -2531,8 +2472,7 @@
                     id: 'task-' + Date.now(),
                     title,
                     notes: formNotes.value.trim(),
-                    category: selectedCategory,
-                    activeDays,
+                                        activeDays,
                     remindersEnabled,
                     reminderTime,
                     reminderDays: reminderDays.length > 0 ? reminderDays : activeDays,
@@ -2556,7 +2496,7 @@
 
         // --- Reminders & Notifications Engine ---
         function checkReminders() {
-            const now = new Date();
+            const now = getNowZoned();
             const todayStr = getTodayDateStr();
             const currentDay = now.getDay();
             const curMinutes = now.getHours() * 60 + now.getMinutes();
@@ -2766,16 +2706,7 @@
             });
         });
 
-        // --- Category Filters ---
-        document.querySelectorAll('#category-filter-group .filter-chip').forEach(btn => {
-            btn.addEventListener('click', () => {
-                soundEngine.playClick();
-                document.querySelectorAll('#category-filter-group .filter-chip').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                activeCategoryFilter = btn.getAttribute('data-cat');
-                renderTasks();
-            });
-        });
+        
 
         // --- Search Input ---
         const taskSearchInput = document.getElementById('task-search-input');
@@ -2787,8 +2718,7 @@
         function resetFilters() {
             activeView = 'today';
             activeStatusFilter = 'all';
-            activeCategoryFilter = 'all';
-            searchQuery = '';
+                        searchQuery = '';
             if (taskSearchInput) taskSearchInput.value = '';
 
             const tabToday = document.getElementById('tab-view-today');
@@ -2799,9 +2729,7 @@
             document.querySelectorAll('#status-filter-group .filter-chip').forEach(b => {
                 b.classList.toggle('active', b.getAttribute('data-status') === 'all');
             });
-            document.querySelectorAll('#category-filter-group .filter-chip').forEach(b => {
-                b.classList.toggle('active', b.getAttribute('data-cat') === 'all');
-            });
+            
             renderTasks();
         }
 
@@ -2839,13 +2767,7 @@
                 try {
                     const parsed = JSON.parse(event.target.result);
                     if (Array.isArray(parsed)) {
-                        const validCategories = Object.keys(CATEGORIES);
-                        const sanitized = [];
-                        for (const item of parsed) {
-                            if (!item || typeof item !== 'object') continue;
-                            const title = typeof item.title === 'string' ? item.title.trim() : '';
-                            if (!title) continue;
-                            const category = validCategories.includes(item.category) ? item.category : 'Routine';
+                        
                             const activeDays = Array.isArray(item.activeDays) && item.activeDays.length > 0
                                 ? item.activeDays.filter(d => Number.isInteger(d) && d >= 0 && d <= 6)
                                 : [1, 2, 3, 4, 5, 6, 0];
@@ -2857,8 +2779,7 @@
                                 id: typeof item.id === 'string' && item.id ? item.id : 'task-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
                                 title,
                                 notes: typeof item.notes === 'string' ? item.notes : '',
-                                category,
-                                activeDays: activeDays.length > 0 ? activeDays : [1, 2, 3, 4, 5, 6, 0],
+                                                                activeDays: activeDays.length > 0 ? activeDays : [1, 2, 3, 4, 5, 6, 0],
                                 remindersEnabled: !!item.remindersEnabled,
                                 reminderTime: typeof item.reminderTime === 'string' && /^\d{2}:\d{2}$/.test(item.reminderTime) ? item.reminderTime : '09:00',
                                 reminderDays: reminderDays.length > 0 ? reminderDays : activeDays,
@@ -3089,43 +3010,11 @@
             const searchInputEl = document.getElementById('task-search-input');
             if (searchInputEl) searchInputEl.placeholder = dict.searchPlaceholder;
 
-            // Category filter chips
-            const btnCatAll = document.getElementById('btn-cat-all');
-            if (btnCatAll) btnCatAll.textContent = dict.catAll;
-            const btnCatWork = document.getElementById('btn-cat-work');
-            if (btnCatWork) btnCatWork.textContent = dict.catWork;
-            const btnCatRoutine = document.getElementById('btn-cat-routine');
-            if (btnCatRoutine) btnCatRoutine.textContent = dict.catRoutine;
-            const btnCatHealth = document.getElementById('btn-cat-health');
-            if (btnCatHealth) btnCatHealth.textContent = dict.catHealth;
-            const btnCatDev = document.getElementById('btn-cat-dev');
-            if (btnCatDev) btnCatDev.textContent = dict.catDev;
-            const btnCatHabit = document.getElementById('btn-cat-habit');
-            if (btnCatHabit) btnCatHabit.textContent = dict.catHabit;
-            const btnCatPersonal = document.getElementById('btn-cat-personal');
-            if (btnCatPersonal) btnCatPersonal.textContent = dict.catPersonal;
-
-            // Category selector in Task Modal
-            const catWorkModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Work"]');
-            if (catWorkModal) catWorkModal.textContent = dict.catWork;
-            const catRoutineModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Routine"]');
-            if (catRoutineModal) catRoutineModal.textContent = dict.catRoutine;
-            const catHealthModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Health"]');
-            if (catHealthModal) catHealthModal.textContent = dict.catHealth;
-            const catDevModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Dev"]');
-            if (catDevModal) catDevModal.textContent = dict.catDev;
-            const catHabitModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Habit"]');
-            if (catHabitModal) catHabitModal.textContent = dict.catHabit;
-            const catPersonalModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Personal"]');
-            if (catPersonalModal) catPersonalModal.textContent = dict.catPersonal;
-
-            // Task Modal fields
-            const lblTaskTitle = document.getElementById('lbl-task-title');
-            if (lblTaskTitle) lblTaskTitle.textContent = dict.lblTaskTitle;
-            const formTaskTitle = document.getElementById('form-task-title');
-            if (formTaskTitle) formTaskTitle.placeholder = dict.phTaskTitle;
-            const lblTaskCat = document.getElementById('lbl-task-cat');
-            if (lblTaskCat) lblTaskCat.textContent = dict.lblCategory;
+            // Timezone setting bindings
+            const lblSettingTz = document.getElementById('lbl-setting-tz');
+            if (lblSettingTz) lblSettingTz.textContent = dict.lblSettingTz;
+            const descSettingTz = document.getElementById('desc-setting-tz');
+            if (descSettingTz) descSettingTz.textContent = dict.descSettingTz;
             const lblTaskNotes = document.getElementById('lbl-task-notes');
             if (lblTaskNotes) lblTaskNotes.textContent = dict.lblNotes;
             const formTaskNotes = document.getElementById('form-task-notes');
