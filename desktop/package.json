@@ -1,0 +1,18 @@
+{
+  "name": "the-stash-desktop",
+  "productName": "the stash desktop",
+  "version": "0.9.0",
+  "description": "the stash desktop - Offline-first client-side web suite",
+  "main": "main.js",
+  "scripts": {
+    "build:copy": "node copy-files.js",
+    "start": "node copy-files.js && electron .",
+    "package": "node copy-files.js && electron-packager . \"the stash desktop\" --platform=win32 --arch=x64 --out=dist --icon=icon.ico --overwrite"
+  },
+  "author": "the stash",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^44.4.5"
+  }
+}

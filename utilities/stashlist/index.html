@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StashList &bull; Recurring Checklist & Routine Tracker &bull; the stash</title>
+    <title>StashList • Recurring Checklist</title>
     <meta name="description" content="StashList - Pure client-side recurring daily checklist and routine tracker. Active day scheduling, custom reminder alerts with audio notifications, zero telemetry, offline-first.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M9 11l3 3L22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>">
 
@@ -1166,8 +1166,8 @@
                     </svg>
                 </div>
                 <div class="brand-info">
-                    <span class="brand-title">StashList</span>
-                    <span class="brand-version">v0.8.9</span>
+                    <span class="brand-title" id="txt-brand-title">StashList</span>
+                    <span class="brand-version">v0.9.0</span>
                 </div>
             </a>
 
@@ -1206,7 +1206,12 @@
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
-                    <span>JSON DATA</span>
+                    <span id="txt-json-btn">JSON DATA</span>
+                </button>
+
+                <button class="hud-btn" id="btn-open-settings" title="Settings / Настройки">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span id="txt-settings-btn">SETTINGS</span>
                 </button>
             </div>
         </header>
@@ -1216,25 +1221,25 @@
             <div class="dash-top">
                 <div class="dash-title-group">
                     <h2>
-                        <span>Daily Recurring Checklist</span>
+                        <span id="txt-dash-title">Daily Recurring Checklist</span>
                     </h2>
                     <p id="dash-schedule-status">Tracking routines active for today &bull; Auto-resets at midnight</p>
                 </div>
                 <div class="dash-stats">
                     <div class="stat-item">
                         <div class="stat-val" id="stat-completed-num">0 / 0</div>
-                        <div class="stat-lbl">Completed Today</div>
+                        <div class="stat-lbl" id="lbl-completed-today">Completed Today</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-val" id="stat-percent-num">0%</div>
-                        <div class="stat-lbl">Progress</div>
+                        <div class="stat-lbl" id="lbl-stat-progress">Progress</div>
                     </div>
                     <button class="hud-btn primary" id="btn-open-create" style="padding: 0.65rem 1rem;">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
-                        <span>NEW TASK</span>
+                        <span id="txt-btn-new-task">NEW TASK</span>
                     </button>
                 </div>
             </div>
@@ -1260,7 +1265,7 @@
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
                         </svg>
-                        <span>Today's Tasks</span>
+                        <span id="txt-tab-today">Today's Tasks</span>
                         <span class="tab-pill-count" id="count-tab-today">0</span>
                     </button>
                     <button class="tab-btn" data-view="all" id="tab-view-all">
@@ -1270,15 +1275,15 @@
                             <rect x="14" y="14" width="7" height="7"></rect>
                             <rect x="3" y="14" width="7" height="7"></rect>
                         </svg>
-                        <span>All Tasks</span>
+                        <span id="txt-tab-all">All Tasks</span>
                         <span class="tab-pill-count" id="count-tab-all">0</span>
                     </button>
                 </div>
 
                 <div class="filter-chips" id="status-filter-group">
-                    <button class="filter-chip active" data-status="all">ALL</button>
-                    <button class="filter-chip" data-status="pending">ACTIVE</button>
-                    <button class="filter-chip" data-status="completed">COMPLETED</button>
+                    <button class="filter-chip active" data-status="all" id="btn-status-all">ALL</button>
+                    <button class="filter-chip" data-status="pending" id="btn-status-pending">ACTIVE</button>
+                    <button class="filter-chip" data-status="completed" id="btn-status-completed">COMPLETED</button>
                 </div>
             </div>
 
@@ -1292,13 +1297,13 @@
                 </div>
 
                 <div class="filter-chips" id="category-filter-group">
-                    <button class="filter-chip active" data-cat="all">All Categories</button>
-                    <button class="filter-chip" data-cat="Work">Work</button>
-                    <button class="filter-chip" data-cat="Routine">Routine</button>
-                    <button class="filter-chip" data-cat="Health">Health</button>
-                    <button class="filter-chip" data-cat="Dev">Dev</button>
-                    <button class="filter-chip" data-cat="Habit">Habit</button>
-                    <button class="filter-chip" data-cat="Personal">Personal</button>
+                    <button class="filter-chip active" data-cat="all" id="btn-cat-all">All</button>
+                    <button class="filter-chip" data-cat="Work" id="btn-cat-work">Work</button>
+                    <button class="filter-chip" data-cat="Routine" id="btn-cat-routine">Routine</button>
+                    <button class="filter-chip" data-cat="Health" id="btn-cat-health">Health</button>
+                    <button class="filter-chip" data-cat="Dev" id="btn-cat-dev">Dev</button>
+                    <button class="filter-chip" data-cat="Habit" id="btn-cat-habit">Habit</button>
+                    <button class="filter-chip" data-cat="Personal" id="btn-cat-personal">Personal</button>
                 </div>
             </div>
         </section>
@@ -1310,8 +1315,8 @@
 
         <!-- Footer -->
         <footer>
-            <span>StashList &bull; 100% Client-Side Recurring Checklist</span>
-            <span>Part of <a href="../../index.html">the stash</a></span>
+            <span id="txt-footer-left">StashList &bull; 100% Client-Side Recurring Checklist</span>
+            <span>Part of <a href="../../index.html" id="txt-footer-right">the stash</a></span>
         </footer>
     </div>
 
@@ -1333,13 +1338,13 @@
 
                 <!-- Title -->
                 <div class="form-group">
-                    <label class="form-label" for="form-task-title">Task Title *</label>
+                    <label class="form-label" for="form-task-title" id="lbl-task-title">Task Title *</label>
                     <input type="text" id="form-task-title" class="form-input" placeholder="e.g., Daily Morning Stretches, Code Review, Backup DB..." required autocomplete="off">
                 </div>
 
                 <!-- Category -->
                 <div class="form-group">
-                    <label class="form-label">Category Badge</label>
+                    <label class="form-label" id="lbl-task-cat">Category</label>
                     <div class="cat-selector" id="form-cat-selector">
                         <div class="cat-chip-radio selected" data-cat="Work" style="color: var(--cat-work);">Work</div>
                         <div class="cat-chip-radio" data-cat="Routine" style="color: var(--cat-routine);">Routine</div>
@@ -1352,13 +1357,13 @@
 
                 <!-- Notes / Description -->
                 <div class="form-group">
-                    <label class="form-label" for="form-task-notes">Notes / Instructions (Optional)</label>
+                    <label class="form-label" for="form-task-notes" id="lbl-task-notes">Notes / Instructions (Optional)</label>
                     <textarea id="form-task-notes" class="form-textarea" placeholder="Optional details, links, or criteria for completion..."></textarea>
                 </div>
 
                 <!-- Active Days of Week -->
                 <div class="form-group">
-                    <label class="form-label">Active Days of the Week</label>
+                    <label class="form-label" id="lbl-active-days">Active Days of the Week</label>
                     <div class="days-grid" id="form-active-days">
                         <button type="button" class="day-toggle-btn active" data-day="1">Mon</button>
                         <button type="button" class="day-toggle-btn active" data-day="2">Tue</button>
@@ -1378,12 +1383,12 @@
                 <!-- Reminders Section -->
                 <div class="reminders-block">
                     <div class="toggle-row">
-                        <span class="switch-label">
+                        <span class="switch-label" id="lbl-scheduled-reminder">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                             </svg>
-                            Enable Scheduled Reminders
+                            <span id="txt-scheduled-reminder">Enable Scheduled Reminders</span>
                         </span>
                         <label class="switch">
                             <input type="checkbox" id="form-reminders-toggle">
@@ -1393,13 +1398,13 @@
 
                     <div class="reminder-config" id="reminder-config-box">
                         <div class="form-group">
-                            <label class="form-label" for="form-reminder-time">Reminder Time (HH:MM)</label>
+                            <label class="form-label" for="form-reminder-time" id="lbl-reminder-time">Reminder Time (HH:MM)</label>
                             <input type="time" id="form-reminder-time" class="form-input" value="09:00" style="font-family: var(--font-mono); width: 140px;">
                         </div>
 
                         <div class="form-group">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <label class="form-label">Reminder Trigger Days</label>
+                                <label class="form-label" id="lbl-reminder-days">Reminder Trigger Days</label>
                                 <button type="button" class="preset-btn" id="btn-sync-reminder-days">Same as Active Days</button>
                             </div>
                             <div class="days-grid" id="form-reminder-days">
@@ -1427,7 +1432,7 @@
     <div class="modal-overlay" id="backup-modal">
         <div class="modal-card" style="max-width: 480px;">
             <div class="modal-header">
-                <span class="modal-title">// DATA MANAGEMENT</span>
+                <span class="modal-title" id="txt-backup-title">// DATA MANAGEMENT</span>
                 <button class="modal-close" id="btn-backup-close">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1435,7 +1440,7 @@
                     </svg>
                 </button>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;" id="txt-backup-desc">
                 All StashList data is stored locally in your browser storage. You can backup your recurring tasks as a JSON file or restore them anytime.
             </p>
 
@@ -1446,7 +1451,7 @@
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
-                    <span>Download JSON Backup</span>
+                    <span id="txt-btn-export-json">Download JSON Backup</span>
                 </button>
 
                 <label class="hud-btn" style="justify-content: center; padding: 0.75rem; cursor: pointer;">
@@ -1455,7 +1460,7 @@
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                     </svg>
-                    <span>Restore from JSON File</span>
+                    <span id="txt-btn-import-json">Restore from JSON File</span>
                     <input type="file" id="file-import-json" accept=".json" style="display: none;">
                 </label>
 
@@ -1464,9 +1469,90 @@
                         <polyline points="1 4 1 10 7 10"></polyline>
                         <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
                     </svg>
-                    <span>Reset Today's Completions</span>
+                    <span id="txt-btn-reset-today">Reset Today's Completions</span>
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Settings & Preferences -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-card" style="max-width: 520px;">
+            <div class="modal-header">
+                <div>
+                    <span class="modal-badge" id="modal-settings-badge" style="font-size: 0.72rem; color: var(--mint); background: rgba(0, 255, 157, 0.08); border: 1px solid var(--border-medium); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block; margin-bottom: 0.35rem;">SYSTEM PREFERENCES</span>
+                    <h3 class="modal-title" id="modal-settings-title" style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); font-family: var(--font-mono);">Preferences // Settings</h3>
+                </div>
+                <button class="modal-close" id="modal-settings-close" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin: 1.25rem 0;">
+                <!-- Language setting -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; background: var(--bg-input); border: 1px solid var(--border-dim); border-radius: var(--radius-sm); gap: 1rem;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.88rem;" id="lbl-setting-lang">Interface Language</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;" id="desc-setting-lang">Choose language for StashList & hub</div>
+                    </div>
+                    <div style="display: flex; gap: 0.4rem;">
+                        <button class="hud-btn lang-btn active" id="btn-lang-en" data-lang="en" style="padding: 0.35rem 0.85rem;">EN</button>
+                        <button class="hud-btn lang-btn" id="btn-lang-ru" data-lang="ru" style="padding: 0.35rem 0.85rem;">RU</button>
+                    </div>
+                </div>
+
+                <!-- Sound Audio setting -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; background: var(--bg-input); border: 1px solid var(--border-dim); border-radius: var(--radius-sm); gap: 1rem;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.88rem;" id="lbl-setting-sound">Audio Chimes & Sound Effects</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;" id="desc-setting-sound">Interactive WebAudio feedback for completions</div>
+                    </div>
+                    <div style="display: flex; gap: 0.6rem; align-items: center;">
+                        <button class="hud-btn" id="btn-test-sound" title="Test audio chime" style="padding: 0.35rem 0.65rem; font-size: 0.7rem;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                            <span id="txt-test-sound">TEST CHIME</span>
+                        </button>
+                        <label class="switch">
+                            <input type="checkbox" id="setting-toggle-sound" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Browser Notifications setting -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; background: var(--bg-input); border: 1px solid var(--border-dim); border-radius: var(--radius-sm); gap: 1rem;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.88rem;" id="lbl-setting-notify">Desktop Notifications</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;" id="desc-setting-notify">Scheduled routine reminders in background</div>
+                    </div>
+                    <div style="display: flex; gap: 0.6rem; align-items: center;">
+                        <button class="hud-btn" id="btn-test-notify" title="Send test notification" style="padding: 0.35rem 0.65rem; font-size: 0.7rem;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg>
+                            <span id="txt-test-notify">TEST ALERT</span>
+                        </button>
+                        <button class="hud-btn" id="btn-grant-notify" style="padding: 0.35rem 0.75rem; font-size: 0.72rem;">
+                            <span id="txt-grant-notify">ENABLE</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reset options -->
+                <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                    <button class="hud-btn" id="btn-settings-reset-today" style="flex: 1; justify-content: center; padding: 0.65rem; font-size: 0.75rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                        <span id="txt-settings-reset-today">Reset Today's Progress</span>
+                    </button>
+                    <button class="hud-btn danger" id="btn-settings-clear-all" style="flex: 1; justify-content: center; padding: 0.65rem; font-size: 0.75rem; color: var(--danger); border-color: rgba(255, 51, 102, 0.3);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <span id="txt-settings-clear-all">Clear All Tasks</span>
+                    </button>
+                </div>
+            </div>
+
+            <button class="hud-btn primary" id="btn-settings-save" style="width: 100%; justify-content: center; padding: 0.8rem; font-size: 0.85rem;">Save & Close</button>
         </div>
     </div>
 
@@ -1692,7 +1778,196 @@
     <!-- Main Application Logic -->
     <script>
         // --- Data Model & Configuration ---
-        const STORAGE_KEY = 'stashlist_tasks_v1';
+        const STORAGE_KEY = 'stashlist_tasks_v2';
+
+        const STASHLIST_I18N = {
+            en: {
+                pageTitle: "StashList • Recurring Checklist",
+                brandTitle: "StashList",
+                btnSound: "SOUND: ",
+                btnAlerts: "ALERTS: ",
+                statusOn: "ON",
+                statusOff: "OFF",
+                statusBlocked: "BLOCKED",
+                statusCheck: "ENABLE ALERTS",
+                btnJson: "JSON DATA",
+                btnSettings: "SETTINGS",
+                dashTitle: "Daily Recurring Checklist",
+                dashScheduleStatus: (day) => `Today is ${day} • Scheduled routines active • Auto-resets at midnight`,
+                statCompleted: "Completed Today",
+                statProgress: "Progress",
+                btnNewTask: "NEW TASK",
+                progressSummary: (c, t, p) => `${c} of ${t} tasks completed today (${p}%)`,
+                progressStreak: "Zero Telemetry • Offline First",
+                tabToday: "Today's Tasks",
+                tabAll: "All Tasks",
+                statusAll: "ALL",
+                statusPending: "ACTIVE",
+                statusCompleted: "COMPLETED",
+                searchPlaceholder: "Search tasks by title, note, or category...",
+                catAll: "All",
+                catWork: "Work",
+                catRoutine: "Routine",
+                catHealth: "Health",
+                catDev: "Dev",
+                catHabit: "Habit",
+                catPersonal: "Personal",
+                emptyNoTasksTitle: "NO TASKS SCHEDULED",
+                emptyNoTasksDesc: "Your checklist is empty. Create your first recurring habit!",
+                btnCreateFirst: "Create Task",
+                emptyNoMatchTitle: "NO MATCHING TASKS",
+                emptyNoMatchDesc: "No tasks match your current view or filter.",
+                btnClearFilters: "Clear All Filters",
+                modalNewHeading: "// NEW RECURRING TASK",
+                modalEditHeading: "// EDIT RECURRING TASK",
+                lblTaskTitle: "Task Title *",
+                phTaskTitle: "e.g., Daily Morning Stretches, Code Review, Backup DB...",
+                lblCategory: "Category",
+                lblNotes: "Notes / Instructions (Optional)",
+                phNotes: "Optional details, links, or criteria for completion...",
+                lblActiveDays: "Active Days of the Week",
+                presetAllDays: "All Days",
+                presetWeekdays: "Weekdays (Mon-Fri)",
+                presetWeekends: "Weekends (Sat-Sun)",
+                days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                lblReminders: "Enable Scheduled Reminders",
+                lblReminderTime: "Reminder Time (HH:MM)",
+                lblReminderDays: "Reminder Trigger Days",
+                btnSyncDays: "Same as Active Days",
+                btnCancel: "Cancel",
+                btnSaveTask: "Save Task",
+                txtBackupTitle: "// DATA MANAGEMENT",
+                txtBackupDesc: "All StashList data is stored locally in your browser storage. You can backup your recurring tasks as a JSON file or restore them anytime.",
+                btnExportJson: "Download JSON Backup",
+                btnImportJson: "Restore from JSON File",
+                btnResetToday: "Reset Today's Completions",
+                settingsBadge: "SYSTEM PREFERENCES",
+                settingsTitle: "Preferences // Settings",
+                lblSettingLang: "Interface Language",
+                descSettingLang: "Choose language for StashList & hub",
+                lblSettingSound: "Audio Chimes & Sound Effects",
+                descSettingSound: "Interactive WebAudio feedback for completions",
+                txtTestSound: "TEST CHIME",
+                lblSettingNotify: "Desktop Notifications",
+                descSettingNotify: "Scheduled routine reminders in background",
+                txtTestNotify: "TEST ALERT",
+                btnGrantNotify: "ENABLE",
+                btnSettingsResetToday: "Reset Today's Progress",
+                btnSettingsClearAll: "Clear All Tasks",
+                btnSettingsSave: "Save & Close",
+                bannerReminder: "STASHLIST REMINDER",
+                btnBannerComplete: "Done",
+                footerLeft: "StashList • 100% Client-Side Recurring Checklist",
+                footerRight: "the stash",
+                dayNames: ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'],
+                monthNames: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
+                toastResetToday: "Today's completions have been reset.",
+                toastAllCleared: "All tasks have been cleared.",
+                toastFiltersCleared: "Filters cleared.",
+                toastTaskDeleted: (name) => `Task "${name}" deleted.`,
+                toastTaskDuplicated: "Task duplicated!",
+                toastNotifyGranted: "Notifications granted! You will receive reminder alerts.",
+                toastNotifyDenied: "Notification permission was not granted.",
+                toastNotifyEnabled: "Browser notifications are already enabled!",
+                toastDayReset: "A new day has begun! Daily tasks have been reset.",
+                confirmResetToday: "Reset completion status for all today's tasks?",
+                confirmClearAll: "Are you sure you want to delete ALL tasks? This cannot be undone."
+            },
+            ru: {
+                pageTitle: "StashList • Повторяющийся чеклист",
+                brandTitle: "StashList",
+                btnSound: "ЗВУК: ",
+                btnAlerts: "ОПОВЕЩЕНИЯ: ",
+                statusOn: "ВКЛ",
+                statusOff: "ВЫКЛ",
+                statusBlocked: "ЗАБЛОКИРОВАНО",
+                statusCheck: "ВКЛЮЧИТЬ ОПОВЕЩЕНИЯ",
+                btnJson: "JSON ДАННЫЕ",
+                btnSettings: "НАСТРОЙКИ",
+                dashTitle: "Ежедневный повторяющийся чеклист",
+                dashScheduleStatus: (day) => `Сегодня ${day} • Активные рутины • Автосброс в полночь`,
+                statCompleted: "Выполнено сегодня",
+                statProgress: "Прогресс",
+                btnNewTask: "НОВАЯ ЗАДАЧА",
+                progressSummary: (c, t, p) => `Выполнено ${c} из ${t} задач сегодня (${p}%)`,
+                progressStreak: "Нулевая телеметрия • Офлайн-режим",
+                tabToday: "Задачи на сегодня",
+                tabAll: "Все задачи",
+                statusAll: "ВСЕ",
+                statusPending: "АКТИВНЫЕ",
+                statusCompleted: "ВЫПОЛНЕННЫЕ",
+                searchPlaceholder: "Поиск задач по названию, заметкам или категории...",
+                catAll: "Все",
+                catWork: "Работа",
+                catRoutine: "Рутина",
+                catHealth: "Здоровье",
+                catDev: "Разработка",
+                catHabit: "Привычки",
+                catPersonal: "Личное",
+                emptyNoTasksTitle: "НЕТ ЗАПЛАНИРОВАННЫХ ЗАДАЧ",
+                emptyNoTasksDesc: "Ваш чеклист пуст. Создайте свою первую повторяющуюся привычку!",
+                btnCreateFirst: "Создать задачу",
+                emptyNoMatchTitle: "НЕТ ПОДХОДЯЩИХ ЗАДАЧ",
+                emptyNoMatchDesc: "Нет задач, соответствующих текущему фильтру.",
+                btnClearFilters: "Сбросить все фильтры",
+                modalNewHeading: "// НОВАЯ ПОВТОРЯЮЩАЯСЯ ЗАДАЧА",
+                modalEditHeading: "// РЕДАКТИРОВАНИЕ ЗАДАЧИ",
+                lblTaskTitle: "Название задачи *",
+                phTaskTitle: "например: Утренняя растяжка, Ревью кода, Бэкап БД...",
+                lblCategory: "Категория",
+                lblNotes: "Заметки / Инструкции (Опционально)",
+                phNotes: "Дополнительные детали, ссылки или условия выполнения...",
+                lblActiveDays: "Активные дни недели",
+                presetAllDays: "Все дни",
+                presetWeekdays: "Будни (Пн-Пт)",
+                presetWeekends: "Выходные (Сб-Вс)",
+                days: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+                lblReminders: "Включить напоминания по расписанию",
+                lblReminderTime: "Время напоминания (ЧЧ:ММ)",
+                lblReminderDays: "Дни напоминания",
+                btnSyncDays: "Как в активных днях",
+                btnCancel: "Отмена",
+                btnSaveTask: "Сохранить задачу",
+                txtBackupTitle: "// УПРАВЛЕНИЕ ДАННЫМИ",
+                txtBackupDesc: "Все данные StashList хранятся локально в вашем браузере. Вы можете экспортировать задачи в JSON или восстановить их в любое время.",
+                btnExportJson: "Скачать бэкап JSON",
+                btnImportJson: "Восстановить из JSON",
+                btnResetToday: "Сбросить сегодняшние отметки",
+                settingsBadge: "СИСТЕМНЫЕ НАСТРОЙКИ",
+                settingsTitle: "Настройки // Preferences",
+                lblSettingLang: "Язык интерфейса",
+                descSettingLang: "Выберите язык для StashList и хаба",
+                lblSettingSound: "Звуковые сигналы и эффекты",
+                descSettingSound: "Интерактивный WebAudio звук при выполнении задач",
+                txtTestSound: "ТЕСТ ЗВУКА",
+                lblSettingNotify: "Уведомления на рабочем столе",
+                descSettingNotify: "Напоминания о рутинах по расписанию",
+                txtTestNotify: "ТЕСТ ОПОВЕЩЕНИЯ",
+                btnGrantNotify: "ВКЛЮЧИТЬ",
+                btnSettingsResetToday: "Сбросить сегодняшний прогресс",
+                btnSettingsClearAll: "Очистить все задачи",
+                btnSettingsSave: "Сохранить и закрыть",
+                bannerReminder: "НАПОМИНАНИЕ STASHLIST",
+                btnBannerComplete: "Готово",
+                footerLeft: "StashList • 100% Локальный повторяющийся чеклист",
+                footerRight: "the stash",
+                dayNames: ['ВОСКРЕСЕНЬЕ', 'ПОНЕДЕЛЬНИК', 'ВТОРНИК', 'СРЕДА', 'ЧЕТВЕРГ', 'ПЯТНИЦА', 'СУББОТА'],
+                monthNames: ['ЯНВ', 'ФЕВ', 'МАР', 'АПР', 'МАЙ', 'ИЮН', 'ИЮЛ', 'АВГ', 'СЕН', 'ОКТ', 'НОЯ', 'ДЕК'],
+                toastResetToday: "Сегодняшние отметки сброшены.",
+                toastAllCleared: "Все задачи удалены.",
+                toastFiltersCleared: "Фильтры сброшены.",
+                toastTaskDeleted: (name) => `Задача "${name}" удалена.`,
+                toastTaskDuplicated: "Задача продублирована!",
+                toastNotifyGranted: "Оповещения включены! Вы будете получать напоминания.",
+                toastNotifyDenied: "Разрешение на оповещения не получено.",
+                toastNotifyEnabled: "Оповещения в браузере уже включены!",
+                toastDayReset: "Наступил новый день! Задачи сброшены.",
+                confirmResetToday: "Сбросить статус выполнения для всех сегодняшних задач?",
+                confirmClearAll: "Вы уверены, что хотите удалить ВСЕ задачи? Это действие необратимо."
+            }
+        };
+
+        let currentLang = localStorage.getItem('the_stash_lang') || 'en';
 
         const CATEGORIES = {
             Work: { color: 'var(--cat-work)', bg: 'rgba(56, 189, 248, 0.12)', border: 'rgba(56, 189, 248, 0.3)' },
@@ -1704,81 +1979,13 @@
         };
 
         const DAYS_MAP = [
-            { id: 1, short: 'M', name: 'Mon' },
-            { id: 2, short: 'T', name: 'Tue' },
-            { id: 3, short: 'W', name: 'Wed' },
-            { id: 4, short: 'T', name: 'Thu' },
-            { id: 5, short: 'F', name: 'Fri' },
-            { id: 6, short: 'S', name: 'Sat' },
-            { id: 0, short: 'S', name: 'Sun' }
-        ];
-
-        const STARTER_TASKS = [
-            {
-                id: 'task-starter-1',
-                title: 'Morning Hydration & Stretches',
-                notes: 'Drink a glass of water, do 5 minutes of mobility work.',
-                category: 'Routine',
-                activeDays: [1, 2, 3, 4, 5, 6, 0],
-                remindersEnabled: true,
-                reminderTime: '08:00',
-                reminderDays: [1, 2, 3, 4, 5, 6, 0],
-                lastCompletedDate: null,
-                lastNotifiedAt: null,
-                createdAt: Date.now() - 30000
-            },
-            {
-                id: 'task-starter-2',
-                title: 'Deep Work Session (2 Hours)',
-                notes: 'Focus on primary objective with zero notifications.',
-                category: 'Work',
-                activeDays: [1, 2, 3, 4, 5],
-                remindersEnabled: true,
-                reminderTime: '10:00',
-                reminderDays: [1, 2, 3, 4, 5],
-                lastCompletedDate: null,
-                lastNotifiedAt: null,
-                createdAt: Date.now() - 20000
-            },
-            {
-                id: 'task-starter-3',
-                title: 'Code Review & Git Commits',
-                notes: 'Inspect pending pull requests and sync main branches.',
-                category: 'Dev',
-                activeDays: [1, 2, 3, 4, 5],
-                remindersEnabled: true,
-                reminderTime: '16:30',
-                reminderDays: [1, 2, 3, 4, 5],
-                lastCompletedDate: null,
-                lastNotifiedAt: null,
-                createdAt: Date.now() - 10000
-            },
-            {
-                id: 'task-starter-4',
-                title: '15-Minute Outdoor Walk',
-                notes: 'Unwind eyes from screen and get fresh air.',
-                category: 'Health',
-                activeDays: [1, 2, 3, 4, 5, 6, 0],
-                remindersEnabled: true,
-                reminderTime: '18:00',
-                reminderDays: [1, 2, 3, 4, 5, 6, 0],
-                lastCompletedDate: null,
-                lastNotifiedAt: null,
-                createdAt: Date.now() - 5000
-            },
-            {
-                id: 'task-starter-5',
-                title: 'Review Accomplishments & Plan Tomorrow',
-                notes: 'Check off pending items and prioritize top 3 priorities for tomorrow.',
-                category: 'Personal',
-                activeDays: [1, 2, 3, 4, 5, 6, 0],
-                remindersEnabled: false,
-                reminderTime: '21:30',
-                reminderDays: [1, 2, 3, 4, 5, 6, 0],
-                lastCompletedDate: null,
-                lastNotifiedAt: null,
-                createdAt: Date.now()
-            }
+            { id: 1, shortEn: 'M', shortRu: 'П', nameEn: 'Mon', nameRu: 'Пн' },
+            { id: 2, shortEn: 'T', shortRu: 'В', nameEn: 'Tue', nameRu: 'Вт' },
+            { id: 3, shortEn: 'W', shortRu: 'С', nameEn: 'Wed', nameRu: 'Ср' },
+            { id: 4, shortEn: 'T', shortRu: 'Ч', nameEn: 'Thu', nameRu: 'Чт' },
+            { id: 5, shortEn: 'F', shortRu: 'П', nameEn: 'Fri', nameRu: 'Пт' },
+            { id: 6, shortEn: 'S', shortRu: 'С', nameEn: 'Sat', nameRu: 'Сб' },
+            { id: 0, shortEn: 'S', shortRu: 'В', nameEn: 'Sun', nameRu: 'Вс' }
         ];
 
         let tasks = [];
@@ -1805,12 +2012,22 @@
                 if (raw) {
                     tasks = JSON.parse(raw);
                 } else {
-                    tasks = STARTER_TASKS;
+                    const oldRaw = localStorage.getItem('stashlist_tasks_v1');
+                    if (oldRaw) {
+                        try {
+                            const parsed = JSON.parse(oldRaw);
+                            tasks = Array.isArray(parsed) ? parsed.filter(t => !t.id.startsWith('task-starter-')) : [];
+                        } catch (e) {
+                            tasks = [];
+                        }
+                    } else {
+                        tasks = [];
+                    }
                     saveTasks();
                 }
             } catch (e) {
                 console.error('Error loading tasks:', e);
-                tasks = STARTER_TASKS;
+                tasks = [];
             }
         }
 
@@ -1825,10 +2042,9 @@
         // --- Date & Midnight Reset System ---
         function updateDateUI() {
             const now = new Date();
-            const dayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-            const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-            const dayName = dayNames[now.getDay()];
-            const monthName = monthNames[now.getMonth()];
+            const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
+            const dayName = dict.dayNames[now.getDay()];
+            const monthName = dict.monthNames[now.getMonth()];
             const dateNum = now.getDate();
 
             const txtLiveDate = document.getElementById('txt-live-date');
@@ -1838,7 +2054,7 @@
 
             const scheduleStatus = document.getElementById('dash-schedule-status');
             if (scheduleStatus) {
-                scheduleStatus.textContent = `Today is ${dayName} • Scheduled routines active • Auto-resets at midnight`;
+                scheduleStatus.textContent = dict.dashScheduleStatus(dayName);
             }
         }
 
@@ -1848,7 +2064,8 @@
                 currentDateStr = todayNow;
                 updateDateUI();
                 renderTasks();
-                showToast('☀️ A new day has begun! Daily tasks have been reset.');
+                const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
+                showToast(dict.toastDayReset);
                 soundEngine.playMidnightReset();
             }
         }
@@ -1904,6 +2121,7 @@
             container.innerHTML = '';
 
             if (filtered.length === 0) {
+                const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
                 const emptyCard = document.createElement('div');
                 emptyCard.className = 'empty-tasks-card';
                 emptyCard.innerHTML = `
@@ -1913,42 +2131,29 @@
                             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                         </svg>
                     </div>
-                    <div class="empty-title">NO MATCHING TASKS</div>
+                    <div class="empty-title">${tasks.length === 0 ? dict.emptyNoTasksTitle : dict.emptyNoMatchTitle}</div>
                     <div class="empty-sub">
-                        ${tasks.length === 0
-                            ? 'Your checklist is empty. Create your first recurring habit or load starter tasks.'
-                            : 'No tasks match your current view or filter.'}
+                        ${tasks.length === 0 ? dict.emptyNoTasksDesc : dict.emptyNoMatchDesc}
                     </div>
                     ${tasks.length === 0 ? `
                         <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; justify-content: center; flex-wrap: wrap;">
-                            <button class="hud-btn primary" id="btn-load-starter">Load Starter Tasks</button>
-                            <button class="hud-btn" onclick="openTaskModal()">Create Task</button>
+                            <button class="hud-btn primary" onclick="openTaskModal()">${dict.btnCreateFirst}</button>
                         </div>
                     ` : `
                         <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; justify-content: center; flex-wrap: wrap;">
-                            <button class="hud-btn" id="btn-clear-filters">Clear All Filters</button>
-                            <button class="hud-btn primary" onclick="openTaskModal()">Create Task</button>
+                            <button class="hud-btn" id="btn-clear-filters">${dict.btnClearFilters}</button>
+                            <button class="hud-btn primary" onclick="openTaskModal()">${dict.btnNewTask}</button>
                         </div>
                     `}
                 `;
                 container.appendChild(emptyCard);
-
-                const btnStarter = document.getElementById('btn-load-starter');
-                if (btnStarter) {
-                    btnStarter.addEventListener('click', () => {
-                        tasks = JSON.parse(JSON.stringify(STARTER_TASKS));
-                        saveTasks();
-                        renderTasks();
-                        showToast('Starter tasks restored!');
-                    });
-                }
 
                 const btnClearFilters = document.getElementById('btn-clear-filters');
                 if (btnClearFilters) {
                     btnClearFilters.addEventListener('click', () => {
                         soundEngine.playClick();
                         resetFilters();
-                        showToast('Filters cleared.');
+                        showToast(dict.toastFiltersCleared);
                     });
                 }
                 return;
@@ -1967,7 +2172,9 @@
                 const daysDotsHtml = DAYS_MAP.map(day => {
                     const isActive = task.activeDays && task.activeDays.includes(day.id);
                     const isToday = day.id === currentDayOfWeek;
-                    return `<span class="day-dot ${isActive ? 'active' : ''} ${isToday ? 'today' : ''}" title="${day.name}">${day.short}</span>`;
+                    const letter = currentLang === 'ru' ? day.shortRu : day.shortEn;
+                    const title = currentLang === 'ru' ? day.nameRu : day.nameEn;
+                    return `<span class="day-dot ${isActive ? 'active' : ''} ${isToday ? 'today' : ''}" title="${title}">${letter}</span>`;
                 }).join('');
 
                 // Reminder pill HTML
@@ -1993,9 +2200,6 @@
                         </button>
                         <div class="task-details">
                             <div class="task-header-line">
-                                <span class="cat-badge" style="color: ${catInfo.color}; background: ${catInfo.bg}; border: 1px solid ${catInfo.border};">
-                                    ${task.category}
-                                </span>
                                 <h3 class="task-title">${escapeHtml(task.title)}</h3>
                             </div>
                             ${task.notes ? `<p class="task-notes">${escapeHtml(task.notes)}</p>` : ''}
@@ -2074,8 +2278,9 @@
             const fillBar = document.getElementById('progress-bar-fill');
             if (fillBar) fillBar.style.width = `${percentage}%`;
 
+            const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
             const summaryTxt = document.getElementById('progress-summary-txt');
-            if (summaryTxt) summaryTxt.textContent = `${completedCount} of ${countToday} tasks completed today (${percentage}%)`;
+            if (summaryTxt) summaryTxt.textContent = dict.progressSummary(completedCount, countToday, percentage);
 
             // Tab Badges
             const badgeToday = document.getElementById('count-tab-today');
@@ -2122,7 +2327,8 @@
             saveTasks();
             soundEngine.playClick();
             renderTasks();
-            showToast('Task duplicated!');
+            const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
+            showToast(dict.toastTaskDuplicated);
         }
 
         function deleteTask(taskId) {
@@ -2133,7 +2339,8 @@
             saveTasks();
             soundEngine.playClick();
             renderTasks();
-            showToast(`Task "${task.title}" deleted.`);
+            const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
+            showToast(dict.toastTaskDeleted(task.title));
         }
 
         // --- Task Modal (Create & Edit) ---
@@ -2151,10 +2358,11 @@
 
         function openTaskModal(taskId = null) {
             soundEngine.playClick();
+            const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
             if (taskId) {
                 const task = tasks.find(t => t.id === taskId);
                 if (!task) return;
-                modalHeading.textContent = '// EDIT RECURRING TASK';
+                modalHeading.textContent = dict.modalEditHeading;
                 formTaskId.value = task.id;
                 formTitle.value = task.title;
                 formNotes.value = task.notes || '';
@@ -2183,7 +2391,7 @@
                     btn.classList.toggle('active', remDays.includes(d));
                 });
             } else {
-                modalHeading.textContent = '// NEW RECURRING TASK';
+                modalHeading.textContent = dict.modalNewHeading;
                 formTaskId.value = '';
                 formTitle.value = '';
                 formNotes.value = '';
@@ -2448,59 +2656,70 @@
         const txtNotifyBtn = document.getElementById('txt-notify-btn');
 
         function updateNotifyBtnState() {
+            const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
             if (!window.Notification) {
-                txtNotifyBtn.textContent = 'ALERTS: N/A';
-                btnToggleNotify.disabled = true;
+                if (txtNotifyBtn) txtNotifyBtn.textContent = `${dict.btnAlerts}N/A`;
+                if (btnToggleNotify) btnToggleNotify.disabled = true;
                 return;
             }
             if (Notification.permission === 'granted') {
-                txtNotifyBtn.textContent = 'ALERTS: ON';
-                btnToggleNotify.classList.add('active');
+                if (txtNotifyBtn) txtNotifyBtn.textContent = `${dict.btnAlerts}${dict.statusOn}`;
+                if (btnToggleNotify) btnToggleNotify.classList.add('active');
             } else if (Notification.permission === 'denied') {
-                txtNotifyBtn.textContent = 'ALERTS: BLOCKED';
-                btnToggleNotify.classList.remove('active');
+                if (txtNotifyBtn) txtNotifyBtn.textContent = `${dict.btnAlerts}${dict.statusBlocked}`;
+                if (btnToggleNotify) btnToggleNotify.classList.remove('active');
             } else {
-                txtNotifyBtn.textContent = 'ENABLE ALERTS';
-                btnToggleNotify.classList.remove('active');
+                if (txtNotifyBtn) txtNotifyBtn.textContent = dict.statusCheck;
+                if (btnToggleNotify) btnToggleNotify.classList.remove('active');
+            }
+            const txtGrant = document.getElementById('txt-grant-notify');
+            if (txtGrant) {
+                txtGrant.textContent = (Notification.permission === 'granted') ? dict.statusOn : dict.btnGrantNotify;
             }
         }
 
         btnToggleNotify.addEventListener('click', () => {
             soundEngine.playClick();
+            const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
             if (!window.Notification) {
                 alert('Web Notifications API is not supported by your browser.');
                 return;
             }
             if (Notification.permission === 'granted') {
-                showToast('Browser notifications are already enabled!');
+                showToast(dict.toastNotifyEnabled);
             } else {
                 Notification.requestPermission().then(permission => {
                     updateNotifyBtnState();
                     if (permission === 'granted') {
-                        showToast('Notifications granted! You will receive reminder alerts.');
+                        showToast(dict.toastNotifyGranted);
                         try {
                             new Notification('StashList', {
-                                body: 'Test notification: reminder alerts are now active.',
+                                body: currentLang === 'ru' ? 'Оповещения включены! Вы будете получать напоминания.' : 'Test notification: reminder alerts are now active.',
                                 icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
                             });
                         } catch (e) {}
                     } else {
-                        showToast('Notification permission was not granted.');
+                        showToast(dict.toastNotifyDenied);
                     }
                 });
             }
         });
 
-        // --- Sound Button ---
+        // --- Sound Button & Settings Sound Switch ---
         const btnToggleSound = document.getElementById('btn-toggle-sound');
         const txtSoundBtn = document.getElementById('txt-sound-btn');
+        const settingToggleSound = document.getElementById('setting-toggle-sound');
+
         function updateSoundBtnUI() {
+            const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
             if (soundEngine.muted) {
-                txtSoundBtn.textContent = 'SOUND: OFF';
-                btnToggleSound.classList.remove('active');
+                if (txtSoundBtn) txtSoundBtn.textContent = `${dict.btnSound}${dict.statusOff}`;
+                if (btnToggleSound) btnToggleSound.classList.remove('active');
+                if (settingToggleSound) settingToggleSound.checked = false;
             } else {
-                txtSoundBtn.textContent = 'SOUND: ON';
-                btnToggleSound.classList.add('active');
+                if (txtSoundBtn) txtSoundBtn.textContent = `${dict.btnSound}${dict.statusOn}`;
+                if (btnToggleSound) btnToggleSound.classList.add('active');
+                if (settingToggleSound) settingToggleSound.checked = true;
             }
         }
         btnToggleSound.addEventListener('click', () => {
@@ -2508,6 +2727,16 @@
             updateSoundBtnUI();
             if (!isMuted) soundEngine.playClick();
         });
+        if (settingToggleSound) {
+            settingToggleSound.addEventListener('change', (e) => {
+                soundEngine.muted = !e.target.checked;
+                try {
+                    localStorage.setItem('stashlist_sound_muted', JSON.stringify(soundEngine.muted));
+                } catch(err) {}
+                updateSoundBtnUI();
+                if (!soundEngine.muted) soundEngine.playClick();
+            });
+        }
 
         // --- View Tabs ---
         document.getElementById('tab-view-today').addEventListener('click', () => {
@@ -2659,10 +2888,11 @@
             fileImportInput.value = '';
         });
 
-        // Reset Today's Completions
+        // Reset Today's Completions (Backup Modal)
         document.getElementById('btn-reset-today').addEventListener('click', () => {
             soundEngine.playClick();
-            if (confirm("Reset completion status for all today's tasks?")) {
+            const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
+            if (confirm(dict.confirmResetToday)) {
                 const todayStr = getTodayDateStr();
                 tasks.forEach(t => {
                     if (t.lastCompletedDate === todayStr) {
@@ -2672,20 +2902,337 @@
                 saveTasks();
                 renderTasks();
                 backupModal.classList.remove('active');
-                showToast("Today's completions have been reset.");
+                showToast(dict.toastResetToday);
             }
         });
+
+        // --- Settings Modal Handlers ---
+        const settingsModal = document.getElementById('settings-modal');
+        const btnOpenSettings = document.getElementById('btn-open-settings');
+        const btnCloseSettings = document.getElementById('modal-settings-close');
+        const btnSaveSettings = document.getElementById('btn-settings-save');
+
+        if (btnOpenSettings && settingsModal) {
+            btnOpenSettings.addEventListener('click', () => {
+                soundEngine.playClick();
+                settingsModal.classList.add('active');
+            });
+        }
+        if (btnCloseSettings && settingsModal) {
+            btnCloseSettings.addEventListener('click', () => {
+                soundEngine.playClick();
+                settingsModal.classList.remove('active');
+            });
+        }
+        if (btnSaveSettings && settingsModal) {
+            btnSaveSettings.addEventListener('click', () => {
+                soundEngine.playClick();
+                settingsModal.classList.remove('active');
+            });
+        }
+
+        const btnLangEn = document.getElementById('btn-lang-en');
+        const btnLangRu = document.getElementById('btn-lang-ru');
+        if (btnLangEn) {
+            btnLangEn.addEventListener('click', () => {
+                soundEngine.playClick();
+                applyLanguage('en');
+            });
+        }
+        if (btnLangRu) {
+            btnLangRu.addEventListener('click', () => {
+                soundEngine.playClick();
+                applyLanguage('ru');
+            });
+        }
+
+        const btnTestSound = document.getElementById('btn-test-sound');
+        if (btnTestSound) {
+            btnTestSound.addEventListener('click', () => {
+                soundEngine.playComplete();
+            });
+        }
+
+        const btnTestNotify = document.getElementById('btn-test-notify');
+        if (btnTestNotify) {
+            btnTestNotify.addEventListener('click', () => {
+                const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
+                if (!window.Notification) {
+                    alert('Web Notifications API is not supported by your browser.');
+                    return;
+                }
+                if (Notification.permission === 'granted') {
+                    try {
+                        new Notification('StashList', {
+                            body: currentLang === 'ru' ? 'Тестовое оповещение: напоминания активны!' : 'Test notification: reminder alerts are active!',
+                            icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
+                        });
+                    } catch (e) {}
+                    showToast(currentLang === 'ru' ? 'Тестовое оповещение отправлено!' : 'Test notification sent!');
+                } else {
+                    Notification.requestPermission().then(permission => {
+                        updateNotifyBtnState();
+                        if (permission === 'granted') {
+                            showToast(dict.toastNotifyGranted);
+                            try {
+                                new Notification('StashList', {
+                                    body: currentLang === 'ru' ? 'Оповещения включены! Вы будете получать напоминания.' : 'Test notification: reminder alerts are now active.',
+                                    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
+                                });
+                            } catch (e) {}
+                        } else {
+                            showToast(dict.toastNotifyDenied);
+                        }
+                    });
+                }
+            });
+        }
+
+        const btnGrantNotify = document.getElementById('btn-grant-notify');
+        if (btnGrantNotify) {
+            btnGrantNotify.addEventListener('click', () => {
+                const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
+                if (!window.Notification) {
+                    alert('Web Notifications API is not supported by your browser.');
+                    return;
+                }
+                if (Notification.permission === 'granted') {
+                    showToast(dict.toastNotifyEnabled);
+                } else {
+                    Notification.requestPermission().then(permission => {
+                        updateNotifyBtnState();
+                        if (permission === 'granted') {
+                            showToast(dict.toastNotifyGranted);
+                        } else {
+                            showToast(dict.toastNotifyDenied);
+                        }
+                    });
+                }
+            });
+        }
+
+        const btnSettingsResetToday = document.getElementById('btn-settings-reset-today');
+        if (btnSettingsResetToday) {
+            btnSettingsResetToday.addEventListener('click', () => {
+                const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
+                soundEngine.playClick();
+                if (confirm(dict.confirmResetToday)) {
+                    const todayStr = getTodayDateStr();
+                    tasks.forEach(t => {
+                        if (t.lastCompletedDate === todayStr) {
+                            t.lastCompletedDate = null;
+                        }
+                    });
+                    saveTasks();
+                    renderTasks();
+                    showToast(dict.toastResetToday);
+                }
+            });
+        }
+
+        const btnSettingsClearAll = document.getElementById('btn-settings-clear-all');
+        if (btnSettingsClearAll) {
+            btnSettingsClearAll.addEventListener('click', () => {
+                const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.en;
+                soundEngine.playClick();
+                if (confirm(dict.confirmClearAll)) {
+                    tasks = [];
+                    saveTasks();
+                    renderTasks();
+                    showToast(dict.toastAllCleared);
+                }
+            });
+        }
+
+        // --- Apply Language Function ---
+        function applyLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('the_stash_lang', lang);
+            const dict = STASHLIST_I18N[lang] || STASHLIST_I18N.en;
+
+            // Page & Header
+            document.title = dict.pageTitle;
+            const brandTitle = document.getElementById('txt-brand-title');
+            if (brandTitle) brandTitle.textContent = dict.brandTitle;
+            const txtJsonBtn = document.getElementById('txt-json-btn');
+            if (txtJsonBtn) txtJsonBtn.textContent = dict.btnJson;
+            const txtSettingsBtn = document.getElementById('txt-settings-btn');
+            if (txtSettingsBtn) txtSettingsBtn.textContent = dict.btnSettings;
+
+            // Dashboard
+            const txtDashTitle = document.getElementById('txt-dash-title');
+            if (txtDashTitle) txtDashTitle.textContent = dict.dashTitle;
+            const lblCompleted = document.getElementById('lbl-completed-today');
+            if (lblCompleted) lblCompleted.textContent = dict.statCompleted;
+            const lblProgress = document.getElementById('lbl-stat-progress');
+            if (lblProgress) lblProgress.textContent = dict.statProgress;
+            const txtBtnNewTask = document.getElementById('txt-btn-new-task');
+            if (txtBtnNewTask) txtBtnNewTask.textContent = dict.btnNewTask;
+            const progressStreak = document.getElementById('progress-streak-txt');
+            if (progressStreak) progressStreak.textContent = dict.progressStreak;
+
+            // Tabs
+            const txtTabToday = document.getElementById('txt-tab-today');
+            if (txtTabToday) txtTabToday.textContent = dict.tabToday;
+            const txtTabAll = document.getElementById('txt-tab-all');
+            if (txtTabAll) txtTabAll.textContent = dict.tabAll;
+
+            // Status filter chips
+            const chipStatusAll = document.querySelector('#status-filter-group .filter-chip[data-status="all"]');
+            if (chipStatusAll) chipStatusAll.textContent = dict.statusAll;
+            const chipStatusPending = document.querySelector('#status-filter-group .filter-chip[data-status="pending"]');
+            if (chipStatusPending) chipStatusPending.textContent = dict.statusPending;
+            const chipStatusCompleted = document.querySelector('#status-filter-group .filter-chip[data-status="completed"]');
+            if (chipStatusCompleted) chipStatusCompleted.textContent = dict.statusCompleted;
+
+            // Search
+            const searchInputEl = document.getElementById('task-search-input');
+            if (searchInputEl) searchInputEl.placeholder = dict.searchPlaceholder;
+
+            // Category filter chips
+            const btnCatAll = document.getElementById('btn-cat-all');
+            if (btnCatAll) btnCatAll.textContent = dict.catAll;
+            const btnCatWork = document.getElementById('btn-cat-work');
+            if (btnCatWork) btnCatWork.textContent = dict.catWork;
+            const btnCatRoutine = document.getElementById('btn-cat-routine');
+            if (btnCatRoutine) btnCatRoutine.textContent = dict.catRoutine;
+            const btnCatHealth = document.getElementById('btn-cat-health');
+            if (btnCatHealth) btnCatHealth.textContent = dict.catHealth;
+            const btnCatDev = document.getElementById('btn-cat-dev');
+            if (btnCatDev) btnCatDev.textContent = dict.catDev;
+            const btnCatHabit = document.getElementById('btn-cat-habit');
+            if (btnCatHabit) btnCatHabit.textContent = dict.catHabit;
+            const btnCatPersonal = document.getElementById('btn-cat-personal');
+            if (btnCatPersonal) btnCatPersonal.textContent = dict.catPersonal;
+
+            // Category selector in Task Modal
+            const catWorkModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Work"]');
+            if (catWorkModal) catWorkModal.textContent = dict.catWork;
+            const catRoutineModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Routine"]');
+            if (catRoutineModal) catRoutineModal.textContent = dict.catRoutine;
+            const catHealthModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Health"]');
+            if (catHealthModal) catHealthModal.textContent = dict.catHealth;
+            const catDevModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Dev"]');
+            if (catDevModal) catDevModal.textContent = dict.catDev;
+            const catHabitModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Habit"]');
+            if (catHabitModal) catHabitModal.textContent = dict.catHabit;
+            const catPersonalModal = document.querySelector('#form-cat-selector .cat-chip-radio[data-cat="Personal"]');
+            if (catPersonalModal) catPersonalModal.textContent = dict.catPersonal;
+
+            // Task Modal fields
+            const lblTaskTitle = document.getElementById('lbl-task-title');
+            if (lblTaskTitle) lblTaskTitle.textContent = dict.lblTaskTitle;
+            const formTaskTitle = document.getElementById('form-task-title');
+            if (formTaskTitle) formTaskTitle.placeholder = dict.phTaskTitle;
+            const lblTaskCat = document.getElementById('lbl-task-cat');
+            if (lblTaskCat) lblTaskCat.textContent = dict.lblCategory;
+            const lblTaskNotes = document.getElementById('lbl-task-notes');
+            if (lblTaskNotes) lblTaskNotes.textContent = dict.lblNotes;
+            const formTaskNotes = document.getElementById('form-task-notes');
+            if (formTaskNotes) formTaskNotes.placeholder = dict.phNotes;
+            const lblActiveDays = document.getElementById('lbl-active-days');
+            if (lblActiveDays) lblActiveDays.textContent = dict.lblActiveDays;
+            const presetAll = document.getElementById('btn-preset-all');
+            if (presetAll) presetAll.textContent = dict.presetAllDays;
+            const presetWeekdays = document.getElementById('btn-preset-weekdays');
+            if (presetWeekdays) presetWeekdays.textContent = dict.presetWeekdays;
+            const presetWeekends = document.getElementById('btn-preset-weekends');
+            if (presetWeekends) presetWeekends.textContent = dict.presetWeekends;
+            const lblReminders = document.getElementById('lbl-reminders');
+            if (lblReminders) lblReminders.textContent = dict.lblReminders;
+            const lblRemTime = document.getElementById('lbl-rem-time');
+            if (lblRemTime) lblRemTime.textContent = dict.lblReminderTime;
+            const lblRemDays = document.getElementById('lbl-rem-days');
+            if (lblRemDays) lblRemDays.textContent = dict.lblReminderDays;
+            const btnSync = document.getElementById('btn-sync-days');
+            if (btnSync) btnSync.textContent = dict.btnSyncDays;
+            const btnCancel = document.getElementById('btn-modal-cancel');
+            if (btnCancel) btnCancel.textContent = dict.btnCancel;
+            const btnSaveTask = document.getElementById('btn-modal-save');
+            if (btnSaveTask) btnSaveTask.textContent = dict.btnSaveTask;
+
+            // Day pill buttons in Task Modal
+            document.querySelectorAll('#form-active-days .day-pill-btn').forEach(btn => {
+                const dayId = parseInt(btn.getAttribute('data-day'));
+                const dayObj = DAYS_MAP.find(d => d.id === dayId);
+                if (dayObj) btn.textContent = lang === 'ru' ? dayObj.nameRu : dayObj.nameEn;
+            });
+            document.querySelectorAll('#form-reminder-days .day-pill-btn').forEach(btn => {
+                const dayId = parseInt(btn.getAttribute('data-day'));
+                const dayObj = DAYS_MAP.find(d => d.id === dayId);
+                if (dayObj) btn.textContent = lang === 'ru' ? dayObj.nameRu : dayObj.nameEn;
+            });
+
+            // Backup Modal
+            const txtBackupTitle = document.getElementById('txt-backup-title');
+            if (txtBackupTitle) txtBackupTitle.textContent = dict.txtBackupTitle;
+            const txtBackupDesc = document.getElementById('txt-backup-desc');
+            if (txtBackupDesc) txtBackupDesc.textContent = dict.txtBackupDesc;
+            const txtBtnExport = document.getElementById('txt-btn-export-json');
+            if (txtBtnExport) txtBtnExport.textContent = dict.btnExportJson;
+            const txtBtnImport = document.getElementById('txt-btn-import-json');
+            if (txtBtnImport) txtBtnImport.textContent = dict.btnImportJson;
+            const txtBtnResetToday = document.getElementById('txt-btn-reset-today');
+            if (txtBtnResetToday) txtBtnResetToday.textContent = dict.btnResetToday;
+
+            // Settings Modal
+            const modalSetBadge = document.getElementById('modal-settings-badge');
+            if (modalSetBadge) modalSetBadge.textContent = dict.settingsBadge;
+            const modalSetTitle = document.getElementById('modal-settings-title');
+            if (modalSetTitle) modalSetTitle.textContent = dict.settingsTitle;
+            const lblSettingLang = document.getElementById('lbl-setting-lang');
+            if (lblSettingLang) lblSettingLang.textContent = dict.lblSettingLang;
+            const descSettingLang = document.getElementById('desc-setting-lang');
+            if (descSettingLang) descSettingLang.textContent = dict.descSettingLang;
+            const lblSettingSound = document.getElementById('lbl-setting-sound');
+            if (lblSettingSound) lblSettingSound.textContent = dict.lblSettingSound;
+            const descSettingSound = document.getElementById('desc-setting-sound');
+            if (descSettingSound) descSettingSound.textContent = dict.descSettingSound;
+            const txtTestSound = document.getElementById('txt-test-sound');
+            if (txtTestSound) txtTestSound.textContent = dict.txtTestSound;
+            const lblSettingNotify = document.getElementById('lbl-setting-notify');
+            if (lblSettingNotify) lblSettingNotify.textContent = dict.lblSettingNotify;
+            const descSettingNotify = document.getElementById('desc-setting-notify');
+            if (descSettingNotify) descSettingNotify.textContent = dict.descSettingNotify;
+            const txtTestNotify = document.getElementById('txt-test-notify');
+            if (txtTestNotify) txtTestNotify.textContent = dict.txtTestNotify;
+            const txtSettingsResetToday = document.getElementById('txt-settings-reset-today');
+            if (txtSettingsResetToday) txtSettingsResetToday.textContent = dict.btnSettingsResetToday;
+            const txtSettingsClearAll = document.getElementById('txt-settings-clear-all');
+            if (txtSettingsClearAll) txtSettingsClearAll.textContent = dict.btnSettingsClearAll;
+            const btnSettingsSave = document.getElementById('btn-settings-save');
+            if (btnSettingsSave) btnSettingsSave.textContent = dict.btnSettingsSave;
+
+            // Active lang button states in modal
+            const btnLangEn = document.getElementById('btn-lang-en');
+            const btnLangRu = document.getElementById('btn-lang-ru');
+            if (btnLangEn) btnLangEn.classList.toggle('active', lang === 'en');
+            if (btnLangRu) btnLangRu.classList.toggle('active', lang === 'ru');
+
+            // Footer
+            const footerLeft = document.getElementById('txt-footer-left');
+            if (footerLeft) footerLeft.textContent = dict.footerLeft;
+            const footerRight = document.getElementById('txt-footer-right');
+            if (footerRight) footerRight.textContent = dict.footerRight;
+
+            updateDateUI();
+            updateNotifyBtnState();
+            updateSoundBtnUI();
+            renderTasks();
+        }
 
         // Outside Click & Keyboard ESC
         window.addEventListener('click', (e) => {
             if (e.target === taskModal) closeTaskModal();
             if (e.target === backupModal) backupModal.classList.remove('active');
+            if (e.target === settingsModal) settingsModal.classList.remove('active');
         });
 
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeTaskModal();
                 backupModal.classList.remove('active');
+                if (settingsModal) settingsModal.classList.remove('active');
             }
         });
 
@@ -2713,6 +3260,7 @@
 
         // --- Initialization ---
         loadTasks();
+        applyLanguage(currentLang);
         updateDateUI();
         updateNotifyBtnState();
         updateSoundBtnUI();
