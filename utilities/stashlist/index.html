@@ -1292,7 +1292,6 @@
                     <label class="form-label" for="form-task-title" id="lbl-task-title">Task Title *</label>
                     <input type="text" id="form-task-title" class="form-input" placeholder="e.g., Daily Morning Stretches, Code Review, Backup DB..." required autocomplete="off">
                 </div>
-                </div>
 
                 <!-- Notes / Description -->
                 <div class="form-group">
@@ -2767,7 +2766,12 @@
                 try {
                     const parsed = JSON.parse(event.target.result);
                     if (Array.isArray(parsed)) {
-                        
+                        const sanitized = [];
+                        for (const item of parsed) {
+                            if (!item || typeof item !== 'object') continue;
+                            const title = typeof item.title === 'string' ? item.title.trim() : '';
+                            if (!title) continue;
+
                             const activeDays = Array.isArray(item.activeDays) && item.activeDays.length > 0
                                 ? item.activeDays.filter(d => Number.isInteger(d) && d >= 0 && d <= 6)
                                 : [1, 2, 3, 4, 5, 6, 0];
@@ -3021,19 +3025,19 @@
             if (formTaskNotes) formTaskNotes.placeholder = dict.phNotes;
             const lblActiveDays = document.getElementById('lbl-active-days');
             if (lblActiveDays) lblActiveDays.textContent = dict.lblActiveDays;
-            const presetAll = document.getElementById('btn-preset-all');
+            const presetAll = document.getElementById('preset-all-days');
             if (presetAll) presetAll.textContent = dict.presetAllDays;
-            const presetWeekdays = document.getElementById('btn-preset-weekdays');
+            const presetWeekdays = document.getElementById('preset-weekdays');
             if (presetWeekdays) presetWeekdays.textContent = dict.presetWeekdays;
-            const presetWeekends = document.getElementById('btn-preset-weekends');
+            const presetWeekends = document.getElementById('preset-weekends');
             if (presetWeekends) presetWeekends.textContent = dict.presetWeekends;
-            const lblReminders = document.getElementById('lbl-reminders');
+            const lblReminders = document.getElementById('txt-scheduled-reminder');
             if (lblReminders) lblReminders.textContent = dict.lblReminders;
-            const lblRemTime = document.getElementById('lbl-rem-time');
+            const lblRemTime = document.getElementById('lbl-reminder-time');
             if (lblRemTime) lblRemTime.textContent = dict.lblReminderTime;
-            const lblRemDays = document.getElementById('lbl-rem-days');
+            const lblRemDays = document.getElementById('lbl-reminder-days');
             if (lblRemDays) lblRemDays.textContent = dict.lblReminderDays;
-            const btnSync = document.getElementById('btn-sync-days');
+            const btnSync = document.getElementById('btn-sync-reminder-days');
             if (btnSync) btnSync.textContent = dict.btnSyncDays;
             const btnCancel = document.getElementById('btn-modal-cancel');
             if (btnCancel) btnCancel.textContent = dict.btnCancel;

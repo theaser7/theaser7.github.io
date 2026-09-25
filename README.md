@@ -72,9 +72,9 @@ Open `http://127.0.0.1:8080` in your browser.
 
 ### 2. Running StashCompanion (for Clarify & FetchFlow)
 
-#### From Batch Script:
+#### From Executable:
 ```cmd
-start_companion.bat
+StashCompanion.exe
 ```
 
 #### From Source:
@@ -87,7 +87,7 @@ python server/companion_server.py
 ## Deployment Workflow
 
 - **Automated VPS Sync:** Every push to the `main` branch triggers `.github/workflows/deploy.yml`, which incrementally syncs all client-side static assets to the VPS (`/stash`) via SFTP with SHA-256 validation.
-- **Manual Local Sync:** Run `deploy_to_vps.bat` or `python .github/scripts/deploy_sftp.py`.
+- **Manual Local Sync:** Run `python .github/scripts/deploy_sftp.py`.
 
 ---
 
