@@ -1031,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hasChallenge) {
         btnLang.textContent = state.lang;
         if (modalLangToggle) modalLangToggle.textContent = state.lang;
-        showToast(state.lang === 'RU' ? '🎮 Загружен челлендж от друга!' : '🎮 Custom challenge loaded!');
+        showToast(state.lang === 'RU' ? 'Загружен челлендж от друга!' : 'Custom challenge loaded!');
     }
 
     // Start initial game
@@ -1186,7 +1186,7 @@ function initCustomWordModal() {
             try {
                 await navigator.clipboard.writeText(url);
                 if (sounds.playTick) sounds.playTick();
-                showToast(state.lang === 'RU' ? '✨ Ссылка скопирована в буфер!' : '✨ Challenge link copied!');
+                showToast(state.lang === 'RU' ? 'Ссылка скопирована в буфер!' : 'Challenge link copied!');
                 const copyText = document.getElementById('btn-copy-text');
                 if (copyText) {
                     const orig = copyText.textContent;

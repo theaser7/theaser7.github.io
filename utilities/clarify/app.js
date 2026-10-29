@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     await stepProgress(100, 'Complete!');
                     metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${mult}× resolution)`;
-                    showToast(`✨ ${mult}× AI Upscaled on Local Server!`);
+                    showToast(`${mult}× AI Upscaled on Local Server!`);
                     processed = true;
                 } catch (err) {
                     console.warn('Companion server failed, falling back to browser engine:', err);
