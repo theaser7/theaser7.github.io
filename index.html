@@ -221,159 +221,11 @@
             text-transform: lowercase;
         }
 
-        .tech-banner {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            padding: 0.6rem 1rem;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-dim);
-            border-radius: var(--radius-sm);
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            width: fit-content;
-            text-transform: lowercase;
-        }
-
-        .banner-square {
-            width: 8px;
-            height: 8px;
-            background-color: var(--mint);
-            border-radius: 2px;
-        }
-
-        /* Two-Column Grid */
-        .content-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 340px;
-            gap: 2rem;
-            align-items: start;
-        }
-
-        .primary-column {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        /* Segmented Tabs */
-        .segment-tabs {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
-            background: var(--bg-surface);
-            padding: 0.35rem;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-dim);
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-muted);
-            padding: 0.65rem 1rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
-            text-transform: lowercase;
-        }
-
-        .tab-btn:hover {
-            color: var(--text-main);
-            background: var(--bg-surface-hover);
-        }
-
-        .tab-btn.active {
-            background: var(--bg-deep);
-            border-color: var(--border-medium);
-            color: var(--text-main);
-        }
-
-        .tab-badge {
-            font-size: 0.7rem;
-            background: var(--bg-input);
-            border: 1px solid var(--border-dim);
-            padding: 0.1rem 0.45rem;
-            border-radius: 4px;
-        }
-
-        /* Search / Filter Box */
-        .search-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-            background: var(--bg-surface);
-            padding: 1rem;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-dim);
-        }
-
-        .search-label {
-            font-size: 0.72rem;
-            color: var(--text-dim);
-            letter-spacing: 0.05em;
-            text-transform: lowercase;
-        }
-
-        .search-input-wrapper {
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            background: var(--bg-input);
-            border: 1px solid var(--border-medium);
-            color: var(--text-main);
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            outline: none;
-            transition: border-color 0.2s ease;
-        }
-
-        .search-input:focus {
-            border-color: var(--border-active);
-        }
-
-        .quick-tags-row {
-            display: flex;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-        }
-
-        .quick-tag-chip {
-            background: transparent;
-            border: 1px solid var(--border-dim);
-            color: var(--text-dim);
-            padding: 0.25rem 0.65rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            text-transform: lowercase;
-        }
-
-        .quick-tag-chip:hover {
-            color: var(--text-main);
-            border-color: var(--border-medium);
-        }
-
-        .quick-tag-chip.active {
-            color: var(--text-main);
-            border-color: var(--border-active);
-            background: var(--bg-surface-hover);
-        }
-
         /* Projects List Grid */
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.25rem;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
         }
 
         .project-card {
@@ -502,98 +354,6 @@
             font-weight: 700;
             color: var(--text-main);
             margin-bottom: 0.5rem;
-        }
-
-        /* Right Sidebar */
-        .sidebar-column {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .preview-box {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-dim);
-            border-radius: var(--radius-md);
-            padding: 2rem 1.25rem;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            text-transform: lowercase;
-        }
-
-        .preview-text-main {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .preview-text-sub {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .metrics-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
-        }
-
-        .metric-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-dim);
-            border-radius: var(--radius-sm);
-            padding: 0.85rem 0.5rem;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            text-transform: lowercase;
-        }
-
-        .metric-val {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
-
-        .metric-lbl {
-            font-size: 0.68rem;
-            color: var(--text-dim);
-        }
-
-        .stack-box {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-dim);
-            border-radius: var(--radius-md);
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.85rem;
-            text-transform: lowercase;
-        }
-
-        .stack-heading {
-            font-size: 0.72rem;
-            color: var(--text-dim);
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
-
-        .stack-chips {
-            display: flex;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-        }
-
-        .stack-chip {
-            font-size: 0.7rem;
-            background: var(--bg-input);
-            border: 1px solid var(--border-dim);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            color: var(--text-muted);
         }
 
         /* Settings Modal */
@@ -737,15 +497,6 @@
             text-transform: lowercase;
         }
 
-        @media (max-width: 900px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-            .sidebar-column {
-                order: 2;
-            }
-        }
-
         @media (max-width: 600px) {
             .top-sys-bar {
                 padding: 1rem;
@@ -753,7 +504,7 @@
             .main-layout {
                 padding: 1rem;
             }
-            .segment-tabs {
+            .projects-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -794,47 +545,10 @@
                 <span class="brand-version">v1.0.0</span>
             </div>
             <p class="hero-desc">веб-сьют утилит и игр. без водяных знаков. без телеметрии. бесплатно.</p>
-            <div class="tech-banner">
-                <div class="banner-square"></div>
-                <span>статус: все системы в норме &bull; локальная песочница в браузере &bull; без ограничений</span>
-            </div>
         </header>
 
-        <!-- Two-Column Layout (Left: Controls & Projects, Right: Preview & System Matrix) -->
-        <div class="content-grid">
-            <!-- Left Primary Column -->
-            <div class="primary-column">
-                <!-- Segmented Tabs (All / Games / Utilities) -->
-                <div class="segment-tabs">
-                    <button class="tab-btn active" data-tab="all">
-                        <span>все проекты</span>
-                        <span class="tab-badge" id="count-all">7</span>
-                    </button>
-                    <button class="tab-btn" data-tab="games">
-                        <span>игры</span>
-                        <span class="tab-badge" id="count-games">1</span>
-                    </button>
-                    <button class="tab-btn" data-tab="utilities">
-                        <span>утилиты</span>
-                        <span class="tab-badge" id="count-utilities">6</span>
-                    </button>
-                </div>
-
-                <!-- Command / Search Terminal Box -->
-                <div class="search-container">
-                    <div class="search-label">// поиск по каталогу или фильтрация</div>
-                    <div class="search-input-wrapper">
-                        <input type="text" id="search-input" class="search-input" placeholder="поиск по названию, тегу или описанию..." autocomplete="off">
-                    </div>
-                    <div class="quick-tags-row">
-                        <button class="quick-tag-chip active" data-status="all">все</button>
-                        <button class="quick-tag-chip" data-status="playable">готовые</button>
-                        <button class="quick-tag-chip" data-status="wip">в разработке</button>
-                    </div>
-                </div>
-
-                <!-- Projects List Grid -->
-                <div class="projects-grid" id="projects-grid">
+        <!-- Projects Grid -->
+        <div class="projects-grid" id="projects-grid">
                     <!-- 1. Flexle / вордл -->
                     <article class="project-card" data-type="games" data-category="playable">
                         <div>
@@ -1007,53 +721,6 @@
                         </div>
                         <a href="./downloads/the-stash-companion.exe" download class="btn-action" id="btn-launch-companion">скачать сервер (.exe) &rarr;</a>
                     </article>
-
-                    <!-- Empty State -->
-                    <div class="empty-state" id="empty-state" style="display: none;">
-                        <div class="empty-state-title">модули не найдены</div>
-                        <p class="empty-state-desc">попробуйте изменить поисковый запрос или выбрать другую вкладку.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Sidebar: Interactive Info Display & Metrics Matrix -->
-            <aside class="sidebar-column">
-                <!-- Preview Box -->
-                <div class="preview-box">
-                    <div class="preview-text-main">выберите модуль</div>
-                    <div class="preview-text-sub">для просмотра параметров песочницы</div>
-                </div>
-
-                <!-- 3 Metrics Boxes -->
-                <div class="metrics-row">
-                    <div class="metric-card">
-                        <span class="metric-val">1000+</span>
-                        <span class="metric-lbl">возможностей</span>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-val">100%</span>
-                        <span class="metric-lbl">в браузере</span>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-val">free</span>
-                        <span class="metric-lbl">бесплатно</span>
-                    </div>
-                </div>
-
-                <!-- Supported Tech & Platforms Cloud -->
-                <div class="stack-box">
-                    <span class="stack-heading">стек и технологии</span>
-                    <div class="stack-chips">
-                        <span class="stack-chip">JavaScript ES2024</span>
-                        <span class="stack-chip">WebAudio</span>
-                        <span class="stack-chip">yt-dlp</span>
-                        <span class="stack-chip">FFmpeg</span>
-                        <span class="stack-chip">Vulkan AI</span>
-                        <span class="stack-chip">WARP SOCKS5</span>
-                        <span class="stack-chip">Zero Telemetry</span>
-                    </div>
-                </div>
-            </aside>
         </div>
     </div>
 
@@ -1135,100 +802,7 @@
         if (btnThemeDark) btnThemeDark.addEventListener('click', () => applyStashTheme('dark'));
         if (btnThemeLight) btnThemeLight.addEventListener('click', () => applyStashTheme('light'));
 
-        // --- 2. Live Search & Filtering ---
-        let activeTab = 'all';
-        let activeStatus = 'all';
-        let searchQuery = '';
-
-        const searchInput = document.getElementById('search-input');
-        const emptyState = document.getElementById('empty-state');
-        const cards = document.querySelectorAll('.project-card');
-
-        function updateCounters() {
-            let totalCount = 0;
-            let gamesCount = 0;
-            let utilsCount = 0;
-
-            cards.forEach(card => {
-                const type = card.getAttribute('data-type');
-                const status = card.getAttribute('data-category');
-                const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
-                const desc = card.querySelector('.card-desc')?.textContent.toLowerCase() || '';
-                const tags = Array.from(card.querySelectorAll('.tag-pill')).map(t => t.textContent.toLowerCase()).join(' ');
-
-                const matchesStatus = (activeStatus === 'all' || status === activeStatus);
-                const matchesSearch = (!searchQuery || title.includes(searchQuery) || desc.includes(searchQuery) || tags.includes(searchQuery));
-
-                if (matchesStatus && matchesSearch) {
-                    totalCount++;
-                    if (type === 'games') gamesCount++;
-                    if (type === 'utilities') utilsCount++;
-                }
-            });
-
-            const cntAll = document.getElementById('count-all');
-            const cntGames = document.getElementById('count-games');
-            const cntUtils = document.getElementById('count-utilities');
-            if (cntAll) cntAll.textContent = totalCount;
-            if (cntGames) cntGames.textContent = gamesCount;
-            if (cntUtils) cntUtils.textContent = utilsCount;
-        }
-
-        function updateGrid() {
-            let visibleCount = 0;
-
-            cards.forEach(card => {
-                const cardType = card.getAttribute('data-type');
-                const cardCat = card.getAttribute('data-category');
-                const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
-                const desc = card.querySelector('.card-desc')?.textContent.toLowerCase() || '';
-                const tags = Array.from(card.querySelectorAll('.tag-pill')).map(t => t.textContent.toLowerCase()).join(' ');
-
-                const matchesTab = (activeTab === 'all' || cardType === activeTab);
-                const matchesStatus = (activeStatus === 'all' || cardCat === activeStatus);
-                const matchesSearch = (!searchQuery || title.includes(searchQuery) || desc.includes(searchQuery) || tags.includes(searchQuery));
-
-                if (matchesTab && matchesStatus && matchesSearch) {
-                    card.style.display = 'flex';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            if (emptyState) {
-                emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
-            }
-
-            updateCounters();
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                searchQuery = e.target.value.trim().toLowerCase();
-                updateGrid();
-            });
-        }
-
-        document.querySelectorAll('.tab-btn').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                activeTab = tab.getAttribute('data-tab');
-                updateGrid();
-            });
-        });
-
-        document.querySelectorAll('.quick-tag-chip').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.quick-tag-chip').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                activeStatus = btn.getAttribute('data-status');
-                updateGrid();
-            });
-        });
-
-        // --- 3. Full i18n Localization Engine ---
+        // --- 2. Full i18n Localization Engine ---
         const STASH_I18N = {
             en: {
                 sysOnline: "all systems online",
@@ -1237,23 +811,6 @@
                 btnSettings: "settings",
                 txtBtnCompanion: "companion server (.exe)",
                 heroDesc: "suite of client-side web tools and games. zero watermarks. zero telemetry. free.",
-                techBanner: "status: all systems operational • local in-browser sandbox • no throttling",
-                tabAll: "all projects",
-                tabGames: "games",
-                tabUtils: "utilities",
-                searchLabel: "// search directory or filter",
-                searchPlaceholder: "search by name, tag or description...",
-                tagAll: "all",
-                tagPlayable: "ready",
-                tagWip: "in progress",
-                emptyTitle: "no modules found",
-                emptyDesc: "try modifying the search query or selecting another tab.",
-                previewMain: "select a module",
-                previewSub: "to inspect sandbox parameters",
-                metricPossibilities: "possibilities",
-                metricClientSide: "in-browser",
-                metricForever: "free",
-                stackHeading: "stack & tech",
                 footerText: "the stash • web suite",
                 settingsBadge: "preferences",
                 settingsTitle: "settings",
@@ -1286,23 +843,6 @@
                 btnSettings: "настройки",
                 txtBtnCompanion: "companion server (.exe)",
                 heroDesc: "веб-сьют утилит и игр. без водяных знаков. без телеметрии. бесплатно.",
-                techBanner: "статус: все системы в норме • локальная песочница в браузере • без ограничений",
-                tabAll: "все проекты",
-                tabGames: "игры",
-                tabUtils: "утилиты",
-                searchLabel: "// поиск по каталогу или фильтрация",
-                searchPlaceholder: "поиск по названию, тегу или описанию...",
-                tagAll: "все",
-                tagPlayable: "готовые",
-                tagWip: "в разработке",
-                emptyTitle: "модули не найдены",
-                emptyDesc: "попробуйте изменить поисковый запрос или выбрать другую вкладку.",
-                previewMain: "выберите модуль",
-                previewSub: "для просмотра параметров песочницы",
-                metricPossibilities: "возможностей",
-                metricClientSide: "в браузере",
-                metricForever: "бесплатно",
-                stackHeading: "стек и технологии",
                 footerText: "the stash • веб-сьют",
                 settingsBadge: "параметры",
                 settingsTitle: "настройки",
@@ -1350,26 +890,6 @@
 
             const heroDesc = document.querySelector('.hero-desc');
             if (heroDesc) heroDesc.textContent = dict.heroDesc;
-            const techBannerSpan = document.querySelector('.tech-banner span');
-            if (techBannerSpan) techBannerSpan.textContent = dict.techBanner;
-
-            const tabAllSpan = document.querySelector('.tab-btn[data-tab="all"] span:first-child');
-            if (tabAllSpan) tabAllSpan.textContent = dict.tabAll;
-            const tabGamesSpan = document.querySelector('.tab-btn[data-tab="games"] span:first-child');
-            if (tabGamesSpan) tabGamesSpan.textContent = dict.tabGames;
-            const tabUtilsSpan = document.querySelector('.tab-btn[data-tab="utilities"] span:first-child');
-            if (tabUtilsSpan) tabUtilsSpan.textContent = dict.tabUtils;
-
-            const searchLabel = document.querySelector('.search-label');
-            if (searchLabel) searchLabel.textContent = dict.searchLabel;
-            if (searchInput) searchInput.placeholder = dict.searchPlaceholder;
-
-            const tagAll = document.querySelector('.quick-tag-chip[data-status="all"]');
-            if (tagAll) tagAll.textContent = dict.tagAll;
-            const tagPlayable = document.querySelector('.quick-tag-chip[data-status="playable"]');
-            if (tagPlayable) tagPlayable.textContent = dict.tagPlayable;
-            const tagWip = document.querySelector('.quick-tag-chip[data-status="wip"]');
-            if (tagWip) tagWip.textContent = dict.tagWip;
 
             const cardFlexle = document.querySelector('a[href*="flexle"]')?.closest('.project-card');
             if (cardFlexle) {
@@ -1424,20 +944,6 @@
             const btnLaunchCompanion = document.getElementById('btn-launch-companion');
             if (btnLaunchCompanion) btnLaunchCompanion.textContent = dict.btnLaunchCompanion;
 
-            const prevMain = document.querySelector('.preview-text-main');
-            if (prevMain) prevMain.textContent = dict.previewMain;
-            const prevSub = document.querySelector('.preview-text-sub');
-            if (prevSub) prevSub.textContent = dict.previewSub;
-
-            const metricLbls = document.querySelectorAll('.metric-lbl');
-            if (metricLbls.length >= 3) {
-                metricLbls[0].textContent = dict.metricPossibilities;
-                metricLbls[1].textContent = dict.metricClientSide;
-                metricLbls[2].textContent = dict.metricForever;
-            }
-
-            const stackHeading = document.querySelector('.stack-heading');
-            if (stackHeading) stackHeading.textContent = dict.stackHeading;
 
             const footerText = document.getElementById('footer-text');
             if (footerText) footerText.textContent = dict.footerText;
