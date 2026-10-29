@@ -1,50 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clarify • AI Photo Upscaler & Enhancer</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%2215 3 21 3 21 9%22/><polyline points=%229 21 3 21 3 15%22/><line x1=%2221%22 y1=%223%22 x2=%2214%22 y2=%2210%22/><line x1=%223%22 y1=%2221%22 x2=%2210%22 y2=%2214%22/></svg>">
+    <title>нейроапскейлер • the stash</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%2215 3 21 3 21 9%22/><polyline points=%229 21 3 21 3 15%22/><line x1=%2221%22 y1=%223%22 x2=%2214%22 y2=%2210%22/><line x1=%223%22 y1=%2221%22 x2=%2210%22 y2=%2214%22/></svg>">
     <link rel="stylesheet" href="style.css">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('stash_theme') || 'dark';
+            if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        })();
+    </script>
 </head>
 <body>
-    <canvas id="bg-canvas"></canvas>
-
     <div class="toast-container" id="toast-container"></div>
 
     <!-- Header Bar -->
     <header class="header">
         <div class="header-left">
-            <a href="../../index.html" class="btn-icon" title="Back to Hub">
+            <a href="../../index.html" class="btn-icon" title="на главную">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
             </a>
             <div class="brand-title">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#clarify-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <defs>
-                        <linearGradient id="clarify-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#00ff9d" />
-                            <stop offset="100%" stop-color="#38bdf8" />
-                        </linearGradient>
-                    </defs>
-                    <polyline points="15 3 21 3 21 9"></polyline>
-                    <polyline points="9 21 3 21 3 15"></polyline>
-                    <line x1="21" y1="3" x2="14" y2="10"></line>
-                    <line x1="3" y1="21" x2="10" y2="14"></line>
-                </svg>
-                Clarify
-                <span class="brand-badge">AI 4K</span>
+                нейроапскейлер
+                <span class="brand-badge">vulkan / gpu</span>
             </div>
         </div>
 
         <div class="header-right">
-            <div class="accel-badge">
-                <span class="accel-dot"></span>
-                <span id="accel-text">WebGPU Ready</span>
-            </div>
-            <button class="btn-icon" id="btn-settings" title="Settings">
+            <button class="btn-icon theme-toggle-btn" id="btn-theme-toggle" title="переключить тему"></button>
+            <button class="btn-icon" id="btn-settings" title="настройки">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -57,8 +46,8 @@
     <main class="container">
         <!-- Hero Section -->
         <section class="hero-section" id="hero-section">
-            <h1 class="hero-title">Super-Resolution &bull; Zero Telemetry</h1>
-            <p class="hero-subtitle">Upscale and restore photos up to 4K using in-browser neural image enhancement. 100% private & client-side.</p>
+            <h1 class="hero-title" style="text-transform: lowercase;">нейроапскейлер</h1>
+            <p class="hero-subtitle">локальное увеличение разрешения фотографий без потери качества и без передачи данных на сторонние серверы</p>
         </section>
 
         <!-- Dropzone Upload Area -->
@@ -71,10 +60,10 @@
                 </svg>
             </div>
             <div class="dropzone-text-group">
-                <div class="dropzone-title">Drop your image here, or click to browse</div>
-                <div class="dropzone-sub">Supports PNG, JPG, WebP, AVIF &bull; Up to 50MB</div>
+                <div class="dropzone-title">перетащите изображение сюда или выберите файл</div>
+                <div class="dropzone-sub">поддерживаются png, jpg, webp, avif • до 50 мб</div>
             </div>
-            <div class="dropzone-hint-badge">Tip: You can also paste directly with Ctrl+V</div>
+            <div class="dropzone-hint-badge">подсказка: можно вставить из буфера обмена (ctrl+v)</div>
             <input type="file" id="file-input" accept="image/*" style="display: none;">
         </section>
 
@@ -233,38 +222,85 @@
     <div class="modal-overlay" id="modal-settings">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 class="modal-title">Clarify Settings</h2>
+                <h2 class="modal-title">настройки</h2>
                 <button class="modal-close" id="close-settings">&times;</button>
             </div>
 
             <!-- Companion Server Hardware Status -->
-            <div class="form-group" style="background: rgba(99, 102, 241, 0.06); padding: 1rem; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.25);">
-                <div style="font-weight: 800; font-size: 0.95rem; margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: space-between;">
-                    <span>⚡ Local Companion Server</span>
-                    <span id="companion-status-pill" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(34, 197, 94, 0.15); color: #4ade80;">Active</span>
+            <div class="form-group" style="background: var(--card-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--card-border);">
+                <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: space-between;">
+                    <span>локальный сервер (stashcompanion)</span>
+                    <span id="companion-status-pill" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: var(--badge-bg); color: var(--text-primary); border: 1px solid var(--card-border);">проверка...</span>
                 </div>
-                <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.65rem;">
-                    For 100% genuine studio-grade 4K AI upscaling using Real-ESRGAN / Upscayl engine directly on your local machine:
+                <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.65rem;">
+                    аппаратное ускорение vulkan ncnn для нейроапскейлинга 2x, 4x, 6x, 8x на gpu:
                 </p>
-                <div style="background: #0d1017; padding: 0.5rem 0.75rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: #a5b4fc; margin-bottom: 0.5rem; user-select: all; display: flex; justify-content: space-between; align-items: center;">
+                <div style="background: var(--bg-color); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--card-border); font-size: 0.8rem; color: var(--text-primary); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>StashCompanion.exe</span>
-                    <span style="font-size: 0.7rem; color: var(--text-secondary);">1-click launch</span>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">http://127.0.0.1:7860</span>
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="select-engine">Processing Mode</label>
+                <label class="form-label" for="select-engine">режим обработки</label>
                 <select class="form-input" id="select-engine">
-                    <option value="auto">Auto-Detect (Local Companion Server &rarr; Browser Fallback)</option>
-                    <option value="browser">Force In-Browser Engine (WebGL / Client-Side)</option>
+                    <option value="auto">авто (локальный companion сервер &rarr; браузерный фоллбэк)</option>
+                    <option value="browser">только браузерный режим (webgl / canvas)</option>
                 </select>
-                <span class="form-hint">100% private, zero telemetry, full control over your data.</span>
+                <span class="form-hint">100% приватность, без телеметрии и без отправки изображений во внешнюю сеть.</span>
             </div>
 
-            <button class="btn-primary" id="btn-save-settings">Save Settings</button>
+            <div class="form-group">
+                <label class="form-label">тема оформления</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn-secondary" id="btn-modal-theme" style="padding: 0.45rem 1rem; font-size: 0.8rem;">тёмная тема</button>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="btn-save-settings">сохранить</button>
         </div>
     </div>
 
     <script src="app.js"></script>
+    <script>
+        function updateClarifyThemeIcons() {
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            const btn = document.getElementById('btn-theme-toggle');
+            if (btn) {
+                btn.innerHTML = isLight 
+                    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'
+                    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+            }
+            const modalThemeBtn = document.getElementById('btn-modal-theme');
+            if (modalThemeBtn) {
+                modalThemeBtn.textContent = isLight ? 'переключить на тёмную' : 'переключить на светлую';
+            }
+        }
+        function toggleClarifyTheme() {
+            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            const next = current === 'light' ? 'dark' : 'light';
+            localStorage.setItem('stash_theme', next);
+            if (next === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            updateClarifyThemeIcons();
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            updateClarifyThemeIcons();
+            const btn = document.getElementById('btn-theme-toggle');
+            if (btn) btn.addEventListener('click', toggleClarifyTheme);
+            const modalBtn = document.getElementById('btn-modal-theme');
+            if (modalBtn) modalBtn.addEventListener('click', toggleClarifyTheme);
+        });
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'stash_theme') {
+                if (e.newValue === 'light') document.documentElement.setAttribute('data-theme', 'light');
+                else document.documentElement.removeAttribute('data-theme');
+                updateClarifyThemeIcons();
+            }
+        });
+    </script>
 </body>
 </html>

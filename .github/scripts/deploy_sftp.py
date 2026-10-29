@@ -30,7 +30,7 @@ INCLUDE_ROOTS = ["index.html", "games", "utilities"]
 # Exclude patterns/names
 EXCLUDE_NAMES = {
     ".git", ".github", "downloads", "server", "build", "dist", "scratch", "bin",
-    "__pycache__", ".pytest_cache", ".vscode", ".idea"
+    "__pycache__", ".pytest_cache", ".vscode", ".idea", "desktop", "quantex"
 }
 EXCLUDE_EXTENSIONS = {".py", ".bat", ".spec", ".pyc", ".txt", ".md", ".yml", ".yaml"}
 

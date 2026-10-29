@@ -17,45 +17,25 @@
 
 | Project | Description | Tech Stack |
 | :--- | :--- | :--- |
-| **[Flexle](./games/flexle/)** | Dynamic word puzzle engine with variable word lengths (4, 5, 6, 7, 8, 11+ letters), bilingual dictionaries (RU/EN), and streak analytics. | Vanilla JS, Web Audio API, LocalStorage |
-| **[Quantex](./games/quantex/)** | Real-time higher/lower statistical estimation game featuring massive verified datasets across searches, streaming views, and demographics. | Canvas FX, Vector Blueprints, Local State |
+| **[вордл / Flexle](./games/flexle/)** | Dynamic word puzzle engine with variable word lengths (4 to 11+ letters), bilingual dictionaries (RU/EN), and streak analytics. | Vanilla JS, Web Audio API, LocalStorage |
 
 ### Client-Side Utilities
 
 | Project | Description | Engine |
 | :--- | :--- | :--- |
-| **[StashConvert](./utilities/stashconvert/)** | In-browser batch file converter supporting image formats (PNG, JPG, WebP, AVIF, SVG, ICO, BMP, TIFF), audio, video, and documents. | Web APIs, Canvas, HTML5 FileReader |
-| **[StashIP](./utilities/staship/)** | Network diagnostic tool providing IP intelligence, ASN lookups, WebRTC leak detection, and DNS latency checks with zero logging. | Native Fetch, WebRTC API |
-| **[StashList](./utilities/stashlist/)** | Recurring daily checklist and habit tracker with weekday scheduling, custom reminder chimes, Web Notifications, and midnight auto-reset. | Web Audio API, Web Notifications, LocalStorage |
-| **[Clarify](./utilities/clarify/)** | Super-resolution AI photo upscaling (2x, 4x, 6x, 8x true neural enhancement) powered by Vulkan NCNN. | StashCompanion (Real-ESRGAN Vulkan) |
-| **[FetchFlow](./utilities/fetchflow/)** | High-throughput media stream parser and multi-format video/audio downloader. | StashCompanion (yt-dlp Engine) |
+| **[конвертер / StashConvert](./utilities/stashconvert/)** | In-browser batch file converter supporting image formats, audio, video, and documents. | Web APIs, Canvas, HTML5 FileReader |
+| **[проверка ip / StashIP](./utilities/staship/)** | Network diagnostic tool providing IP intelligence, ASN lookups, and latency checks. | Native Fetch, WebRTC API |
+| **[чеклист / StashList](./utilities/stashlist/)** | Recurring daily checklist and habit tracker with weekday scheduling and audio notifications. | Web Audio API, Web Notifications, LocalStorage |
+| **[нейроапскейлер / Clarify](./utilities/clarify/)** | Super-resolution AI photo upscaling (2x, 4x, 6x, 8x true neural enhancement) powered by Vulkan NCNN. | StashCompanion (Real-ESRGAN Vulkan) |
+| **[скачивание видео / FetchFlow](./utilities/fetchflow/)** | High-throughput batch media stream downloader with sequential queue processing. | VPS Downloader Backend (yt-dlp + Cloudflare WARP proxy) |
 
 ---
 
-## Architecture & StashCompanion
+## Architecture
 
-The web suite follows a strict **Zero Server-Side State** principle:
-- **Web Frontend:** Pure static assets (HTML5, modern CSS3, vanilla JavaScript ES6+). Hosted on VPS via SFTP and GitHub Pages.
-- **StashCompanion (`server/companion_server.py`):** Optional desktop helper running locally on `http://127.0.0.1:7860`. It provides hardware acceleration for neural upscaling and media extraction without sending any payload to remote servers.
-
-```
-+-------------------------------------------------------------+
-|                      Browser Sandbox                        |
-|   thestash.space (HTML / CSS / JS / Web APIs / Web Workers) |
-+-------------------------------------------------------------+
-                              |
-                     CORS / localhost:7860
-                              |
-                              v
-+-------------------------------------------------------------+
-|               Local StashCompanion Server                   |
-|              http://127.0.0.1:7860 (Python)                 |
-|                                                             |
-|   +--------------------------+  +-----------------------+   |
-|   | Real-ESRGAN (Vulkan/GPU) |  |   yt-dlp (Portable)   |   |
-|   +--------------------------+  +-----------------------+   |
-+-------------------------------------------------------------+
-```
+- **Web Frontend:** Pure static assets (HTML5, modern CSS3, vanilla JavaScript ES6+). Minimalist monochrome aesthetic with dark/light themes.
+- **StashCompanion (`server/companion_server.py`):** Local hardware acceleration companion running on `http://127.0.0.1:7860` specifically for neural image upscaling (Clarify) via Real-ESRGAN Vulkan.
+- **VPS Downloader Backend (`server/vps_downloader.py`):** Standalone lightweight backend with yt-dlp, routing media traffic safely through Cloudflare WARP SOCKS5 proxy without affecting the VPS default gateway.
 
 ---
 

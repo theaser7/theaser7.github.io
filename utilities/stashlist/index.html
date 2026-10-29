@@ -1,44 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StashList • Recurring Checklist</title>
-    <meta name="description" content="StashList - Pure client-side recurring daily checklist and routine tracker. Active day scheduling, custom reminder alerts with audio notifications, zero telemetry, offline-first.">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M9 11l3 3L22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>">
-
+    <title>чеклист • the stash</title>
+    <meta name="description" content="Чеклист - Локальный трекер привычек и регулярных задач без телеметрии.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M9 11l3 3L22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('stash_theme') || 'dark';
+            if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        })();
+    </script>
     <style>
         :root {
-            --bg-deep: #050807;
-            --bg-surface: rgba(9, 15, 12, 0.85);
-            --bg-surface-hover: rgba(14, 24, 19, 0.95);
-            --bg-card: rgba(11, 19, 15, 0.9);
-            --bg-card-hover: rgba(16, 28, 22, 0.95);
-            --bg-input: rgba(7, 12, 10, 0.9);
-            --bg-modal: #080f0c;
+            --bg-deep: #09090b;
+            --bg-surface: #121215;
+            --bg-surface-hover: #18181b;
+            --bg-card: #141417;
+            --bg-card-hover: #1c1c20;
+            --bg-input: #0e0e11;
+            --bg-modal: #121215;
 
-            --border-dim: #13221b;
-            --border-medium: #1c362a;
-            --border-active: #00ff9d;
+            --border-dim: #222226;
+            --border-medium: #2e2e34;
+            --border-active: #ffffff;
 
-            --mint: #00ff9d;
-            --mint-hover: #05f0a5;
-            --mint-dark: #04251a;
-            --mint-glow: rgba(0, 255, 157, 0.35);
-            --mint-soft-glow: rgba(0, 255, 157, 0.12);
+            --mint: #ffffff;
+            --mint-hover: #e4e4e7;
+            --mint-dark: #1a1a1e;
+            --mint-glow: transparent;
+            --mint-soft-glow: transparent;
 
-            --text-main: #f0fdf4;
-            --text-muted: #86a896;
-            --text-dim: #436353;
-            --danger: #ff3366;
-            --danger-bg: rgba(255, 51, 102, 0.12);
+            --text-main: #f4f4f5;
+            --text-muted: #8e8e99;
+            --text-dim: #52525b;
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.12);
 
-            --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
             --radius-sm: 6px;
             --radius-md: 10px;
-            --radius-lg: 16px;
+            --radius-lg: 14px;
+        }
+
+        [data-theme="light"] {
+            --bg-deep: #ffffff;
+            --bg-surface: #f7f7f8;
+            --bg-surface-hover: #eeeeef;
+            --bg-card: #fafafa;
+            --bg-card-hover: #f0f0f2;
+            --bg-input: #ffffff;
+            --bg-modal: #ffffff;
+
+            --border-dim: #e4e4e7;
+            --border-medium: #d4d4d8;
+            --border-active: #09090b;
+
+            --mint: #09090b;
+            --mint-hover: #27272a;
+            --mint-dark: #f4f4f5;
+            --mint-glow: transparent;
+            --mint-soft-glow: transparent;
+
+            --text-main: #09090b;
+            --text-muted: #71717a;
+            --text-dim: #a1a1aa;
+            --danger: #dc2626;
+            --danger-bg: rgba(220, 38, 38, 0.1);
         }
 
         * {
@@ -58,17 +89,7 @@
             align-items: center;
             overflow-x: hidden;
             position: relative;
-        }
-
-        /* 2D Background Canvas */
-        #bg-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0;
-            pointer-events: none;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         /* App Container */
@@ -117,7 +138,7 @@
             align-items: center;
             justify-content: center;
             color: var(--mint);
-            box-shadow: 0 0 12px var(--mint-glow);
+            
             flex-shrink: 0;
         }
 
@@ -138,7 +159,7 @@
             letter-spacing: 0.08em;
             color: var(--mint);
             font-family: var(--font-mono);
-            text-shadow: 0 0 10px var(--mint-glow);
+            
         }
 
         .brand-version {
@@ -162,7 +183,7 @@
         }
 
         .header-date-badge {
-            background: rgba(0, 255, 157, 0.05);
+            background: var(--bg-input);
             border: 1px solid var(--border-medium);
             padding: 0.35rem 0.75rem;
             border-radius: var(--radius-sm);
@@ -201,21 +222,21 @@
         .hud-btn:hover {
             border-color: var(--border-active);
             color: var(--mint);
-            box-shadow: 0 0 12px var(--mint-soft-glow);
-            background: rgba(0, 255, 157, 0.06);
+            
+            background: var(--bg-surface-hover);
         }
 
         .hud-btn.active {
             border-color: var(--mint);
             color: var(--mint);
-            background: rgba(0, 255, 157, 0.1);
+            background: var(--bg-surface-hover);
         }
 
         .hud-btn.primary {
-            background: rgba(0, 255, 157, 0.12);
+            background: var(--bg-surface-hover);
             border-color: var(--mint);
             color: var(--mint);
-            box-shadow: 0 0 12px var(--mint-soft-glow);
+            
         }
 
         .hud-btn.primary:hover {
@@ -447,7 +468,7 @@
         .filter-chip.active {
             border-color: var(--border-active);
             color: var(--mint);
-            background: rgba(0, 255, 157, 0.08);
+            background: var(--bg-surface-hover);
         }
 
         /* Task List Section */
@@ -522,7 +543,7 @@
             background: var(--mint);
             border-color: var(--mint);
             color: #050807;
-            box-shadow: 0 0 12px var(--mint-glow);
+            
         }
 
         .task-checkbox-btn svg {
@@ -620,17 +641,17 @@
         }
 
         .day-dot.active {
-            background: rgba(0, 255, 157, 0.08);
+            background: var(--bg-surface-hover);
             border-color: var(--border-medium);
             color: var(--text-muted);
         }
 
         .day-dot.today.active {
-            background: rgba(0, 255, 157, 0.16);
+            background: var(--bg-card-hover);
             border-color: var(--mint);
             color: var(--mint);
             font-weight: 800;
-            box-shadow: 0 0 8px var(--mint-soft-glow);
+            
         }
 
         .day-dot.today:not(.active) {
@@ -654,8 +675,8 @@
 
         .reminder-pill.active {
             color: var(--mint);
-            border-color: rgba(0, 255, 157, 0.3);
-            background: rgba(0, 255, 157, 0.06);
+            border-color: var(--border-active);
+            background: var(--bg-surface-hover);
         }
 
         .task-right-actions {
@@ -709,7 +730,7 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: rgba(0, 255, 157, 0.06);
+            background: var(--bg-surface-hover);
             border: 1px solid var(--border-medium);
             display: flex;
             align-items: center;
@@ -800,7 +821,7 @@
 
         .modal-close:hover {
             color: var(--mint);
-            background: rgba(0, 255, 157, 0.08);
+            background: var(--bg-surface-hover);
         }
 
         .form-group {
@@ -870,10 +891,10 @@
         }
 
         .day-toggle-btn.active {
-            background: rgba(0, 255, 157, 0.1);
+            background: var(--bg-surface-hover);
             border-color: var(--mint);
             color: var(--mint);
-            box-shadow: 0 0 8px var(--mint-soft-glow);
+            
         }
 
         .presets-row {
@@ -1007,7 +1028,7 @@
             border-radius: var(--radius-sm);
             font-size: 0.85rem;
             font-family: var(--font-mono);
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7), 0 0 15px var(--mint-soft-glow);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7);
             transform: translateY(100px);
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1113,9 +1134,6 @@
     </style>
 </head>
 <body>
-    <!-- 2D Canvas Blueprint Background -->
-    <canvas id="bg-canvas"></canvas>
-
     <div class="app-container">
         <!-- Header -->
         <header>
@@ -1127,8 +1145,8 @@
                     </svg>
                 </div>
                 <div class="brand-info">
-                    <span class="brand-title" id="txt-brand-title">StashList</span>
-                    <span class="brand-version">v0.9.0</span>
+                    <span class="brand-title" id="txt-brand-title">чеклист</span>
+                    <span class="brand-version">v1.0.0</span>
                 </div>
             </a>
 
@@ -1140,17 +1158,32 @@
                         <line x1="8" y1="2" x2="8" y2="6"></line>
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
-                    <span id="txt-live-date">TODAY</span>
+                    <span id="txt-live-date">сегодня</span>
                 </div>
             </div>
 
             <div class="header-actions">
+                <button class="hud-btn theme-toggle-btn" id="btn-theme-toggle" title="тема">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <span>тема</span>
+                </button>
+
                 <button class="hud-btn" id="btn-toggle-sound" title="Toggle audio feedback">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
                         <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
                     </svg>
-                    <span id="txt-sound-btn">SOUND: ON</span>
+                    <span id="txt-sound-btn">звук</span>
                 </button>
 
                 <button class="hud-btn" id="btn-toggle-notify" title="Toggle browser notifications">
@@ -1158,7 +1191,7 @@
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                     </svg>
-                    <span id="txt-notify-btn">ALERTS: CHECK</span>
+                    <span id="txt-notify-btn">оповещения</span>
                 </button>
 
                 <button class="hud-btn" id="btn-backup-menu" title="Export or Import JSON">
@@ -1167,12 +1200,12 @@
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
-                    <span id="txt-json-btn">JSON DATA</span>
+                    <span id="txt-json-btn">json</span>
                 </button>
 
                 <button class="hud-btn" id="btn-open-settings" title="Settings / Настройки">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    <span id="txt-settings-btn">SETTINGS</span>
+                    <span id="txt-settings-btn">настройки</span>
                 </button>
             </div>
         </header>
@@ -1418,10 +1451,10 @@
         <div class="modal-card" style="max-width: 520px;">
             <div class="modal-header">
                 <div>
-                    <span class="modal-badge" id="modal-settings-badge" style="font-size: 0.72rem; color: var(--mint); background: rgba(0, 255, 157, 0.08); border: 1px solid var(--border-medium); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block; margin-bottom: 0.35rem;">SYSTEM PREFERENCES</span>
-                    <h3 class="modal-title" id="modal-settings-title" style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); font-family: var(--font-mono);">Preferences // Settings</h3>
+                    <span class="modal-badge" id="modal-settings-badge" style="font-size: 0.72rem; color: var(--mint); background: var(--mint-dark); border: 1px solid var(--border-medium); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block; margin-bottom: 0.35rem;">параметры</span>
+                    <h3 class="modal-title" id="modal-settings-title" style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); font-family: var(--font-mono);">настройки</h3>
                 </div>
-                <button class="modal-close" id="modal-settings-close" title="Close">
+                <button class="modal-close" id="modal-settings-close" title="Закрыть">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -1430,6 +1463,18 @@
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 1rem; margin: 1.25rem 0;">
+                <!-- Theme setting -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; background: var(--bg-input); border: 1px solid var(--border-dim); border-radius: var(--radius-sm); gap: 1rem;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.88rem;" id="lbl-setting-theme">тема оформления</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;" id="desc-setting-theme">светлая или темная тема</div>
+                    </div>
+                    <div style="display: flex; gap: 0.4rem;">
+                        <button class="hud-btn theme-choice-btn" id="btn-theme-dark" data-theme="dark" style="padding: 0.35rem 0.85rem;">темная</button>
+                        <button class="hud-btn theme-choice-btn" id="btn-theme-light" data-theme="light" style="padding: 0.35rem 0.85rem;">светлая</button>
+                    </div>
+                </div>
+
                 <!-- Language setting -->
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; background: var(--bg-input); border: 1px solid var(--border-dim); border-radius: var(--radius-sm); gap: 1rem;">
                     <div>
@@ -1687,53 +1732,43 @@
         const soundEngine = new StashAudioEngine();
     </script>
 
-    <!-- Blueprint Canvas Background -->
+    <!-- Theme Management -->
     <script>
-        (function() {
-            const canvas = document.getElementById('bg-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            let w, h;
+        function applyStashTheme(theme) {
+            const currentTheme = theme === 'light' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('stash_theme', currentTheme);
 
-            function resize() {
-                w = canvas.width = window.innerWidth;
-                h = canvas.height = window.innerHeight;
+            const btnDark = document.getElementById('btn-theme-dark');
+            const btnLight = document.getElementById('btn-theme-light');
+            if (btnDark) btnDark.classList.toggle('active', currentTheme === 'dark');
+            if (btnLight) btnLight.classList.toggle('active', currentTheme === 'light');
+        }
+
+        const initialTheme = localStorage.getItem('stash_theme') || 'dark';
+        applyStashTheme(initialTheme);
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'stash_theme') {
+                applyStashTheme(e.newValue || 'dark');
             }
-            window.addEventListener('resize', resize);
-            resize();
+        });
 
-            const gridSize = 40;
-            let offset = 0;
-
-            function draw() {
-                ctx.clearRect(0, 0, w, h);
-                ctx.strokeStyle = '#13221b';
-                ctx.lineWidth = 1;
-                offset = (offset + 0.1) % gridSize;
-
-                for (let x = offset; x < w; x += gridSize) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, h);
-                    ctx.stroke();
-                }
-                for (let y = offset; y < h; y += gridSize) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(w, y);
-                    ctx.stroke();
-                }
-
-                ctx.fillStyle = 'rgba(0, 255, 157, 0.12)';
-                for (let x = offset; x < w; x += gridSize * 2) {
-                    for (let y = offset; y < h; y += gridSize * 2) {
-                        ctx.fillRect(x - 1, y - 1, 2, 2);
-                    }
-                }
-                requestAnimationFrame(draw);
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('btn-theme-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    const current = localStorage.getItem('stash_theme') || 'dark';
+                    applyStashTheme(current === 'dark' ? 'light' : 'dark');
+                });
             }
-            draw();
-        })();
+
+            const btnDark = document.getElementById('btn-theme-dark');
+            const btnLight = document.getElementById('btn-theme-light');
+            if (btnDark) btnDark.addEventListener('click', () => applyStashTheme('dark'));
+            if (btnLight) btnLight.addEventListener('click', () => applyStashTheme('light'));
+            applyStashTheme(localStorage.getItem('stash_theme') || 'dark');
+        });
     </script>
 
     <!-- Main Application Logic -->
@@ -1743,176 +1778,176 @@
 
         const STASHLIST_I18N = {
             en: {
-                pageTitle: "StashList • Recurring Checklist",
-                brandTitle: "StashList",
-                btnSound: "SOUND: ",
-                btnAlerts: "ALERTS: ",
-                statusOn: "ON",
-                statusOff: "OFF",
-                statusBlocked: "BLOCKED",
-                statusCheck: "ENABLE ALERTS",
-                btnJson: "JSON DATA",
-                btnSettings: "SETTINGS",
-                dashTitle: "Daily Recurring Checklist",
-                dashScheduleStatus: (day) => `Today is ${day} • Scheduled routines active • Auto-resets at midnight`,
-                statCompleted: "Completed Today",
-                statProgress: "Progress",
-                btnNewTask: "NEW TASK",
+                pageTitle: "чеклист • the stash",
+                brandTitle: "чеклист",
+                btnSound: "sound: ",
+                btnAlerts: "alerts: ",
+                statusOn: "on",
+                statusOff: "off",
+                statusBlocked: "blocked",
+                statusCheck: "enable alerts",
+                btnJson: "json",
+                btnSettings: "settings",
+                dashTitle: "daily recurring checklist",
+                dashScheduleStatus: (day) => `today is ${day} • scheduled routines active • auto-resets at midnight`,
+                statCompleted: "completed today",
+                statProgress: "progress",
+                btnNewTask: "new task",
                 progressSummary: (c, t, p) => `${c} of ${t} tasks completed today (${p}%)`,
-                progressStreak: "Zero Telemetry • Offline First",
-                tabToday: "Today's Tasks",
-                tabAll: "All Tasks",
-                statusAll: "ALL",
-                statusPending: "ACTIVE",
-                statusCompleted: "COMPLETED",
-                searchPlaceholder: "Search tasks by title or notes...",
-                lblSettingTz: "Timezone",
-                descSettingTz: "Date & midnight reset calculations",
-                emptyNoTasksTitle: "NO TASKS SCHEDULED",
-                emptyNoTasksDesc: "Your checklist is empty. Create your first recurring habit!",
-                btnCreateFirst: "Create Task",
-                emptyNoMatchTitle: "NO MATCHING TASKS",
-                emptyNoMatchDesc: "No tasks match your current view or filter.",
-                btnClearFilters: "Clear All Filters",
-                modalNewHeading: "// NEW RECURRING TASK",
-                modalEditHeading: "// EDIT RECURRING TASK",
-                lblTaskTitle: "Task Title *",
-                phTaskTitle: "e.g., Daily Morning Stretches, Code Review, Backup DB...",
-                lblNotes: "Notes / Instructions (Optional)",
-                phNotes: "Optional details, links, or criteria for completion...",
-                lblActiveDays: "Active Days of the Week",
-                presetAllDays: "All Days",
-                presetWeekdays: "Weekdays (Mon-Fri)",
-                presetWeekends: "Weekends (Sat-Sun)",
-                days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-                lblReminders: "Enable Scheduled Reminders",
-                lblReminderTime: "Reminder Time (HH:MM)",
-                lblReminderDays: "Reminder Trigger Days",
-                btnSyncDays: "Same as Active Days",
-                btnCancel: "Cancel",
-                btnSaveTask: "Save Task",
-                txtBackupTitle: "// DATA MANAGEMENT",
-                txtBackupDesc: "All StashList data is stored locally in your browser storage. You can backup your recurring tasks as a JSON file or restore them anytime.",
-                btnExportJson: "Download JSON Backup",
-                btnImportJson: "Restore from JSON File",
-                btnResetToday: "Reset Today's Completions",
-                settingsBadge: "SYSTEM PREFERENCES",
-                settingsTitle: "Preferences // Settings",
-                lblSettingLang: "Interface Language",
-                descSettingLang: "Choose language for StashList & hub",
-                lblSettingSound: "Audio Chimes & Sound Effects",
-                descSettingSound: "Interactive WebAudio feedback for completions",
-                txtTestSound: "TEST CHIME",
-                lblSettingNotify: "Desktop Notifications",
-                descSettingNotify: "Scheduled routine reminders in background",
-                txtTestNotify: "TEST ALERT",
-                btnGrantNotify: "ENABLE",
-                btnSettingsResetToday: "Reset Today's Progress",
-                btnSettingsClearAll: "Clear All Tasks",
-                btnSettingsSave: "Save & Close",
-                bannerReminder: "STASHLIST REMINDER",
-                btnBannerComplete: "Done",
-                footerLeft: "StashList • 100% Client-Side Recurring Checklist",
+                progressStreak: "zero telemetry • offline first",
+                tabToday: "today's tasks",
+                tabAll: "all tasks",
+                statusAll: "all",
+                statusPending: "active",
+                statusCompleted: "completed",
+                searchPlaceholder: "search tasks by title or notes...",
+                lblSettingTz: "timezone",
+                descSettingTz: "date & midnight reset calculations",
+                emptyNoTasksTitle: "no tasks scheduled",
+                emptyNoTasksDesc: "your checklist is empty. create your first recurring habit!",
+                btnCreateFirst: "create task",
+                emptyNoMatchTitle: "no matching tasks",
+                emptyNoMatchDesc: "no tasks match your current view or filter.",
+                btnClearFilters: "clear all filters",
+                modalNewHeading: "// new recurring task",
+                modalEditHeading: "// edit recurring task",
+                lblTaskTitle: "task title *",
+                phTaskTitle: "e.g., daily morning stretches, code review, backup db...",
+                lblNotes: "notes / instructions (optional)",
+                phNotes: "optional details, links, or criteria for completion...",
+                lblActiveDays: "active days of the week",
+                presetAllDays: "all days",
+                presetWeekdays: "weekdays (mon-fri)",
+                presetWeekends: "weekends (sat-sun)",
+                days: ["sun", "mon", "tue", "wed", "thu", "fri", "sat"],
+                lblReminders: "enable scheduled reminders",
+                lblReminderTime: "reminder time (hh:mm)",
+                lblReminderDays: "reminder trigger days",
+                btnSyncDays: "same as active days",
+                btnCancel: "cancel",
+                btnSaveTask: "save task",
+                txtBackupTitle: "// data management",
+                txtBackupDesc: "all data is stored locally in your browser storage. you can backup your recurring tasks as a json file or restore them anytime.",
+                btnExportJson: "download json backup",
+                btnImportJson: "restore from json file",
+                btnResetToday: "reset today's completions",
+                settingsBadge: "параметры",
+                settingsTitle: "настройки",
+                lblSettingLang: "interface language",
+                descSettingLang: "choose language for чеклист & hub",
+                lblSettingSound: "audio chimes & sound effects",
+                descSettingSound: "interactive webaudio feedback for completions",
+                txtTestSound: "test chime",
+                lblSettingNotify: "desktop notifications",
+                descSettingNotify: "scheduled routine reminders in background",
+                txtTestNotify: "test alert",
+                btnGrantNotify: "enable",
+                btnSettingsResetToday: "reset today's progress",
+                btnSettingsClearAll: "clear all tasks",
+                btnSettingsSave: "save & close",
+                bannerReminder: "напоминание",
+                btnBannerComplete: "готово",
+                footerLeft: "чеклист • 100% offline checklist",
                 footerRight: "the stash",
-                dayNames: ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'],
-                monthNames: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
-                toastResetToday: "Today's completions have been reset.",
-                toastAllCleared: "All tasks have been cleared.",
-                toastFiltersCleared: "Filters cleared.",
-                toastTaskDeleted: (name) => `Task "${name}" deleted.`,
-                toastTaskDuplicated: "Task duplicated!",
-                toastNotifyGranted: "Notifications granted! You will receive reminder alerts.",
-                toastNotifyDenied: "Notification permission was not granted.",
-                toastNotifyEnabled: "Browser notifications are already enabled!",
-                toastDayReset: "A new day has begun! Daily tasks have been reset.",
-                confirmResetToday: "Reset completion status for all today's tasks?",
-                confirmClearAll: "Are you sure you want to delete ALL tasks? This cannot be undone."
+                dayNames: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+                monthNames: ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
+                toastResetToday: "today's completions have been reset.",
+                toastAllCleared: "all tasks have been cleared.",
+                toastFiltersCleared: "filters cleared.",
+                toastTaskDeleted: (name) => `task "${name}" deleted.`,
+                toastTaskDuplicated: "task duplicated!",
+                toastNotifyGranted: "notifications granted! you will receive reminder alerts.",
+                toastNotifyDenied: "notification permission was not granted.",
+                toastNotifyEnabled: "browser notifications are already enabled!",
+                toastDayReset: "a new day has begun! daily tasks have been reset.",
+                confirmResetToday: "reset completion status for all today's tasks?",
+                confirmClearAll: "are you sure you want to delete ALL tasks? this cannot be undone."
             },
             ru: {
-                pageTitle: "StashList • Повторяющийся чеклист",
-                brandTitle: "StashList",
-                btnSound: "ЗВУК: ",
-                btnAlerts: "ОПОВЕЩЕНИЯ: ",
-                statusOn: "ВКЛ",
-                statusOff: "ВЫКЛ",
-                statusBlocked: "ЗАБЛОКИРОВАНО",
-                statusCheck: "ВКЛЮЧИТЬ ОПОВЕЩЕНИЯ",
-                btnJson: "JSON ДАННЫЕ",
-                btnSettings: "НАСТРОЙКИ",
-                dashTitle: "Ежедневный повторяющийся чеклист",
-                dashScheduleStatus: (day) => `Сегодня ${day} • Активные рутины • Автосброс в полночь`,
-                statCompleted: "Выполнено сегодня",
-                statProgress: "Прогресс",
-                btnNewTask: "НОВАЯ ЗАДАЧА",
-                progressSummary: (c, t, p) => `Выполнено ${c} из ${t} задач сегодня (${p}%)`,
-                progressStreak: "Нулевая телеметрия • Офлайн-режим",
-                tabToday: "Задачи на сегодня",
-                tabAll: "Все задачи",
-                statusAll: "ВСЕ",
-                statusPending: "АКТИВНЫЕ",
-                statusCompleted: "ВЫПОЛНЕННЫЕ",
-                searchPlaceholder: "Поиск задач по названию или заметкам...",
-                lblSettingTz: "Часовой пояс",
-                descSettingTz: "Расчет даты, времени и сброса в полночь",
-                emptyNoTasksTitle: "НЕТ ЗАПЛАНИРОВАННЫХ ЗАДАЧ",
-                emptyNoTasksDesc: "Ваш чеклист пуст. Создайте свою первую повторяющуюся привычку!",
-                btnCreateFirst: "Создать задачу",
-                emptyNoMatchTitle: "НЕТ ПОДХОДЯЩИХ ЗАДАЧ",
-                emptyNoMatchDesc: "Нет задач, соответствующих текущему фильтру.",
-                btnClearFilters: "Сбросить все фильтры",
-                modalNewHeading: "// НОВАЯ ПОВТОРЯЮЩАЯСЯ ЗАДАЧА",
-                modalEditHeading: "// РЕДАКТИРОВАНИЕ ЗАДАЧИ",
-                lblTaskTitle: "Название задачи *",
-                phTaskTitle: "например: Утренняя растяжка, Ревью кода, Бэкап БД...",
-                lblNotes: "Заметки / Инструкции (Опционально)",
-                phNotes: "Дополнительные детали, ссылки или условия выполнения...",
-                lblActiveDays: "Активные дни недели",
-                presetAllDays: "Все дни",
-                presetWeekdays: "Будни (Пн-Пт)",
-                presetWeekends: "Выходные (Сб-Вс)",
-                days: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
-                lblReminders: "Включить напоминания по расписанию",
-                lblReminderTime: "Время напоминания (ЧЧ:ММ)",
-                lblReminderDays: "Дни напоминания",
-                btnSyncDays: "Как в активных днях",
-                btnCancel: "Отмена",
-                btnSaveTask: "Сохранить задачу",
-                txtBackupTitle: "// УПРАВЛЕНИЕ ДАННЫМИ",
-                txtBackupDesc: "Все данные StashList хранятся локально в вашем браузере. Вы можете экспортировать задачи в JSON или восстановить их в любое время.",
-                btnExportJson: "Скачать бэкап JSON",
-                btnImportJson: "Восстановить из JSON",
-                btnResetToday: "Сбросить сегодняшние отметки",
-                settingsBadge: "СИСТЕМНЫЕ НАСТРОЙКИ",
-                settingsTitle: "Настройки // Preferences",
-                lblSettingLang: "Язык интерфейса",
-                descSettingLang: "Выберите язык для StashList и хаба",
-                lblSettingSound: "Звуковые сигналы и эффекты",
-                descSettingSound: "Интерактивный WebAudio звук при выполнении задач",
-                txtTestSound: "ТЕСТ ЗВУКА",
-                lblSettingNotify: "Уведомления на рабочем столе",
-                descSettingNotify: "Напоминания о рутинах по расписанию",
-                txtTestNotify: "ТЕСТ ОПОВЕЩЕНИЯ",
-                btnGrantNotify: "ВКЛЮЧИТЬ",
-                btnSettingsResetToday: "Сбросить сегодняшний прогресс",
-                btnSettingsClearAll: "Очистить все задачи",
-                btnSettingsSave: "Сохранить и закрыть",
-                bannerReminder: "НАПОМИНАНИЕ STASHLIST",
-                btnBannerComplete: "Готово",
-                footerLeft: "StashList • 100% Локальный повторяющийся чеклист",
+                pageTitle: "чеклист • the stash",
+                brandTitle: "чеклист",
+                btnSound: "звук: ",
+                btnAlerts: "оповещения: ",
+                statusOn: "вкл",
+                statusOff: "выкл",
+                statusBlocked: "заблокировано",
+                statusCheck: "включить оповещения",
+                btnJson: "данные json",
+                btnSettings: "настройки",
+                dashTitle: "ежедневный повторяющийся чеклист",
+                dashScheduleStatus: (day) => `сегодня ${day} • активные рутины • автосброс в полночь`,
+                statCompleted: "выполнено сегодня",
+                statProgress: "прогресс",
+                btnNewTask: "новая задача",
+                progressSummary: (c, t, p) => `выполнено ${c} из ${t} задач сегодня (${p}%)`,
+                progressStreak: "нулевая телеметрия • офлайн-режим",
+                tabToday: "задачи на сегодня",
+                tabAll: "все задачи",
+                statusAll: "все",
+                statusPending: "активные",
+                statusCompleted: "выполненные",
+                searchPlaceholder: "поиск задач по названию или заметкам...",
+                lblSettingTz: "часовой пояс",
+                descSettingTz: "расчет даты, времени и сброса в полночь",
+                emptyNoTasksTitle: "нет запланированных задач",
+                emptyNoTasksDesc: "ваш чеклист пуст. создайте свою первую повторяющуюся привычку!",
+                btnCreateFirst: "создать задачу",
+                emptyNoMatchTitle: "нет подходящих задач",
+                emptyNoMatchDesc: "нет задач, соответствующих текущему фильтру.",
+                btnClearFilters: "сбросить все фильтры",
+                modalNewHeading: "// новая повторяющаяся задача",
+                modalEditHeading: "// редактирование задачи",
+                lblTaskTitle: "название задачи *",
+                phTaskTitle: "например: утренняя растяжка, ревью кода, бэкап БД...",
+                lblNotes: "заметки / инструкции (опционально)",
+                phNotes: "дополнительные детали, ссылки или условия выполнения...",
+                lblActiveDays: "активные дни недели",
+                presetAllDays: "все дни",
+                presetWeekdays: "будни (пн-пт)",
+                presetWeekends: "выходные (сб-вс)",
+                days: ["вс", "пн", "вт", "ср", "чт", "пт", "сб"],
+                lblReminders: "включить напоминания по расписанию",
+                lblReminderTime: "время напоминания (чч:мм)",
+                lblReminderDays: "дни напоминания",
+                btnSyncDays: "как в активных днях",
+                btnCancel: "отмена",
+                btnSaveTask: "сохранить задачу",
+                txtBackupTitle: "// управление данными",
+                txtBackupDesc: "все данные хранятся локально в вашем браузере. вы можете экспортировать задачи в JSON или восстановить их в любое время.",
+                btnExportJson: "скачать бэкап JSON",
+                btnImportJson: "восстановить из JSON",
+                btnResetToday: "сбросить сегодняшние отметки",
+                settingsBadge: "параметры",
+                settingsTitle: "настройки",
+                lblSettingLang: "язык интерфейса",
+                descSettingLang: "выберите язык для чеклиста и хаба",
+                lblSettingSound: "звуковые сигналы и эффекты",
+                descSettingSound: "интерактивный звук WebAudio при выполнении задач",
+                txtTestSound: "тест звука",
+                lblSettingNotify: "уведомления на рабочем столе",
+                descSettingNotify: "напоминания о рутинах по расписанию",
+                txtTestNotify: "тест оповещения",
+                btnGrantNotify: "включить",
+                btnSettingsResetToday: "сбросить сегодняшний прогресс",
+                btnSettingsClearAll: "очистить все задачи",
+                btnSettingsSave: "сохранить и закрыть",
+                bannerReminder: "напоминание",
+                btnBannerComplete: "готово",
+                footerLeft: "чеклист • 100% локальный чеклист",
                 footerRight: "the stash",
-                dayNames: ['ВОСКРЕСЕНЬЕ', 'ПОНЕДЕЛЬНИК', 'ВТОРНИК', 'СРЕДА', 'ЧЕТВЕРГ', 'ПЯТНИЦА', 'СУББОТА'],
-                monthNames: ['ЯНВ', 'ФЕВ', 'МАР', 'АПР', 'МАЙ', 'ИЮН', 'ИЮЛ', 'АВГ', 'СЕН', 'ОКТ', 'НОЯ', 'ДЕК'],
-                toastResetToday: "Сегодняшние отметки сброшены.",
-                toastAllCleared: "Все задачи удалены.",
-                toastFiltersCleared: "Фильтры сброшены.",
-                toastTaskDeleted: (name) => `Задача "${name}" удалена.`,
-                toastTaskDuplicated: "Задача продублирована!",
-                toastNotifyGranted: "Оповещения включены! Вы будете получать напоминания.",
-                toastNotifyDenied: "Разрешение на оповещения не получено.",
-                toastNotifyEnabled: "Оповещения в браузере уже включены!",
-                toastDayReset: "Наступил новый день! Задачи сброшены.",
-                confirmResetToday: "Сбросить статус выполнения для всех сегодняшних задач?",
-                confirmClearAll: "Вы уверены, что хотите удалить ВСЕ задачи? Это действие необратимо."
+                dayNames: ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'],
+                monthNames: ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'],
+                toastResetToday: "сегодняшние отметки сброшены.",
+                toastAllCleared: "все задачи удалены.",
+                toastFiltersCleared: "фильтры сброшены.",
+                toastTaskDeleted: (name) => `задача "${name}" удалена.`,
+                toastTaskDuplicated: "задача продублирована!",
+                toastNotifyGranted: "оповещения включены! вы будете получать напоминания.",
+                toastNotifyDenied: "разрешение на оповещения не получено.",
+                toastNotifyEnabled: "оповещения в браузере уже включены!",
+                toastDayReset: "наступил новый день! задачи сброшены.",
+                confirmResetToday: "сбросить статус выполнения для всех сегодняшних задач?",
+                confirmClearAll: "вы уверены, что хотите удалить ВСЕ задачи? это действие необратимо."
             }
         };
 

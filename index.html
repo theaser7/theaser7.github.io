@@ -1,37 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>the stash • Client-Side Web Suite</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z%22/><polyline points=%223.27 6.96 12 12.01 20.73 6.96%22/><line x1=%2212%22 y1=%2222.08%22 x2=%2212%22 y2=%2212%22/></svg>">
+    <title>the stash</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z%22/><polyline points=%223.27 6.96 12 12.01 20.73 6.96%22/><line x1=%2212%22 y1=%2222.08%22 x2=%2212%22 y2=%2212%22/></svg>">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('stash_theme') || 'dark';
+            if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        })();
+    </script>
     <style>
         :root {
-            --bg-deep: #050807;
-            --bg-surface: rgba(9, 15, 12, 0.75);
-            --bg-surface-hover: rgba(14, 24, 19, 0.9);
-            --bg-input: rgba(7, 12, 10, 0.85);
-            --border-dim: #13221b;
-            --border-medium: #1c362a;
-            --border-active: #00ff9d;
-            
-            --mint: #00ff9d;
-            --mint-hover: #05f0a5;
-            --mint-glow: rgba(0, 255, 157, 0.35);
-            --mint-soft-glow: rgba(0, 255, 157, 0.12);
-            --mint-dark: #072a1e;
-            
-            --text-main: #f0fdf4;
-            --text-muted: #80998c;
-            --text-dim: #435c50;
-            --text-accent: #00ff9d;
-            
+            --bg-deep: #09090b;
+            --bg-surface: #121215;
+            --bg-surface-hover: #18181b;
+            --bg-card: #141417;
+            --bg-card-hover: #1c1c20;
+            --bg-input: #0e0e11;
+            --bg-modal: #121215;
+
+            --border-dim: #222226;
+            --border-medium: #2e2e34;
+            --border-active: #ffffff;
+
+            --mint: #ffffff;
+            --mint-hover: #e4e4e7;
+            --mint-dark: #1a1a1e;
+            --mint-glow: transparent;
+            --mint-soft-glow: transparent;
+
+            --text-main: #f4f4f5;
+            --text-muted: #8e8e99;
+            --text-dim: #52525b;
+            --text-accent: #ffffff;
+
             --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, Monaco, monospace;
             --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            
-            --badge-playable: #00ff9d;
-            --badge-wip: #facc15;
-            --badge-concept: #38bdf8;
+
+            --badge-playable: #ffffff;
+            --badge-wip: #a1a1aa;
+            --badge-concept: #71717a;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+        }
+
+        [data-theme="light"] {
+            --bg-deep: #ffffff;
+            --bg-surface: #f7f7f8;
+            --bg-surface-hover: #eeeeef;
+            --bg-card: #fafafa;
+            --bg-card-hover: #f0f0f2;
+            --bg-input: #ffffff;
+            --bg-modal: #ffffff;
+
+            --border-dim: #e4e4e7;
+            --border-medium: #d4d4d8;
+            --border-active: #09090b;
+
+            --mint: #09090b;
+            --mint-hover: #27272a;
+            --mint-dark: #f4f4f5;
+            --mint-glow: transparent;
+            --mint-soft-glow: transparent;
+
+            --text-main: #09090b;
+            --text-muted: #71717a;
+            --text-dim: #a1a1aa;
+            --text-accent: #09090b;
+
+            --badge-playable: #09090b;
+            --badge-wip: #71717a;
+            --badge-concept: #a1a1aa;
         }
 
         * {
@@ -39,6 +81,7 @@
             margin: 0;
             padding: 0;
             font-family: var(--font-mono);
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -49,17 +92,7 @@
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
-        }
-
-        /* 2D Blueprint Grid Canvas Background */
-        #bg-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0;
-            pointer-events: none;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         /* Top System Status Bar */
@@ -73,7 +106,9 @@
             align-items: center;
             font-size: 0.75rem;
             letter-spacing: 0.08em;
-            text-transform: uppercase;
+            text-transform: lowercase;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .sys-online-badge {
@@ -85,23 +120,23 @@
         }
 
         .sys-dot {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: var(--mint);
-            box-shadow: 0 0 10px var(--mint);
             animation: pulse-dot 2s infinite ease-in-out;
         }
 
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.35; transform: scale(0.8); }
+            50% { opacity: 0.35; transform: scale(0.85); }
         }
 
         .top-sys-actions {
             display: flex;
             align-items: center;
-            gap: 1.25rem;
+            gap: 0.85rem;
+            flex-wrap: wrap;
         }
 
         .sys-meta {
@@ -110,7 +145,7 @@
         }
 
         .hud-settings-btn {
-            background: var(--bg-input);
+            background: var(--bg-surface);
             border: 1px solid var(--border-medium);
             color: var(--text-muted);
             padding: 0.4rem 0.85rem;
@@ -120,192 +155,116 @@
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.5rem;
+            text-decoration: none;
             transition: all 0.2s ease;
-            font-family: var(--font-mono);
+            text-transform: lowercase;
         }
 
         .hud-settings-btn:hover {
             border-color: var(--border-active);
             color: var(--mint);
-            box-shadow: 0 0 12px var(--mint-soft-glow);
-            background: rgba(0, 255, 157, 0.06);
+            background: var(--bg-surface-hover);
         }
 
-        /* Settings Modal Content */
-        .settings-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            margin: 1.25rem 0 1.75rem;
-            text-align: left;
-        }
-
-        .setting-item {
-            background: var(--bg-input);
-            border: 1px solid var(--border-dim);
-            border-radius: var(--radius-sm);
-            padding: 1rem 1.25rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .setting-info {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .setting-name {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .setting-desc {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .lang-switch-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .lang-btn {
-            background: var(--bg-deep);
-            border: 1px solid var(--border-dim);
-            color: var(--text-muted);
-            padding: 0.45rem 0.85rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: var(--font-mono);
-        }
-
-        .lang-btn:hover {
-            border-color: var(--border-medium);
-            color: var(--text-main);
-        }
-
-        .lang-btn.active {
-            background: rgba(0, 255, 157, 0.12);
-            border-color: var(--border-active);
-            color: var(--mint);
-            box-shadow: 0 0 10px var(--mint-soft-glow);
-        }
-
-
-        /* Wide Fluid Layout Container */
+        /* Wide Distributed Main Layout */
         .main-layout {
-            max-width: 1560px;
+            flex: 1;
             width: 100%;
+            max-width: 1360px;
             margin: 0 auto;
             padding: 1rem 2.5rem 3rem;
-            position: relative;
-            z-index: 2;
-            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 2.25rem;
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
         }
 
-        /* Header Hero Section */
+        /* Hero Header */
         .hero-section {
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
+            border-bottom: 1px solid var(--border-dim);
+            padding-bottom: 1.5rem;
         }
 
         .brand-heading {
             display: flex;
             align-items: baseline;
-            gap: 0.75rem;
+            gap: 0.85rem;
         }
 
         .brand-title {
-            font-size: 3rem;
+            font-size: 2.2rem;
             font-weight: 800;
             letter-spacing: -0.04em;
-            color: var(--mint);
-            text-shadow: 0 0 35px var(--mint-soft-glow);
-            font-family: var(--font-sans);
-            line-height: 1;
+            color: var(--text-main);
+            text-transform: lowercase;
         }
 
         .brand-version {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            font-weight: 600;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            background: var(--bg-input);
             border: 1px solid var(--border-medium);
             padding: 0.15rem 0.5rem;
-            border-radius: 4px;
-            background: rgba(0, 255, 157, 0.03);
+            border-radius: var(--radius-sm);
         }
 
         .hero-desc {
-            color: var(--text-muted);
             font-size: 0.95rem;
-            letter-spacing: 0.02em;
+            color: var(--text-muted);
+            max-width: 760px;
+            line-height: 1.5;
+            text-transform: lowercase;
         }
 
-        /* Tech Uptime Banner (Screenshot style) */
         .tech-banner {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.6rem;
-            padding: 0.75rem 1.25rem;
-            background: rgba(0, 255, 157, 0.03);
-            border: 1px solid var(--border-medium);
-            border-radius: 10px;
-            font-size: 0.82rem;
-            color: var(--mint);
-            width: 100%;
-            backdrop-filter: blur(8px);
+            padding: 0.6rem 1rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            width: fit-content;
+            text-transform: lowercase;
         }
 
         .banner-square {
-            width: 6px;
-            height: 6px;
-            background: var(--mint);
-            box-shadow: 0 0 8px var(--mint);
+            width: 8px;
+            height: 8px;
+            background-color: var(--mint);
+            border-radius: 2px;
         }
 
-        /* Two-Column Distributed Architecture */
+        /* Two-Column Grid */
         .content-grid {
             display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 2.5rem;
+            grid-template-columns: minmax(0, 1fr) 340px;
+            gap: 2rem;
             align-items: start;
         }
 
-        @media (max-width: 1100px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Left Column: Controls + Project Cards */
         .primary-column {
             display: flex;
             flex-direction: column;
-            gap: 1.75rem;
+            gap: 1.5rem;
         }
 
-        /* Segmented Category Buttons (Screenshot style) */
+        /* Segmented Tabs */
         .segment-tabs {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 0.5rem;
-            background: rgba(7, 12, 10, 0.6);
-            border: 1px solid var(--border-dim);
+            background: var(--bg-surface);
             padding: 0.35rem;
-            border-radius: 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-dim);
         }
 
         .tab-btn {
@@ -313,509 +272,486 @@
             border: 1px solid transparent;
             color: var(--text-muted);
             padding: 0.65rem 1rem;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 700;
             cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
             transition: all 0.2s ease;
+            text-transform: lowercase;
         }
 
         .tab-btn:hover {
             color: var(--text-main);
-            background: rgba(255, 255, 255, 0.02);
+            background: var(--bg-surface-hover);
         }
 
         .tab-btn.active {
-            background: rgba(0, 255, 157, 0.06);
+            background: var(--bg-deep);
             border-color: var(--border-medium);
-            color: var(--mint);
-            box-shadow: 0 0 15px rgba(0, 255, 157, 0.08);
+            color: var(--text-main);
         }
 
         .tab-badge {
-            font-size: 0.72rem;
-            background: rgba(0, 255, 157, 0.12);
-            color: var(--mint);
+            font-size: 0.7rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
             padding: 0.1rem 0.45rem;
             border-radius: 4px;
         }
 
-        /* Dashed Search / Command Input Area (Screenshot style) */
+        /* Search / Filter Box */
         .search-container {
-            border: 1px dashed var(--border-medium);
-            border-radius: 12px;
-            padding: 1.25rem;
-            background: rgba(8, 14, 11, 0.5);
-            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.65rem;
+            background: var(--bg-surface);
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-dim);
         }
 
         .search-label {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--text-dim);
-            letter-spacing: 0.06em;
-            text-align: center;
+            letter-spacing: 0.05em;
+            text-transform: lowercase;
         }
 
         .search-input-wrapper {
             position: relative;
-            width: 100%;
         }
 
         .search-input {
             width: 100%;
             background: var(--bg-input);
             border: 1px solid var(--border-medium);
-            border-radius: 8px;
-            padding: 0.85rem 1.25rem;
             color: var(--text-main);
-            font-size: 0.9rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
             outline: none;
-            transition: all 0.2s ease;
+            transition: border-color 0.2s ease;
         }
 
         .search-input:focus {
-            border-color: var(--mint);
-            box-shadow: 0 0 20px var(--mint-soft-glow);
-            background: #09130f;
+            border-color: var(--border-active);
         }
 
-        .search-input::placeholder {
-            color: var(--text-dim);
-            font-size: 0.85rem;
-        }
-
-        /* Quick Filter Tags bar */
         .quick-tags-row {
             display: flex;
-            align-items: center;
-            gap: 0.45rem;
+            gap: 0.4rem;
             flex-wrap: wrap;
         }
 
         .quick-tag-chip {
-            background: rgba(19, 34, 27, 0.5);
+            background: transparent;
             border: 1px solid var(--border-dim);
             color: var(--text-dim);
             padding: 0.25rem 0.65rem;
-            border-radius: 6px;
-            font-size: 0.72rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
             cursor: pointer;
             transition: all 0.15s ease;
-            text-transform: uppercase;
+            text-transform: lowercase;
         }
 
         .quick-tag-chip:hover {
-            color: var(--text-muted);
+            color: var(--text-main);
             border-color: var(--border-medium);
         }
 
         .quick-tag-chip.active {
-            color: var(--mint);
-            border-color: var(--border-medium);
-            background: rgba(0, 255, 157, 0.08);
+            color: var(--text-main);
+            border-color: var(--border-active);
+            background: var(--bg-surface-hover);
         }
 
         /* Projects List Grid */
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.25rem;
         }
 
-        /* Project Cards (Screenshot UI style) */
         .project-card {
-            background: var(--bg-surface);
+            background: var(--bg-card);
             border: 1px solid var(--border-dim);
-            border-radius: 12px;
-            padding: 1.4rem;
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             gap: 1.25rem;
-            backdrop-filter: blur(12px);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
+            transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
         }
 
         .project-card:hover {
             border-color: var(--border-active);
-            background: var(--bg-surface-hover);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 20px var(--mint-soft-glow);
+            background: var(--bg-card-hover);
             transform: translateY(-2px);
         }
 
         .card-top {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            margin-bottom: 0.75rem;
         }
 
         .card-glyph-box {
-            width: 44px;
-            height: 44px;
-            border-radius: 8px;
-            background: rgba(0, 255, 157, 0.04);
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
             border: 1px solid var(--border-medium);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--mint);
+            color: var(--text-main);
         }
 
         .status-pill {
-            font-size: 0.7rem;
-            font-weight: 700;
+            font-size: 0.68rem;
             padding: 0.2rem 0.55rem;
             border-radius: 4px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
+            text-transform: lowercase;
+            font-weight: 700;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            color: var(--text-muted);
         }
 
-        .status-playable {
-            background: rgba(0, 255, 157, 0.1);
-            border: 1px solid rgba(0, 255, 157, 0.3);
-            color: var(--mint);
+        .status-pill.status-playable {
+            border-color: var(--border-active);
+            color: var(--text-main);
         }
-
-        .status-wip {
-            background: rgba(250, 204, 21, 0.1);
-            border: 1px solid rgba(250, 204, 21, 0.3);
-            color: #facc15;
-        }
-
-        .status-concept {
-            background: rgba(56, 189, 248, 0.1);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            color: #38bdf8;
-        }
-
-        .status-archived {
-            background: rgba(148, 163, 184, 0.1);
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            color: #94a3b8;
-        }
-
 
         .card-title {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 700;
             color: var(--text-main);
-            margin: 0.75rem 0 0.4rem;
-            font-family: var(--font-sans);
-            letter-spacing: -0.02em;
+            margin-bottom: 0.4rem;
+            text-transform: lowercase;
         }
 
         .card-desc {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
             line-height: 1.5;
-            font-family: var(--font-sans);
+            margin-bottom: 0.85rem;
+            text-transform: lowercase;
         }
 
         .card-tags {
             display: flex;
-            flex-wrap: wrap;
             gap: 0.35rem;
-            margin: 0.75rem 0 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
         }
 
         .tag-pill {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--text-dim);
-            background: rgba(255, 255, 255, 0.02);
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
             padding: 0.15rem 0.45rem;
             border-radius: 4px;
-            border: 1px solid var(--border-dim);
+            text-transform: lowercase;
         }
 
         .btn-action {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
             width: 100%;
-            padding: 0.75rem;
-            background: rgba(0, 255, 157, 0.08);
+            padding: 0.65rem 1rem;
+            background: var(--bg-surface-hover);
             border: 1px solid var(--border-medium);
-            border-radius: 8px;
-            color: var(--mint);
-            font-size: 0.85rem;
-            font-weight: 700;
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
             text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
+            text-transform: lowercase;
         }
 
         .btn-action:hover {
-            background: var(--mint);
-            border-color: var(--mint);
-            color: #050807;
-            box-shadow: 0 0 25px var(--mint-glow);
+            border-color: var(--border-active);
+            color: var(--mint);
+            background: var(--mint-dark);
         }
 
-        .btn-concept-action {
-            background: rgba(56, 189, 248, 0.08);
-            border-color: rgba(56, 189, 248, 0.25);
-            color: #38bdf8;
+        /* Empty State */
+        .empty-state {
+            padding: 3rem 1rem;
+            text-align: center;
+            border: 1px dashed var(--border-medium);
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+            text-transform: lowercase;
         }
 
-        .btn-concept-action:hover {
-            background: #38bdf8;
-            border-color: #38bdf8;
-            color: #050807;
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+        .empty-state-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
         }
 
-        /* Right Column: Info Console & Platform Stats (Screenshot style) */
+        /* Right Sidebar */
         .sidebar-column {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
 
-        /* Preview Display Box */
         .preview-box {
-            background: rgba(8, 14, 11, 0.6);
+            background: var(--bg-surface);
             border: 1px solid var(--border-dim);
-            border-radius: 14px;
-            padding: 2.5rem 1.5rem;
+            border-radius: var(--radius-md);
+            padding: 2rem 1.25rem;
             text-align: center;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 220px;
-            gap: 0.5rem;
-            backdrop-filter: blur(10px);
+            gap: 0.35rem;
+            text-transform: lowercase;
         }
 
         .preview-text-main {
-            font-size: 0.85rem;
-            color: var(--text-dim);
-            letter-spacing: 0.05em;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
         }
 
         .preview-text-sub {
             font-size: 0.75rem;
-            color: #2b3d34;
+            color: var(--text-muted);
         }
 
-        /* 3-Column Metrics Row (Screenshot style) */
         .metrics-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
 
         .metric-card {
-            background: rgba(8, 14, 11, 0.6);
+            background: var(--bg-surface);
             border: 1px solid var(--border-dim);
-            border-radius: 10px;
-            padding: 1.1rem 0.6rem;
+            border-radius: var(--radius-sm);
+            padding: 0.85rem 0.5rem;
             text-align: center;
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
+            text-transform: lowercase;
         }
 
         .metric-val {
             font-size: 1.15rem;
             font-weight: 800;
-            color: var(--mint);
+            color: var(--text-main);
         }
 
         .metric-lbl {
             font-size: 0.68rem;
             color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
-        /* Supported Technologies / Stack Block */
         .stack-box {
-            background: rgba(8, 14, 11, 0.6);
+            background: var(--bg-surface);
             border: 1px solid var(--border-dim);
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             padding: 1.25rem;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.85rem;
+            text-transform: lowercase;
         }
 
         .stack-heading {
             font-size: 0.72rem;
             color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            font-weight: 700;
+            letter-spacing: 0.05em;
         }
 
         .stack-chips {
             display: flex;
-            flex-wrap: wrap;
             gap: 0.4rem;
+            flex-wrap: wrap;
         }
 
         .stack-chip {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            background: rgba(19, 34, 27, 0.4);
+            font-size: 0.7rem;
+            background: var(--bg-input);
             border: 1px solid var(--border-dim);
-            padding: 0.25rem 0.55rem;
-            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            color: var(--text-muted);
         }
 
-        /* Empty State */
-        .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 3rem 1.5rem;
-            background: rgba(8, 14, 11, 0.5);
-            border: 1px dashed var(--border-medium);
-            border-radius: 12px;
-        }
-
-        .empty-state-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--mint);
-            margin-bottom: 0.4rem;
-        }
-
-        .empty-state-desc {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-        }
-
-        /* Concept Specs Modal */
+        /* Settings Modal */
         .modal-overlay {
             position: fixed;
-            inset: 0;
-            background: rgba(2, 5, 4, 0.85);
-            backdrop-filter: blur(10px);
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
             z-index: 100;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
+            padding: 1rem;
         }
 
         .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
+            display: flex;
         }
 
         .modal-card {
-            background: #08110d;
+            background: var(--bg-modal);
             border: 1px solid var(--border-active);
-            border-radius: 14px;
-            max-width: 560px;
+            border-radius: var(--radius-md);
+            max-width: 480px;
             width: 100%;
-            padding: 2rem;
+            padding: 1.75rem;
             position: relative;
-            box-shadow: 0 0 50px rgba(0, 255, 157, 0.15);
-            transform: scale(0.96);
-            transition: transform 0.2s ease;
-        }
-
-        .modal-overlay.active .modal-card {
-            transform: scale(1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
         }
 
         .modal-close {
             position: absolute;
-            top: 1.25rem;
-            right: 1.25rem;
+            top: 1rem;
+            right: 1rem;
             background: transparent;
             border: none;
-            color: var(--text-dim);
+            color: var(--text-muted);
             cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
+            padding: 0.25rem;
         }
 
         .modal-close:hover {
-            color: var(--mint);
+            color: var(--text-main);
         }
 
         .modal-badge {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: var(--mint);
-            background: rgba(0, 255, 157, 0.08);
+            background: var(--mint-dark);
             border: 1px solid var(--border-medium);
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
-            display: inline-block;
-            margin-bottom: 0.75rem;
+            width: fit-content;
+            text-transform: lowercase;
         }
 
         .modal-title {
-            font-size: 1.4rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: var(--text-main);
-            margin-bottom: 0.75rem;
-            font-family: var(--font-sans);
+            text-transform: lowercase;
         }
 
-        .modal-body {
-            color: var(--text-muted);
-            font-size: 0.88rem;
-            line-height: 1.6;
-            margin-bottom: 1.25rem;
-            font-family: var(--font-sans);
-        }
-
-        .modal-features {
-            list-style: none;
+        .settings-group {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
+            gap: 1rem;
         }
 
-        .modal-features li {
+        .setting-item {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.6rem;
+            gap: 1rem;
+            padding: 0.85rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-sm);
+        }
+
+        .setting-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            text-transform: lowercase;
+        }
+
+        .setting-name {
             font-size: 0.85rem;
+            font-weight: 700;
             color: var(--text-main);
         }
 
-        .modal-features li svg {
+        .setting-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .lang-switch-buttons {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .lang-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            color: var(--text-muted);
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: lowercase;
+        }
+
+        .lang-btn:hover {
+            border-color: var(--border-active);
+            color: var(--text-main);
+        }
+
+        .lang-btn.active {
+            background: var(--mint-dark);
+            border-color: var(--border-active);
             color: var(--mint);
-            flex-shrink: 0;
         }
 
         /* Footer */
         footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-dim);
-            font-size: 0.75rem;
             border-top: 1px solid var(--border-dim);
-            position: relative;
-            z-index: 2;
+            padding: 1.5rem 2.5rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            text-transform: lowercase;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            .sidebar-column {
+                order: 2;
+            }
+        }
+
+        @media (max-width: 600px) {
             .top-sys-bar {
                 padding: 1rem;
             }
             .main-layout {
-                padding: 0.75rem 1rem 2rem;
-            }
-            .brand-title {
-                font-size: 2.25rem;
+                padding: 1rem;
             }
             .segment-tabs {
                 grid-template-columns: 1fr;
@@ -824,35 +760,30 @@
     </style>
 </head>
 <body>
-    <!-- 2D Blueprint Grid Canvas Background -->
-    <canvas id="bg-canvas"></canvas>
-
     <!-- Top System Header -->
     <div class="top-sys-bar">
         <div class="sys-online-badge">
             <span class="sys-dot"></span>
-            <span id="sys-status-text">ALL SYSTEMS ONLINE</span>
+            <span id="sys-status-text">все системы в норме</span>
         </div>
         <div class="top-sys-actions">
             <div class="sys-meta" id="sys-meta-text">
-                CLIENT RUNTIME &bull; ZERO LATENCY
+                клиентский рантайм &bull; нулевая задержка
             </div>
-            <a href="https://thestash.space/downloads/the-stash-desktop.exe" download class="hud-settings-btn" id="btn-download-desktop" title="Download the stash desktop (.EXE)">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                <span id="txt-btn-desktop">THE STASH DESKTOP (.EXE)</span>
+            <button id="btn-theme-toggle" class="hud-settings-btn theme-toggle-btn" title="переключить тему">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                <span id="btn-theme-label">тема</span>
+            </button>
+            <a href="./downloads/the-stash-companion.exe" download class="hud-settings-btn" id="btn-download-companion" title="скачать companion server (.exe)">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span id="txt-btn-companion">companion server (.exe)</span>
             </a>
-            <a href="https://raw.githubusercontent.com/theaser7/theaser7.github.io/main/downloads/the-stash-companion.exe" download class="hud-settings-btn" id="btn-download-companion" title="Download Local Companion Server (.EXE)">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span id="txt-btn-companion">COMPANION SERVER (.EXE)</span>
-            </a>
-            <button id="btn-settings" class="hud-settings-btn" title="Settings / Настройки">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span id="btn-settings-label">SETTINGS</span>
+            <button id="btn-settings" class="hud-settings-btn" title="настройки">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span id="btn-settings-label">настройки</span>
             </button>
         </div>
-
     </div>
-
 
     <!-- Wide Distributed Main Layout -->
     <div class="main-layout">
@@ -860,14 +791,12 @@
         <header class="hero-section">
             <div class="brand-heading">
                 <h1 class="brand-title">the stash</h1>
-                <span class="brand-version">v0.9.0</span>
+                <span class="brand-version">v1.0.0</span>
             </div>
-
-            <p class="hero-desc">1000+ client-side experiments. Zero watermark. Zero telemetry. Free.</p>
-            
+            <p class="hero-desc">веб-сьют утилит и игр. без водяных знаков. без телеметрии. бесплатно.</p>
             <div class="tech-banner">
                 <div class="banner-square"></div>
-                <span>Status: 100% active &bull; local in-browser sandbox &bull; no throttling</span>
+                <span>статус: все системы в норме &bull; локальная песочница в браузере &bull; без ограничений</span>
             </div>
         </header>
 
@@ -878,138 +807,57 @@
                 <!-- Segmented Tabs (All / Games / Utilities) -->
                 <div class="segment-tabs">
                     <button class="tab-btn active" data-tab="all">
-                        <span>All Projects</span>
-                        <span class="tab-badge" id="count-all">8</span>
+                        <span>все проекты</span>
+                        <span class="tab-badge" id="count-all">7</span>
                     </button>
                     <button class="tab-btn" data-tab="games">
-                        <span>Games</span>
-                        <span class="tab-badge" id="count-games">2</span>
+                        <span>игры</span>
+                        <span class="tab-badge" id="count-games">1</span>
                     </button>
                     <button class="tab-btn" data-tab="utilities">
-                        <span>Utilities</span>
+                        <span>утилиты</span>
                         <span class="tab-badge" id="count-utilities">6</span>
                     </button>
-
-
                 </div>
 
                 <!-- Command / Search Terminal Box -->
                 <div class="search-container">
-                    <div class="search-label">// SEARCH DIRECTORY OR FILTER BY MODULE</div>
+                    <div class="search-label">// поиск по каталогу или фильтрация</div>
                     <div class="search-input-wrapper">
-                        <input type="text" id="search-input" class="search-input" placeholder="Type keyword, tag, or project name..." autocomplete="off">
+                        <input type="text" id="search-input" class="search-input" placeholder="поиск по названию, тегу или описанию..." autocomplete="off">
                     </div>
                     <div class="quick-tags-row">
-                        <button class="quick-tag-chip active" data-status="all">ALL</button>
-                        <button class="quick-tag-chip" data-status="playable">PLAYABLE</button>
-                        <button class="quick-tag-chip" data-status="wip">IN PROGRESS</button>
-                        <button class="quick-tag-chip" data-status="concept">CONCEPT</button>
-                        <button class="quick-tag-chip" data-status="archived">ARCHIVED</button>
+                        <button class="quick-tag-chip active" data-status="all">все</button>
+                        <button class="quick-tag-chip" data-status="playable">готовые</button>
+                        <button class="quick-tag-chip" data-status="wip">в разработке</button>
                     </div>
                 </div>
 
                 <!-- Projects List Grid -->
                 <div class="projects-grid" id="projects-grid">
-                    <!-- 1. Flexle Card -->
+                    <!-- 1. Flexle / вордл -->
                     <article class="project-card" data-type="games" data-category="playable">
                         <div>
                             <div class="card-top">
-                                <div class="card-glyph-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 4px;">
-                                    <div style="background: var(--mint); color: #000; border-radius: 2px; font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center;">F</div>
-                                    <div style="background: #1c362a; color: var(--mint); border-radius: 2px; font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center;">L</div>
-                                    <div style="background: #1c362a; color: var(--mint); border-radius: 2px; font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center;">E</div>
-                                    <div style="background: var(--mint); color: #000; border-radius: 2px; font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center;">X</div>
+                                <div class="card-glyph-box" style="font-size: 11px; font-weight: 800; letter-spacing: 1px;">
+                                    ВРД
                                 </div>
-                                <span class="status-pill status-playable">Playable</span>
+                                <span class="status-pill status-playable">готово</span>
                             </div>
-                            <h2 class="card-title">Flexle</h2>
-                            <p class="card-desc">Flexible Wordle game with custom word lengths from 4 to 11+ letters, bracket drum picker for random ranges, and procedural WebAudio synthesizers.</p>
+                            <h2 class="card-title">вордл</h2>
+                            <p class="card-desc">гибкий вордл с выбором длины слова от 4 до 11+ букв, барабанным выбором случайных диапазонов и процедурным WebAudio звуком.</p>
                             <div class="card-tags">
-                                <span class="tag-pill">#Wordle</span>
-                                <span class="tag-pill">#Game</span>
-                                <span class="tag-pill">#Bilingual</span>
-                                <span class="tag-pill">#WebAudio</span>
+                                <span class="tag-pill">#вордл</span>
+                                <span class="tag-pill">#игра</span>
+                                <span class="tag-pill">#слова</span>
+                                <span class="tag-pill">#webaudio</span>
                             </div>
                         </div>
-                        <a href="./games/flexle/index.html" class="btn-action">Launch Flexle &rarr;</a>
+                        <a href="./games/flexle/index.html" class="btn-action">запустить вордл &rarr;</a>
                     </article>
 
-                    <!-- 2. Quantex Card (Archived) -->
-                    <article class="project-card" data-type="games" data-category="archived">
-                        <div>
-                            <div class="card-top">
-                                <div class="card-glyph-box" style="display: flex; align-items: center; justify-content: center; color: #94a3b8; border-color: rgba(148, 163, 184, 0.2);">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                                </div>
-                                <span class="status-pill status-archived">Archived</span>
-                            </div>
-                            <h2 class="card-title" style="color: #cbd5e1;">Quantex</h2>
-                            <p class="card-desc">Cyberpunk More/Less comparison game across 5 categories: Google searches, YouTube subs, Cinema gross, Valuations, and Trivia extremes.</p>
-                            <div class="card-tags">
-                                <span class="tag-pill">#Archived</span>
-                                <span class="tag-pill">#MoreLess</span>
-                                <span class="tag-pill">#Game</span>
-                                <span class="tag-pill">#WebAudio</span>
-                            </div>
-                        </div>
-                        <a href="./games/quantex/index.html" class="btn-action" style="color: #94a3b8; border-color: rgba(148, 163, 184, 0.3); background: rgba(148, 163, 184, 0.05);">Launch Quantex &rarr;</a>
-                    </article>
-
-                    <!-- StashConvert Card -->
+                    <!-- 2. Clarify / нейроапскейлер -->
                     <article class="project-card" data-type="utilities" data-category="playable">
-                        <div>
-                            <div class="card-top">
-                                <div class="card-glyph-box" style="color: var(--mint);">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                        <polyline points="14 2 14 8 20 8"></polyline>
-                                        <polyline points="16 13 12 17 8 13"></polyline>
-                                        <line x1="12" y1="9" x2="12" y2="17"></line>
-                                    </svg>
-                                </div>
-                                <span class="status-pill status-playable">Playable</span>
-                            </div>
-                            <h2 class="card-title">StashConvert</h2>
-                            <p class="card-desc">Universal client-side converter for Video, Images, Audio, and Data/Docs. Supports video-to-GIF, video-to-audio extraction, batch queues, and zero telemetry.</p>
-                            <div class="card-tags">
-                                <span class="tag-pill">#Converter</span>
-                                <span class="tag-pill">#Video</span>
-                                <span class="tag-pill">#Audio</span>
-                                <span class="tag-pill">#Images</span>
-                                <span class="tag-pill">#ZeroTelemetry</span>
-                            </div>
-                        </div>
-                        <a href="./utilities/stashconvert/index.html" class="btn-action">Launch StashConvert &rarr;</a>
-                    </article>
-
-                    <!-- StashIP Card -->
-                    <article class="project-card" data-type="utilities" data-category="playable">
-                        <div>
-                            <div class="card-top">
-                                <div class="card-glyph-box" style="color: var(--mint);">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                                    </svg>
-                                </div>
-                                <span class="status-pill status-playable">Playable</span>
-                            </div>
-                            <h2 class="card-title">StashIP</h2>
-                            <p class="card-desc">Zero-telemetry network diagnostics (IP, ISP, ASN, Geolocation, Timezone, Hostname) with 1-Click Copy and live client-side Speedtest engine.</p>
-                            <div class="card-tags">
-                                <span class="tag-pill">#Network</span>
-                                <span class="tag-pill">#IP</span>
-                                <span class="tag-pill">#Speedtest</span>
-                                <span class="tag-pill">#ZeroTelemetry</span>
-                            </div>
-                        </div>
-                        <a href="./utilities/staship/index.html" class="btn-action">Launch StashIP &rarr;</a>
-                    </article>
-
-                    <!-- 3. Clarify Card -->
-                    <article class="project-card" data-type="utilities" data-category="wip">
-
                         <div>
                             <div class="card-top">
                                 <div class="card-glyph-box">
@@ -1020,352 +868,281 @@
                                         <line x1="3" y1="21" x2="10" y2="14"></line>
                                     </svg>
                                 </div>
-                                <span class="status-pill status-wip">In Progress</span>
+                                <span class="status-pill status-playable">готово</span>
                             </div>
-                            <h2 class="card-title">Clarify</h2>
-                            <p class="card-desc">Neural super-resolution tool to upscale, enhance, and denoise photos up to 4K. Features an interactive Before/After split slider and zero telemetry.</p>
+                            <h2 class="card-title">нейроапскейлер</h2>
+                            <p class="card-desc">нейросетевой апскейлер фото на базе Vulkan AI. масштабирование до 4K, удаление шума, интерактивный слайдер до/после и нулевая телеметрия.</p>
                             <div class="card-tags">
-                                <span class="tag-pill">#AI</span>
-                                <span class="tag-pill">#Upscaler</span>
-                                <span class="tag-pill">#SuperResolution</span>
-                                <span class="tag-pill">#ZeroTelemetry</span>
+                                <span class="tag-pill">#нейросеть</span>
+                                <span class="tag-pill">#апскейлер</span>
+                                <span class="tag-pill">#vulkan</span>
+                                <span class="tag-pill">#фото</span>
                             </div>
                         </div>
-                        <a href="./utilities/clarify/index.html" class="btn-action">Launch Clarify &rarr;</a>
+                        <a href="./utilities/clarify/index.html" class="btn-action">запустить нейроапскейлер &rarr;</a>
                     </article>
 
-                    <!-- 5. FetchFlow Card -->
+                    <!-- 3. FetchFlow / скачивание видео -->
                     <article class="project-card" data-type="utilities" data-category="playable">
                         <div>
                             <div class="card-top">
-                                <div class="card-glyph-box" style="color: #00ff9d; border-color: rgba(0, 255, 157, 0.3);">
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <div class="card-glyph-box">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                         <polyline points="7 10 12 15 17 10"></polyline>
                                         <line x1="12" y1="15" x2="12" y2="3"></line>
                                     </svg>
                                 </div>
-                                <span class="status-pill status-playable">Playable</span>
+                                <span class="status-pill status-playable">готово</span>
                             </div>
-                            <h2 class="card-title">FetchFlow</h2>
-                            <p class="card-desc">Universal client-side media parser and stream extractor. Direct in-browser video & audio downloads for YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud & more.</p>
+                            <h2 class="card-title">скачивание видео</h2>
+                            <p class="card-desc">пакетная очередь загрузки видео и аудио через yt-dlp бэкенд на VPS с поддержкой Cloudflare WARP SOCKS5. прямое скачивание MP4 и MP3.</p>
                             <div class="card-tags">
-                                <span class="tag-pill">#MediaExtractor</span>
-                                <span class="tag-pill">#YouTube</span>
-                                <span class="tag-pill">#TikTok</span>
-                                <span class="tag-pill">#DirectStream</span>
+                                <span class="tag-pill">#скачивание</span>
+                                <span class="tag-pill">#видео</span>
+                                <span class="tag-pill">#ytdlp</span>
+                                <span class="tag-pill">#очередь</span>
                             </div>
                         </div>
-                        <a href="./utilities/fetchflow/index.html" class="btn-action">Launch FetchFlow &rarr;</a>
+                        <a href="./utilities/fetchflow/index.html" class="btn-action">запустить скачивание видео &rarr;</a>
                     </article>
 
-                    <!-- 6. StashCompanion Card -->
+                    <!-- 4. StashConvert / конвертер -->
                     <article class="project-card" data-type="utilities" data-category="playable">
                         <div>
                             <div class="card-top">
-                                <div class="card-glyph-box" style="color: #00ff9d; border-color: rgba(0, 255, 157, 0.3);">
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <div class="card-glyph-box">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <polyline points="16 13 12 17 8 13"></polyline>
+                                        <line x1="12" y1="9" x2="12" y2="17"></line>
+                                    </svg>
+                                </div>
+                                <span class="status-pill status-playable">готово</span>
+                            </div>
+                            <h2 class="card-title">конвертер</h2>
+                            <p class="card-desc">универсальный клиентский конвертер видео, картинок, аудио и документов. поддержка GIF, извлечение аудио, пакетная очередь и нулевая телеметрия.</p>
+                            <div class="card-tags">
+                                <span class="tag-pill">#конвертер</span>
+                                <span class="tag-pill">#видео</span>
+                                <span class="tag-pill">#аудио</span>
+                                <span class="tag-pill">#картинки</span>
+                            </div>
+                        </div>
+                        <a href="./utilities/stashconvert/index.html" class="btn-action">запустить конвертер &rarr;</a>
+                    </article>
+
+                    <!-- 5. StashIP / проверка ip -->
+                    <article class="project-card" data-type="utilities" data-category="playable">
+                        <div>
+                            <div class="card-top">
+                                <div class="card-glyph-box">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    </svg>
+                                </div>
+                                <span class="status-pill status-playable">готово</span>
+                            </div>
+                            <h2 class="card-title">проверка ip</h2>
+                            <p class="card-desc">диагностика сетевого подключения без телеметрии (IP, провайдер, ASN, геолокация, часовой пояс) и клиентский спидометр скорости.</p>
+                            <div class="card-tags">
+                                <span class="tag-pill">#сеть</span>
+                                <span class="tag-pill">#ip</span>
+                                <span class="tag-pill">#скорость</span>
+                                <span class="tag-pill">#гео</span>
+                            </div>
+                        </div>
+                        <a href="./utilities/staship/index.html" class="btn-action">запустить проверку ip &rarr;</a>
+                    </article>
+
+                    <!-- 6. StashList / чеклист -->
+                    <article class="project-card" data-type="utilities" data-category="playable">
+                        <div>
+                            <div class="card-top">
+                                <div class="card-glyph-box">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="9 11 12 14 22 4"></polyline>
+                                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                                    </svg>
+                                </div>
+                                <span class="status-pill status-playable">готово</span>
+                            </div>
+                            <h2 class="card-title">чеклист</h2>
+                            <p class="card-desc">локальный трекер привычек и регулярных задач. расписание по дням недели, аудиосигналы, напоминания и автосброс в полночь.</p>
+                            <div class="card-tags">
+                                <span class="tag-pill">#чеклист</span>
+                                <span class="tag-pill">#привычки</span>
+                                <span class="tag-pill">#задачи</span>
+                                <span class="tag-pill">#офлайн</span>
+                            </div>
+                        </div>
+                        <a href="./utilities/stashlist/index.html" class="btn-action">запустить чеклист &rarr;</a>
+                    </article>
+
+                    <!-- 7. StashCompanion / компаньон -->
+                    <article class="project-card" data-type="utilities" data-category="playable">
+                        <div>
+                            <div class="card-top">
+                                <div class="card-glyph-box">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
                                         <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
                                         <line x1="6" y1="6" x2="6.01" y2="6"/>
                                         <line x1="6" y1="18" x2="6.01" y2="18"/>
                                     </svg>
                                 </div>
-                                <span class="status-pill status-playable">Playable</span>
+                                <span class="status-pill status-playable">готово</span>
                             </div>
-                            <h2 class="card-title">StashCompanion</h2>
-                            <p class="card-desc" id="desc-companion">Local Python backend for AI photo upscaling in Clarify and high-throughput yt-dlp media extraction in FetchFlow. Zero telemetry.</p>
+                            <h2 class="card-title">stashcompanion</h2>
+                            <p class="card-desc" id="desc-companion">локальный Python-бэкенд для нейроапскейлера Clarify на базе Vulkan AI. нулевая телеметрия и аппаратное ускорение.</p>
                             <div class="card-tags">
-                                <span class="tag-pill">#Python</span>
-                                <span class="tag-pill">#HardwareAccel</span>
-                                <span class="tag-pill">#AIUpscale</span>
-                                <span class="tag-pill">#yt-dlp</span>
-                                <span class="tag-pill">#ZeroTelemetry</span>
+                                <span class="tag-pill">#python</span>
+                                <span class="tag-pill">#vulkan</span>
+                                <span class="tag-pill">#апскейлер</span>
+                                <span class="tag-pill">#бэкенд</span>
                             </div>
                         </div>
-                        <a href="https://raw.githubusercontent.com/theaser7/theaser7.github.io/main/downloads/the-stash-companion.exe" download class="btn-action" id="btn-launch-companion">Download Server (.exe) &rarr;</a>
-                    </article>
-
-                    <!-- the stash desktop Card -->
-                    <article class="project-card" data-type="utilities" data-category="playable">
-                        <div>
-                            <div class="card-top">
-                                <div class="card-glyph-box" style="color: #00ff9d; border-color: rgba(0, 255, 157, 0.3);">
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                                        <line x1="8" y1="21" x2="16" y2="21"/>
-                                        <line x1="12" y1="17" x2="12" y2="21"/>
-                                    </svg>
-                                </div>
-                                <span class="status-pill status-playable">Playable</span>
-                            </div>
-                            <h2 class="card-title">the stash desktop</h2>
-                            <p class="card-desc" id="desc-desktop">Official standalone Electron desktop suite for The Stash. High-performance offline sandbox, native OS integration, zero telemetry.</p>
-                            <div class="card-tags">
-                                <span class="tag-pill">#Electron</span>
-                                <span class="tag-pill">#Desktop</span>
-                                <span class="tag-pill">#WindowsX64</span>
-                                <span class="tag-pill">#OfflineFirst</span>
-                                <span class="tag-pill">#ZeroTelemetry</span>
-                            </div>
-                        </div>
-                        <a href="https://thestash.space/downloads/the-stash-desktop.exe" download class="btn-action" id="btn-launch-desktop">Download Desktop (.exe) &rarr;</a>
-                    </article>
-
-                    <!-- StashList Card -->
-                    <article class="project-card" data-type="utilities" data-category="wip">
-                        <div>
-                            <div class="card-top">
-                                <div class="card-glyph-box" style="color: var(--mint);">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="9 11 12 14 22 4"></polyline>
-                                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                                    </svg>
-                                </div>
-                                <span class="status-pill status-wip">In Progress</span>
-                            </div>
-                            <h2 class="card-title">StashList</h2>
-                            <p class="card-desc">Recurring daily checklist and routine tracker. Active day schedules, custom reminder alerts with audio notifications, and zero telemetry.</p>
-                            <div class="card-tags">
-                                <span class="tag-pill">#Checklist</span>
-                                <span class="tag-pill">#Routine</span>
-                                <span class="tag-pill">#HabitTracker</span>
-                                <span class="tag-pill">#OfflineFirst</span>
-                                <span class="tag-pill">#ZeroTelemetry</span>
-                            </div>
-                        </div>
-                        <a href="./utilities/stashlist/index.html" class="btn-action">Launch StashList &rarr;</a>
+                        <a href="./downloads/the-stash-companion.exe" download class="btn-action" id="btn-launch-companion">скачать сервер (.exe) &rarr;</a>
                     </article>
 
                     <!-- Empty State -->
                     <div class="empty-state" id="empty-state" style="display: none;">
-                        <div class="empty-state-title">NO MATCHING MODULES FOUND</div>
-                        <p class="empty-state-desc">Try modifying the search filter or switching active tabs.</p>
+                        <div class="empty-state-title">модули не найдены</div>
+                        <p class="empty-state-desc">попробуйте изменить поисковый запрос или выбрать другую вкладку.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Right Sidebar: Interactive Info Display & Metrics Matrix -->
             <aside class="sidebar-column">
-                <!-- Preview Canvas Card (Screenshot replica) -->
+                <!-- Preview Box -->
                 <div class="preview-box">
-                    <div class="preview-text-main">select any module</div>
-                    <div class="preview-text-sub">to inspect sandbox parameters</div>
+                    <div class="preview-text-main">выберите модуль</div>
+                    <div class="preview-text-sub">для просмотра параметров песочницы</div>
                 </div>
 
                 <!-- 3 Metrics Boxes -->
                 <div class="metrics-row">
                     <div class="metric-card">
                         <span class="metric-val">1000+</span>
-                        <span class="metric-lbl">Possibilities</span>
+                        <span class="metric-lbl">возможностей</span>
                     </div>
                     <div class="metric-card">
                         <span class="metric-val">100%</span>
-                        <span class="metric-lbl">Client-Side</span>
+                        <span class="metric-lbl">в браузере</span>
                     </div>
                     <div class="metric-card">
-                        <span class="metric-val">Free</span>
-                        <span class="metric-lbl">Forever</span>
+                        <span class="metric-val">free</span>
+                        <span class="metric-lbl">бесплатно</span>
                     </div>
                 </div>
 
                 <!-- Supported Tech & Platforms Cloud -->
                 <div class="stack-box">
-                    <span class="stack-heading">SUPPORTED PLATFORMS & STACK</span>
+                    <span class="stack-heading">стек и технологии</span>
                     <div class="stack-chips">
                         <span class="stack-chip">JavaScript ES2024</span>
                         <span class="stack-chip">WebAudio</span>
                         <span class="stack-chip">yt-dlp</span>
                         <span class="stack-chip">FFmpeg</span>
-                        <span class="stack-chip">WebGPU</span>
-                        <span class="stack-chip">Canvas 2D</span>
-                        <span class="stack-chip">Zero Bloat</span>
+                        <span class="stack-chip">Vulkan AI</span>
+                        <span class="stack-chip">WARP SOCKS5</span>
+                        <span class="stack-chip">Zero Telemetry</span>
                     </div>
                 </div>
             </aside>
         </div>
     </div>
 
-    <!-- FetchFlow Concept Modal -->
-    <div class="modal-overlay" id="concept-modal">
-        <div class="modal-card">
-            <button class="modal-close" id="modal-close-btn" title="Close">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-            <span class="modal-badge" id="concept-modal-badge">ARCHITECTURAL CONCEPT</span>
-            <h3 class="modal-title" id="concept-modal-title">FetchFlow // Core Specs</h3>
-            <p class="modal-body" id="concept-modal-body">
-                FetchFlow is a planned client-side command compiler and companion bridge for <strong>yt-dlp</strong> and <strong>ffmpeg</strong>, giving users complete control over high-resolution media extraction without remote third-party servers.
-            </p>
-            <ul class="modal-features">
-                <li id="concept-feat-1">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span><strong>1000+ Providers:</strong> YouTube, VK, Twitch VODs, Rutube, SoundCloud & more.</span>
-                </li>
-                <li id="concept-feat-2">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span><strong>Lossless Audio:</strong> MP3 320k, FLAC, Opus, AAC with embedded artwork & tags.</span>
-                </li>
-                <li id="concept-feat-3">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span><strong>Section Trimming:</strong> Download specific timestamp segments via FFmpeg.</span>
-                </li>
-                <li id="concept-feat-4">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span><strong>Automation:</strong> 1-click generation of portable PowerShell & CLI execution scripts.</span>
-                </li>
-            </ul>
-            <button class="btn-action" id="modal-ack-btn">Understood</button>
-        </div>
-    </div>
-
-
     <!-- Settings Modal -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-card">
-            <button class="modal-close" id="modal-settings-close" title="Close">
+            <button class="modal-close" id="modal-settings-close" title="закрыть">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
-            <span class="modal-badge" id="modal-settings-badge">SYSTEM PREFERENCES</span>
-            <h3 class="modal-title" id="modal-settings-title">Preferences // Настройки</h3>
+            <span class="modal-badge" id="modal-settings-badge">параметры</span>
+            <h3 class="modal-title" id="modal-settings-title">настройки</h3>
             
             <div class="settings-group">
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-name" id="lbl-setting-lang">Interface Language / Язык</span>
-                        <span class="setting-desc" id="desc-setting-lang">Choose language for the stash hub</span>
+                        <span class="setting-name" id="lbl-setting-theme">тема оформления</span>
+                        <span class="setting-desc" id="desc-setting-theme">светлая или темная тема</span>
                     </div>
                     <div class="lang-switch-buttons">
-                        <button class="lang-btn active" id="btn-lang-en" data-lang="en">EN</button>
+                        <button class="lang-btn theme-choice-btn" id="btn-theme-dark" data-theme="dark">темная</button>
+                        <button class="lang-btn theme-choice-btn" id="btn-theme-light" data-theme="light">светлая</button>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name" id="lbl-setting-lang">язык интерфейса</span>
+                        <span class="setting-desc" id="desc-setting-lang">выберите язык отображения</span>
+                    </div>
+                    <div class="lang-switch-buttons">
+                        <button class="lang-btn" id="btn-lang-en" data-lang="en">EN</button>
                         <button class="lang-btn" id="btn-lang-ru" data-lang="ru">RU</button>
                     </div>
                 </div>
             </div>
 
-            <button class="btn-action" id="btn-settings-save">Save & Close</button>
+            <button class="btn-action" id="btn-settings-save">сохранить и закрыть</button>
         </div>
     </div>
 
-
     <!-- Footer -->
     <footer>
-        <span>THE STASH &bull; 2D BLUEPRINT MATRIX</span>
+        <span id="footer-text">the stash &bull; веб-сьют</span>
     </footer>
 
-
-
-    <!-- 2D Cyber Blueprint Grid Canvas & Filter Controller -->
+    <!-- Application Controller & Theme Script -->
     <script>
-        // --- 1. 2D Blueprint Grid Canvas with Mouse Radial Torch ---
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let mouseX = window.innerWidth / 2;
-        let mouseY = window.innerHeight / 2;
-        let currentMouseX = mouseX;
-        let currentMouseY = mouseY;
+        // --- 1. Theme Management ---
+        function applyStashTheme(theme) {
+            const currentTheme = theme === 'light' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('stash_theme', currentTheme);
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            const btnDark = document.getElementById('btn-theme-dark');
+            const btnLight = document.getElementById('btn-theme-light');
+            if (btnDark) btnDark.classList.toggle('active', currentTheme === 'dark');
+            if (btnLight) btnLight.classList.toggle('active', currentTheme === 'light');
         }
 
-        window.addEventListener('resize', resizeCanvas);
-        window.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
+        const initialTheme = localStorage.getItem('stash_theme') || 'dark';
+        applyStashTheme(initialTheme);
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'stash_theme') {
+                applyStashTheme(e.newValue || 'dark');
+            }
         });
 
-        const GRID_SIZE = 40;
-
-        function renderGrid() {
-            const w = canvas.width;
-            const h = canvas.height;
-            ctx.clearRect(0, 0, w, h);
-
-            // Smooth mouse interpolation
-            currentMouseX += (mouseX - currentMouseX) * 0.08;
-            currentMouseY += (mouseY - currentMouseY) * 0.08;
-
-            // Draw subtle base 2D grid lines
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = 'rgba(19, 36, 27, 0.45)';
-
-            ctx.beginPath();
-            for (let x = 0; x <= w; x += GRID_SIZE) {
-                ctx.moveTo(x + 0.5, 0);
-                ctx.lineTo(x + 0.5, h);
-            }
-            for (let y = 0; y <= h; y += GRID_SIZE) {
-                ctx.moveTo(0, y + 0.5);
-                ctx.lineTo(w, y + 0.5);
-            }
-            ctx.stroke();
-
-            // Radial Torch Highlight around mouse
-            const gradient = ctx.createRadialGradient(
-                currentMouseX, currentMouseY, 20,
-                currentMouseX, currentMouseY, 450
-            );
-            gradient.addColorStop(0, 'rgba(0, 255, 157, 0.07)');
-            gradient.addColorStop(0.5, 'rgba(0, 255, 157, 0.02)');
-            gradient.addColorStop(1, 'rgba(0, 255, 157, 0)');
-
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, w, h);
-
-            // Subtle crosshair points at grid intersections near mouse
-            ctx.fillStyle = 'rgba(0, 255, 157, 0.25)';
-            const startX = Math.floor((currentMouseX - 300) / GRID_SIZE) * GRID_SIZE;
-            const endX = Math.ceil((currentMouseX + 300) / GRID_SIZE) * GRID_SIZE;
-            const startY = Math.floor((currentMouseY - 300) / GRID_SIZE) * GRID_SIZE;
-            const endY = Math.ceil((currentMouseY + 300) / GRID_SIZE) * GRID_SIZE;
-
-            for (let x = startX; x <= endX; x += GRID_SIZE) {
-                for (let y = startY; y <= endY; y += GRID_SIZE) {
-                    const dist = Math.hypot(x - currentMouseX, y - currentMouseY);
-                    if (dist < 300) {
-                        const alpha = (1 - dist / 300) * 0.4;
-                        ctx.fillStyle = `rgba(0, 255, 157, ${alpha})`;
-                        ctx.fillRect(x - 1, y - 1, 3, 3);
-                    }
-                }
-            }
-
-            requestAnimationFrame(renderGrid);
+        const themeToggleBtn = document.getElementById('btn-theme-toggle');
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                const current = localStorage.getItem('stash_theme') || 'dark';
+                applyStashTheme(current === 'dark' ? 'light' : 'dark');
+            });
         }
 
-        resizeCanvas();
-        renderGrid();
+        const btnThemeDark = document.getElementById('btn-theme-dark');
+        const btnThemeLight = document.getElementById('btn-theme-light');
+        if (btnThemeDark) btnThemeDark.addEventListener('click', () => applyStashTheme('dark'));
+        if (btnThemeLight) btnThemeLight.addEventListener('click', () => applyStashTheme('light'));
 
-        // --- 2. Live Search & Category / Status Filtering ---
+        // --- 2. Live Search & Filtering ---
         let activeTab = 'all';
         let activeStatus = 'all';
         let searchQuery = '';
 
-        const statusHierarchy = {
-            'playable': 1,
-            'wip': 2,
-            'concept': 3,
-            'archived': 4
-        };
-
         const searchInput = document.getElementById('search-input');
         const emptyState = document.getElementById('empty-state');
         const cards = document.querySelectorAll('.project-card');
-
-        function sortCardsByHierarchy() {
-            const grid = document.getElementById('projects-grid');
-            if (!grid) return;
-            const cardArray = Array.from(grid.querySelectorAll('.project-card'));
-            cardArray.sort((a, b) => {
-                const catA = a.getAttribute('data-category') || 'playable';
-                const catB = b.getAttribute('data-category') || 'playable';
-                const rankA = statusHierarchy[catA] || 99;
-                const rankB = statusHierarchy[catB] || 99;
-                return rankA - rankB;
-            });
-            cardArray.forEach(card => grid.appendChild(card));
-        }
 
         function updateCounters() {
             let totalCount = 0;
@@ -1389,9 +1166,12 @@
                 }
             });
 
-            document.getElementById('count-all').textContent = totalCount;
-            document.getElementById('count-games').textContent = gamesCount;
-            document.getElementById('count-utilities').textContent = utilsCount;
+            const cntAll = document.getElementById('count-all');
+            const cntGames = document.getElementById('count-games');
+            const cntUtils = document.getElementById('count-utilities');
+            if (cntAll) cntAll.textContent = totalCount;
+            if (cntGames) cntGames.textContent = gamesCount;
+            if (cntUtils) cntUtils.textContent = utilsCount;
         }
 
         function updateGrid() {
@@ -1423,16 +1203,13 @@
             updateCounters();
         }
 
-        sortCardsByHierarchy();
-        updateCounters();
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value.trim().toLowerCase();
+                updateGrid();
+            });
+        }
 
-
-        searchInput.addEventListener('input', (e) => {
-            searchQuery = e.target.value.trim().toLowerCase();
-            updateGrid();
-        });
-
-        // Category Tabs
         document.querySelectorAll('.tab-btn').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
@@ -1442,7 +1219,6 @@
             });
         });
 
-        // Status Chips
         document.querySelectorAll('.quick-tag-chip').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.quick-tag-chip').forEach(b => b.classList.remove('active'));
@@ -1452,158 +1228,131 @@
             });
         });
 
-        // --- 3. Settings Modal & Full i18n Localization Engine ---
+        // --- 3. Full i18n Localization Engine ---
         const STASH_I18N = {
             en: {
-                sysOnline: "ALL SYSTEMS ONLINE",
-                sysMeta: "CLIENT RUNTIME • ZERO LATENCY",
-                btnSettings: "SETTINGS",
-                heroDesc: "1000+ client-side experiments. Zero watermark. Zero telemetry. Free.",
-                techBanner: "Status: 100% active • local in-browser sandbox • no throttling",
-                tabAll: "All Projects",
-                tabGames: "Games",
-                tabUtils: "Utilities",
-                searchLabel: "// SEARCH DIRECTORY OR FILTER BY MODULE",
-                searchPlaceholder: "Type keyword, tag, or project name...",
-                tagAll: "ALL",
-                tagPlayable: "PLAYABLE",
-                tagWip: "IN PROGRESS",
-                tagConcept: "CONCEPT",
-                tagArchived: "ARCHIVED",
-                cardFlexleDesc: "Flexible Wordle game with custom word lengths from 4 to 11+ letters, bracket drum picker for random ranges, and procedural WebAudio synthesizers.",
-                cardQuantexDesc: "Cyberpunk More/Less comparison game across 5 categories: Google searches, YouTube subs, Cinema gross, Valuations, and Trivia extremes.",
-                cardStashconvertDesc: "Universal client-side converter for Video, Images, Audio, and Data/Docs. Supports video-to-GIF, video-to-audio extraction, batch queues, and zero telemetry.",
-                cardStashipDesc: "Zero-telemetry network diagnostics (IP, ISP, ASN, Geolocation, Timezone, Hostname) with 1-Click Copy and live client-side Speedtest engine.",
-                cardClarifyDesc: "Neural super-resolution tool to upscale, enhance, and denoise photos up to 4K. Features an interactive Before/After split slider and zero telemetry.",
-                cardFetchflowDesc: "Universal client-side media parser and stream extractor. Direct in-browser video & audio downloads for YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud & more.",
-                cardCompanionDesc: "1-Click Local Python backend for AI Super-Resolution (Clarify) and high-throughput yt-dlp media extraction (FetchFlow). Zero telemetry.",
-                cardDesktopDesc: "Official standalone Electron desktop suite for The Stash. High-performance offline sandbox, native OS integration, zero telemetry.",
-                cardStashlistDesc: "Recurring daily checklist and routine tracker. Active day schedules, custom reminder alerts with audio notifications, and zero telemetry.",
-                btnLaunchFlexle: "Launch Flexle →",
-                btnLaunchQuantex: "Launch Quantex →",
-                btnLaunchStashconvert: "Launch StashConvert →",
-                btnLaunchStaship: "Launch StashIP →",
-                btnLaunchClarify: "Launch Clarify →",
-                btnLaunchFetchflow: "Launch FetchFlow →",
-                btnLaunchCompanion: "Download Server (.exe) →",
-                btnLaunchStashlist: "Launch StashList →",
-                txtBtnCompanion: "COMPANION SERVER (.EXE)",
-                txtBtnDesktop: "THE STASH DESKTOP (.EXE)",
-                btnLaunchDesktop: "Download Desktop (.exe) →",
-                btnConceptSpecs: "Concept Specs →",
-                previewMain: "select any module",
+                sysOnline: "all systems online",
+                sysMeta: "client runtime • zero latency",
+                btnTheme: "theme",
+                btnSettings: "settings",
+                txtBtnCompanion: "companion server (.exe)",
+                heroDesc: "suite of client-side web tools and games. zero watermarks. zero telemetry. free.",
+                techBanner: "status: all systems operational • local in-browser sandbox • no throttling",
+                tabAll: "all projects",
+                tabGames: "games",
+                tabUtils: "utilities",
+                searchLabel: "// search directory or filter",
+                searchPlaceholder: "search by name, tag or description...",
+                tagAll: "all",
+                tagPlayable: "ready",
+                tagWip: "in progress",
+                emptyTitle: "no modules found",
+                emptyDesc: "try modifying the search query or selecting another tab.",
+                previewMain: "select a module",
                 previewSub: "to inspect sandbox parameters",
-                metricPossibilities: "Possibilities",
-                metricClientSide: "Client-Side",
-                metricForever: "Forever",
-                stackHeading: "SUPPORTED PLATFORMS & STACK",
-                footerText: "THE STASH • 2D BLUEPRINT MATRIX",
-                settingsBadge: "SYSTEM PREFERENCES",
-                settingsTitle: "Preferences // Settings",
-                lblLang: "Interface Language",
-                descLang: "Choose language for the stash hub",
-                btnSave: "Save & Close",
-                conceptBadge: "ARCHITECTURAL CONCEPT",
-                conceptTitle: "FetchFlow // Core Specs",
-                conceptBody: "FetchFlow is a planned client-side command compiler and companion bridge for <strong>yt-dlp</strong> and <strong>ffmpeg</strong>, giving users complete control over high-resolution media extraction without remote third-party servers.",
-                conceptFeat1: "<strong>1000+ Providers:</strong> YouTube, VK, Twitch VODs, Rutube, SoundCloud & more.",
-                conceptFeat2: "<strong>Lossless Audio:</strong> MP3 320k, FLAC, Opus, AAC with embedded artwork & tags.",
-                conceptFeat3: "<strong>Section Trimming:</strong> Download specific timestamp segments via FFmpeg.",
-                conceptFeat4: "<strong>Automation:</strong> 1-click generation of portable PowerShell & CLI execution scripts.",
-                conceptAck: "Understood",
-                statusPlayable: "Playable",
-                statusWip: "In Progress",
-                statusConcept: "Concept",
-                statusArchived: "Archived"
+                metricPossibilities: "possibilities",
+                metricClientSide: "in-browser",
+                metricForever: "free",
+                stackHeading: "stack & tech",
+                footerText: "the stash • web suite",
+                settingsBadge: "preferences",
+                settingsTitle: "settings",
+                lblSettingTheme: "theme",
+                descSettingTheme: "light or dark theme",
+                btnThemeDark: "dark",
+                btnThemeLight: "light",
+                lblSettingLang: "interface language",
+                descSettingLang: "choose display language for the stash",
+                btnSettingsSave: "save & close",
+                cardFlexleDesc: "flexible wordle game with custom word lengths from 4 to 11+ letters, bracket drum picker for random ranges, and procedural WebAudio synthesizers.",
+                cardClarifyDesc: "neural photo upscaler powered by Vulkan AI. upscales up to 4K, denoises, interactive before/after split slider, and zero telemetry.",
+                cardFetchflowDesc: "batch video and audio download queue powered by yt-dlp backend on VPS with Cloudflare WARP SOCKS5 support. direct MP4 and MP3 downloads.",
+                cardStashconvertDesc: "universal client-side converter for video, images, audio, and documents. supports GIF, audio extraction, batch queues, and zero telemetry.",
+                cardStashipDesc: "zero-telemetry network diagnostics (IP, ISP, ASN, geolocation, timezone) and client-side speed test engine.",
+                cardStashlistDesc: "recurring daily checklist and habit tracker. active day schedules, audio chimes, notifications, and auto-resets at midnight.",
+                cardCompanionDesc: "local Python backend for Clarify AI upscaling via Vulkan AI. zero telemetry and hardware acceleration.",
+                btnLaunchFlexle: "launch вордл →",
+                btnLaunchClarify: "launch нейроапскейлер →",
+                btnLaunchFetchflow: "launch скачивание видео →",
+                btnLaunchStashconvert: "launch конвертер →",
+                btnLaunchStaship: "launch проверка ip →",
+                btnLaunchStashlist: "launch чеклист →",
+                btnLaunchCompanion: "download server (.exe) →"
             },
             ru: {
-                sysOnline: "ВСЕ СИСТЕМЫ В СЕТИ",
-                sysMeta: "КЛИЕНТСКИЙ РАНТАЙМ • НУЛЕВАЯ ЗАДЕРЖКА",
-                btnSettings: "НАСТРОЙКИ",
-                heroDesc: "1000+ экспериментов в браузере. Без вотермарок. Без телеметрии. Бесплатно.",
-                techBanner: "Статус: 100% активно • локальная песочница в браузере • без ограничений",
-                tabAll: "Все проекты",
-                tabGames: "Игры",
-                tabUtils: "Утилиты",
-                searchLabel: "// ПОИСК ПО КАТАЛОГУ ИЛИ ФИЛЬТРАЦИЯ ПО МОДУЛЯМ",
-                searchPlaceholder: "Введите ключевое слово, тег или название...",
-                tagAll: "ВСЕ",
-                tagPlayable: "ГОТОВЫЕ",
-                tagWip: "В РАЗРАБОТКЕ",
-                tagConcept: "КОНЦЕПТЫ",
-                tagArchived: "АРХИВ",
-                cardFlexleDesc: "Гибкий Wordle с выбором длины слова от 4 до 11+ букв, барабанным выбором случайных диапазонов и процедурным WebAudio звуком.",
-                cardQuantexDesc: "Киберпанк игра сравнения «больше/меньше» по 5 категориям: поисковые тренды, YouTube, киносборы, капитализации и рекорды науки.",
-                cardStashconvertDesc: "Универсальный клиентский конвертер видео, картинок, аудио и данных. Видео в GIF, извлечение аудио, пакетная очередь и нулевая телеметрия.",
-                cardStashipDesc: "Диагностика сети без телеметрии (IP, провайдер, ASN, геолокация, таймзона) с копированием в 1 клик и встроенным спидометром скорости.",
-                cardClarifyDesc: "Нейросетевой апскейлер для улучшения детализации и удаления шума на фото до 4K. Интерактивный слайдер «До/После» и нулевая телеметрия.",
-                cardFetchflowDesc: "Универсальный клиентский веб-парсер и загрузчик медиа. Прямое скачивание видео и аудио для YouTube, TikTok, VK, X/Twitter, Reddit, SoundCloud и других.",
-                cardCompanionDesc: "Локальный Python-бэкенд для ИИ-апскейлинга фото в Clarify и скачивания медиа через yt-dlp в FetchFlow. Нулевая телеметрия.",
-                cardDesktopDesc: "Официальное автономное десктопное приложение Electron для The Stash. Офлайн-песочница, интеграция с Windows и нулевая телеметрия.",
-                cardStashlistDesc: "Периодический ежедневный чеклист и трекер привычек. Расписание по дням недели, звуковые уведомления и нулевая телеметрия.",
-                btnLaunchFlexle: "Запустить Flexle →",
-                btnLaunchQuantex: "Запустить Quantex →",
-                btnLaunchStashconvert: "Запустить StashConvert →",
-                btnLaunchStaship: "Запустить StashIP →",
-                btnLaunchClarify: "Запустить Clarify →",
-                btnLaunchFetchflow: "Запустить FetchFlow →",
-                btnLaunchCompanion: "Скачать сервер (.exe) →",
-                btnLaunchStashlist: "Запустить StashList →",
-                txtBtnCompanion: "COMPANION СЕРВЕР (.EXE)",
-                txtBtnDesktop: "THE STASH DESKTOP (.EXE)",
-                btnLaunchDesktop: "Скачать десктоп (.exe) →",
-                btnConceptSpecs: "Спецификация концепта →",
-                previewMain: "выберите любой модуль",
+                sysOnline: "все системы в норме",
+                sysMeta: "клиентский рантайм • нулевая задержка",
+                btnTheme: "тема",
+                btnSettings: "настройки",
+                txtBtnCompanion: "companion server (.exe)",
+                heroDesc: "веб-сьют утилит и игр. без водяных знаков. без телеметрии. бесплатно.",
+                techBanner: "статус: все системы в норме • локальная песочница в браузере • без ограничений",
+                tabAll: "все проекты",
+                tabGames: "игры",
+                tabUtils: "утилиты",
+                searchLabel: "// поиск по каталогу или фильтрация",
+                searchPlaceholder: "поиск по названию, тегу или описанию...",
+                tagAll: "все",
+                tagPlayable: "готовые",
+                tagWip: "в разработке",
+                emptyTitle: "модули не найдены",
+                emptyDesc: "попробуйте изменить поисковый запрос или выбрать другую вкладку.",
+                previewMain: "выберите модуль",
                 previewSub: "для просмотра параметров песочницы",
-                metricPossibilities: "Возможностей",
-                metricClientSide: "В браузере",
-                metricForever: "Бесплатно",
-                stackHeading: "ПОДДЕРЖИВАЕМЫЕ ТЕХНОЛОГИИ И СТЕК",
-                footerText: "THE STASH • 2D МАТРИЦА БЛУПРИНТОВ",
-                settingsBadge: "СИСТЕМНЫЕ НАСТРОЙКИ",
-                settingsTitle: "Настройки // Preferences",
-                lblLang: "Язык интерфейса",
-                descLang: "Выберите язык отображения хаба the stash",
-                btnSave: "Сохранить и закрыть",
-                conceptBadge: "АРХИТЕКТУРНЫЙ КОНЦЕПТ",
-                conceptTitle: "FetchFlow // Спецификация ядра",
-                conceptBody: "FetchFlow — планируемый клиентский генератор команд и мост-компаньон для <strong>yt-dlp</strong> и <strong>ffmpeg</strong>, дающий полный контроль над извлечением медиа в высоком качестве без сторонних серверов.",
-                conceptFeat1: "<strong>1000+ провайдеров:</strong> YouTube, VK, Twitch VODs, Rutube, SoundCloud и другие.",
-                conceptFeat2: "<strong>Звук без потерь:</strong> MP3 320k, FLAC, Opus, AAC со встроенной обложкой и тегами.",
-                conceptFeat3: "<strong>Нарезка фрагментов:</strong> Загрузка точных таймкод-сегментов через FFmpeg.",
-                conceptFeat4: "<strong>Автоматизация:</strong> Генерация исполняемых Windows <code>.bat</code> скриптов в 1 клик.",
-                conceptAck: "Понятно",
-                statusPlayable: "Готово",
-                statusWip: "В разработке",
-                statusConcept: "Концепт",
-                statusArchived: "В архиве"
+                metricPossibilities: "возможностей",
+                metricClientSide: "в браузере",
+                metricForever: "бесплатно",
+                stackHeading: "стек и технологии",
+                footerText: "the stash • веб-сьют",
+                settingsBadge: "параметры",
+                settingsTitle: "настройки",
+                lblSettingTheme: "тема оформления",
+                descSettingTheme: "светлая или темная тема",
+                btnThemeDark: "темная",
+                btnThemeLight: "светлая",
+                lblSettingLang: "язык интерфейса",
+                descSettingLang: "выберите язык отображения",
+                btnSettingsSave: "сохранить и закрыть",
+                cardFlexleDesc: "гибкий вордл с выбором длины слова от 4 до 11+ букв, барабанным выбором случайных диапазонов и процедурным WebAudio звуком.",
+                cardClarifyDesc: "нейросетевой апскейлер фото на базе Vulkan AI. масштабирование до 4K, удаление шума, интерактивный слайдер до/после и нулевая телеметрия.",
+                cardFetchflowDesc: "пакетная очередь загрузки видео и аудио через yt-dlp бэкенд на VPS с поддержкой Cloudflare WARP SOCKS5. прямое скачивание MP4 и MP3.",
+                cardStashconvertDesc: "универсальный клиентский конвертер видео, картинок, аудио и документов. поддержка GIF, извлечение аудио, пакетная очередь и нулевая телеметрия.",
+                cardStashipDesc: "диагностика сетевого подключения без телеметрии (IP, провайдер, ASN, геолокация, часовой пояс) и клиентский спидометр скорости.",
+                cardStashlistDesc: "локальный трекер привычек и регулярных задач. расписание по дням недели, аудиосигналы, напоминания и автосброс в полночь.",
+                cardCompanionDesc: "локальный Python-бэкенд для нейроапскейлера Clarify на базе Vulkan AI. нулевая телеметрия и аппаратное ускорение.",
+                btnLaunchFlexle: "запустить вордл →",
+                btnLaunchClarify: "запустить нейроапскейлер →",
+                btnLaunchFetchflow: "запустить скачивание видео →",
+                btnLaunchStashconvert: "запустить конвертер →",
+                btnLaunchStaship: "запустить проверку ip →",
+                btnLaunchStashlist: "запустить чеклист →",
+                btnLaunchCompanion: "скачать сервер (.exe) →"
             }
         };
 
-        let currentLang = localStorage.getItem('the_stash_lang') || 'en';
+        let currentLang = localStorage.getItem('the_stash_lang') || 'ru';
 
         function applyLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('the_stash_lang', lang);
-            const dict = STASH_I18N[lang] || STASH_I18N.en;
+            const dict = STASH_I18N[lang] || STASH_I18N.ru;
 
-            // Header & system
             const sysStatus = document.getElementById('sys-status-text');
             if (sysStatus) sysStatus.textContent = dict.sysOnline;
             const sysMeta = document.getElementById('sys-meta-text');
             if (sysMeta) sysMeta.textContent = dict.sysMeta;
+            const btnThemeLabel = document.getElementById('btn-theme-label');
+            if (btnThemeLabel) btnThemeLabel.textContent = dict.btnTheme;
             const btnSettingsLabel = document.getElementById('btn-settings-label');
             if (btnSettingsLabel) btnSettingsLabel.textContent = dict.btnSettings;
             const txtBtnCompanion = document.getElementById('txt-btn-companion');
             if (txtBtnCompanion) txtBtnCompanion.textContent = dict.txtBtnCompanion;
 
-            // Hero
             const heroDesc = document.querySelector('.hero-desc');
             if (heroDesc) heroDesc.textContent = dict.heroDesc;
             const techBannerSpan = document.querySelector('.tech-banner span');
             if (techBannerSpan) techBannerSpan.textContent = dict.techBanner;
 
-            // Tabs
             const tabAllSpan = document.querySelector('.tab-btn[data-tab="all"] span:first-child');
             if (tabAllSpan) tabAllSpan.textContent = dict.tabAll;
             const tabGamesSpan = document.querySelector('.tab-btn[data-tab="games"] span:first-child');
@@ -1611,7 +1360,6 @@
             const tabUtilsSpan = document.querySelector('.tab-btn[data-tab="utilities"] span:first-child');
             if (tabUtilsSpan) tabUtilsSpan.textContent = dict.tabUtils;
 
-            // Search & Tags
             const searchLabel = document.querySelector('.search-label');
             if (searchLabel) searchLabel.textContent = dict.searchLabel;
             if (searchInput) searchInput.placeholder = dict.searchPlaceholder;
@@ -1622,13 +1370,8 @@
             if (tagPlayable) tagPlayable.textContent = dict.tagPlayable;
             const tagWip = document.querySelector('.quick-tag-chip[data-status="wip"]');
             if (tagWip) tagWip.textContent = dict.tagWip;
-            const tagConcept = document.querySelector('.quick-tag-chip[data-status="concept"]');
-            if (tagConcept) tagConcept.textContent = dict.tagConcept;
-            const tagArchived = document.querySelector('.quick-tag-chip[data-status="archived"]');
-            if (tagArchived) tagArchived.textContent = dict.tagArchived;
 
-            // Project cards
-            const cardFlexle = document.querySelector('a[href^="./games/flexle"]')?.closest('.project-card');
+            const cardFlexle = document.querySelector('a[href*="flexle"]')?.closest('.project-card');
             if (cardFlexle) {
                 const desc = cardFlexle.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardFlexleDesc;
@@ -1636,31 +1379,7 @@
                 if (btn) btn.textContent = dict.btnLaunchFlexle;
             }
 
-            const cardQuantex = document.querySelector('a[href^="./games/quantex"]')?.closest('.project-card');
-            if (cardQuantex) {
-                const desc = cardQuantex.querySelector('.card-desc');
-                if (desc) desc.textContent = dict.cardQuantexDesc;
-                const btn = cardQuantex.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnLaunchQuantex;
-            }
-
-            const cardStashconvert = document.querySelector('a[href^="./utilities/stashconvert"]')?.closest('.project-card');
-            if (cardStashconvert) {
-                const desc = cardStashconvert.querySelector('.card-desc');
-                if (desc) desc.textContent = dict.cardStashconvertDesc;
-                const btn = cardStashconvert.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnLaunchStashconvert;
-            }
-
-            const cardStaship = document.querySelector('a[href^="./utilities/staship"]')?.closest('.project-card');
-            if (cardStaship) {
-                const desc = cardStaship.querySelector('.card-desc');
-                if (desc) desc.textContent = dict.cardStashipDesc;
-                const btn = cardStaship.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnLaunchStaship;
-            }
-
-            const cardClarify = document.querySelector('a[href^="./utilities/clarify"]')?.closest('.project-card');
+            const cardClarify = document.querySelector('a[href*="clarify"]')?.closest('.project-card');
             if (cardClarify) {
                 const desc = cardClarify.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardClarifyDesc;
@@ -1668,7 +1387,7 @@
                 if (btn) btn.textContent = dict.btnLaunchClarify;
             }
 
-            const cardFetchflow = document.querySelector('a[href^="./utilities/fetchflow"]')?.closest('.project-card');
+            const cardFetchflow = document.querySelector('a[href*="fetchflow"]')?.closest('.project-card');
             if (cardFetchflow) {
                 const desc = cardFetchflow.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardFetchflowDesc;
@@ -1676,19 +1395,23 @@
                 if (btn) btn.textContent = dict.btnLaunchFetchflow;
             }
 
-            const descCompanion = document.getElementById('desc-companion');
-            if (descCompanion) descCompanion.textContent = dict.cardCompanionDesc;
-            const descDesktop = document.getElementById('desc-desktop');
-            if (descDesktop) descDesktop.textContent = dict.cardDesktopDesc;
-            const btnDesktop = document.getElementById('btn-launch-desktop');
-            if (btnDesktop) btnDesktop.textContent = dict.btnLaunchDesktop;
-            const txtBtnDesktop = document.getElementById('txt-btn-desktop');
-            if (txtBtnDesktop) txtBtnDesktop.textContent = dict.txtBtnDesktop;
+            const cardStashconvert = document.querySelector('a[href*="stashconvert"]')?.closest('.project-card');
+            if (cardStashconvert) {
+                const desc = cardStashconvert.querySelector('.card-desc');
+                if (desc) desc.textContent = dict.cardStashconvertDesc;
+                const btn = cardStashconvert.querySelector('.btn-action');
+                if (btn) btn.textContent = dict.btnLaunchStashconvert;
+            }
 
-            const btnCompanion = document.getElementById('btn-launch-companion');
-            if (btnCompanion) btnCompanion.textContent = dict.btnLaunchCompanion;
+            const cardStaship = document.querySelector('a[href*="staship"]')?.closest('.project-card');
+            if (cardStaship) {
+                const desc = cardStaship.querySelector('.card-desc');
+                if (desc) desc.textContent = dict.cardStashipDesc;
+                const btn = cardStaship.querySelector('.btn-action');
+                if (btn) btn.textContent = dict.btnLaunchStaship;
+            }
 
-            const cardStashlist = document.querySelector('a[href^="./utilities/stashlist"]')?.closest('.project-card');
+            const cardStashlist = document.querySelector('a[href*="stashlist"]')?.closest('.project-card');
             if (cardStashlist) {
                 const desc = cardStashlist.querySelector('.card-desc');
                 if (desc) desc.textContent = dict.cardStashlistDesc;
@@ -1696,16 +1419,11 @@
                 if (btn) btn.textContent = dict.btnLaunchStashlist;
             }
 
+            const descCompanion = document.getElementById('desc-companion');
+            if (descCompanion) descCompanion.textContent = dict.cardCompanionDesc;
+            const btnLaunchCompanion = document.getElementById('btn-launch-companion');
+            if (btnLaunchCompanion) btnLaunchCompanion.textContent = dict.btnLaunchCompanion;
 
-
-
-            // Status badges on cards
-            document.querySelectorAll('.status-playable').forEach(p => p.textContent = dict.statusPlayable);
-            document.querySelectorAll('.status-wip').forEach(p => p.textContent = dict.statusWip);
-            document.querySelectorAll('.status-concept').forEach(p => p.textContent = dict.statusConcept);
-            document.querySelectorAll('.status-archived').forEach(p => p.textContent = dict.statusArchived);
-
-            // Right sidebar
             const prevMain = document.querySelector('.preview-text-main');
             if (prevMain) prevMain.textContent = dict.previewMain;
             const prevSub = document.querySelector('.preview-text-sub');
@@ -1721,48 +1439,33 @@
             const stackHeading = document.querySelector('.stack-heading');
             if (stackHeading) stackHeading.textContent = dict.stackHeading;
 
-            // Footer
-            const footerSpan = document.querySelector('footer span');
-            if (footerSpan) footerSpan.textContent = dict.footerText;
+            const footerText = document.getElementById('footer-text');
+            if (footerText) footerText.textContent = dict.footerText;
 
-            // Modal Settings Texts
-            const modalSetBadge = document.getElementById('modal-settings-badge');
-            if (modalSetBadge) modalSetBadge.textContent = dict.settingsBadge;
-            const modalSetTitle = document.getElementById('modal-settings-title');
-            if (modalSetTitle) modalSetTitle.textContent = dict.settingsTitle;
-            const lblLang = document.getElementById('lbl-setting-lang');
-            if (lblLang) lblLang.textContent = dict.lblLang;
-            const descLang = document.getElementById('desc-setting-lang');
-            if (descLang) descLang.textContent = dict.descLang;
-            const btnSave = document.getElementById('btn-settings-save');
-            if (btnSave) btnSave.textContent = dict.btnSave;
+            const modalBadge = document.getElementById('modal-settings-badge');
+            if (modalBadge) modalBadge.textContent = dict.settingsBadge;
+            const modalTitle = document.getElementById('modal-settings-title');
+            if (modalTitle) modalTitle.textContent = dict.settingsTitle;
+            const lblSettingTheme = document.getElementById('lbl-setting-theme');
+            if (lblSettingTheme) lblSettingTheme.textContent = dict.lblSettingTheme;
+            const descSettingTheme = document.getElementById('desc-setting-theme');
+            if (descSettingTheme) descSettingTheme.textContent = dict.descSettingTheme;
+            const btnThemeDark = document.getElementById('btn-theme-dark');
+            if (btnThemeDark) btnThemeDark.textContent = dict.btnThemeDark;
+            const btnThemeLight = document.getElementById('btn-theme-light');
+            if (btnThemeLight) btnThemeLight.textContent = dict.btnThemeLight;
+            const lblSettingLang = document.getElementById('lbl-setting-lang');
+            if (lblSettingLang) lblSettingLang.textContent = dict.lblSettingLang;
+            const descSettingLang = document.getElementById('desc-setting-lang');
+            if (descSettingLang) descSettingLang.textContent = dict.descSettingLang;
+            const btnSettingsSave = document.getElementById('btn-settings-save');
+            if (btnSettingsSave) btnSettingsSave.textContent = dict.btnSettingsSave;
 
-            // Modal Concept (FetchFlow) Texts
-            const cBadge = document.getElementById('concept-modal-badge');
-            if (cBadge) cBadge.textContent = dict.conceptBadge;
-            const cTitle = document.getElementById('concept-modal-title');
-            if (cTitle) cTitle.textContent = dict.conceptTitle;
-            const cBody = document.getElementById('concept-modal-body');
-            if (cBody) cBody.innerHTML = dict.conceptBody;
-            
-            const cF1 = document.querySelector('#concept-feat-1 span');
-            if (cF1) cF1.innerHTML = dict.conceptFeat1;
-            const cF2 = document.querySelector('#concept-feat-2 span');
-            if (cF2) cF2.innerHTML = dict.conceptFeat2;
-            const cF3 = document.querySelector('#concept-feat-3 span');
-            if (cF3) cF3.innerHTML = dict.conceptFeat3;
-            const cF4 = document.querySelector('#concept-feat-4 span');
-            if (cF4) cF4.innerHTML = dict.conceptFeat4;
-            const cAck = document.getElementById('modal-ack-btn');
-            if (cAck) cAck.textContent = dict.conceptAck;
-
-            // Switch active buttons
-            document.querySelectorAll('.lang-btn').forEach(b => {
+            document.querySelectorAll('.lang-btn[data-lang]').forEach(b => {
                 if (b.getAttribute('data-lang') === lang) b.classList.add('active');
                 else b.classList.remove('active');
             });
         }
-
 
         // Settings Modal Handlers
         const settingsModal = document.getElementById('settings-modal');
@@ -1780,44 +1483,22 @@
             });
         }
 
-        // Concept Modal Handlers (FetchFlow)
-        const conceptModal = document.getElementById('concept-modal');
-        const openConceptBtn = document.getElementById('btn-concept-trigger');
-        const closeConceptBtn = document.getElementById('modal-close-btn');
-        const ackConceptBtn = document.getElementById('modal-ack-btn');
-
-        function openConcept() { if (conceptModal) conceptModal.classList.add('active'); }
-        function closeConcept() { if (conceptModal) conceptModal.classList.remove('active'); }
-
-        if (openConceptBtn) openConceptBtn.addEventListener('click', openConcept);
-        if (closeConceptBtn) closeConceptBtn.addEventListener('click', closeConcept);
-        if (ackConceptBtn) ackConceptBtn.addEventListener('click', closeConcept);
-
-        if (conceptModal) {
-            conceptModal.addEventListener('click', (e) => {
-                if (e.target === conceptModal) closeConcept();
-            });
-        }
-
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (settingsModal && settingsModal.classList.contains('active')) settingsModal.classList.remove('active');
-                if (conceptModal && conceptModal.classList.contains('active')) conceptModal.classList.remove('active');
+            if (e.key === 'Escape' && settingsModal && settingsModal.classList.contains('active')) {
+                settingsModal.classList.remove('active');
             }
         });
 
-        document.querySelectorAll('.lang-btn').forEach(btn => {
+        document.querySelectorAll('.lang-btn[data-lang]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const selectedLang = btn.getAttribute('data-lang');
                 applyLanguage(selectedLang);
             });
         });
 
-        // Initialize language
+        // Initialize
         applyLanguage(currentLang);
         updateGrid();
-
     </script>
 </body>
 </html>
-

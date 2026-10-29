@@ -1,32 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
-    <title>Flexle • Word Guessing Game</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22><rect x=%223%22 y=%223%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%2300ff9d%22/><rect x=%2213%22 y=%223%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%231c362a%22 stroke=%22%2300ff9d%22 stroke-width=%221.5%22/><rect x=%223%22 y=%2213%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%231c362a%22 stroke=%22%2300ff9d%22 stroke-width=%221.5%22/><rect x=%2213%22 y=%2213%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%2300ff9d%22/></svg>">
+    <title>вордл • the stash</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22><rect x=%223%22 y=%223%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%23ffffff%22/><rect x=%2213%22 y=%223%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%23222226%22 stroke=%22%23ffffff%22 stroke-width=%221.5%22/><rect x=%223%22 y=%2213%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%23222226%22 stroke=%22%23ffffff%22 stroke-width=%221.5%22/><rect x=%2213%22 y=%2213%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%23ffffff%22/></svg>">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('stash_theme') || 'dark';
+            if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        })();
+    </script>
     <style>
         :root {
-            --bg-color: #050807;
-            --card-bg: rgba(9, 15, 12, 0.85);
-            --card-border: #1c362a;
-            --card-hover-border: #00ff9d;
-            --accent: #00ff9d;
-            --accent-hover: #05f0a5;
-            --accent-glow: rgba(0, 255, 157, 0.35);
-            --text-primary: #f0fdf4;
-            --text-secondary: #80998c;
-            --text-muted: #435c50;
-            --tile-bg: rgba(7, 12, 10, 0.9);
-            --tile-border: #1c362a;
-            --tile-active: #00ff9d;
-            --color-correct: #00ff9d;
-            --color-present: #facc15;
-            --color-absent: #13221b;
-            --key-bg: #0f1c16;
-            --key-hover: #182e24;
-            --key-text: #f0fdf4;
+            --bg-color: #09090b;
+            --card-bg: #141417;
+            --card-border: #27272a;
+            --card-hover-border: #ffffff;
+            --accent: #ffffff;
+            --accent-contrast: #000000;
+            --accent-hover: #e4e4e7;
+            --accent-glow: transparent;
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --tile-bg: #111114;
+            --tile-border: #27272a;
+            --tile-active: #ffffff;
+            --color-correct: #ffffff;
+            --color-present: #71717a;
+            --color-absent: #202024;
+            --tile-text-correct: #000000;
+            --tile-text-present: #ffffff;
+            --key-bg: #1c1c20;
+            --key-hover: #2e2e34;
+            --key-text: #f4f4f5;
             --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #ffffff;
+            --card-bg: #f7f7f8;
+            --card-border: #e4e4e7;
+            --card-hover-border: #09090b;
+            --accent: #09090b;
+            --accent-contrast: #ffffff;
+            --accent-hover: #27272a;
+            --accent-glow: transparent;
+            --text-primary: #09090b;
+            --text-secondary: #71717a;
+            --text-muted: #a1a1aa;
+            --tile-bg: #ffffff;
+            --tile-border: #d4d4d8;
+            --tile-active: #09090b;
+            --color-correct: #09090b;
+            --color-present: #71717a;
+            --color-absent: #e4e4e7;
+            --tile-text-correct: #ffffff;
+            --tile-text-present: #ffffff;
+            --key-bg: #e4e4e7;
+            --key-hover: #d4d4d8;
+            --key-text: #09090b;
         }
 
         * {
@@ -1172,30 +1206,29 @@
     <!-- Preloader -->
     <div id="preloader">
         <div class="loader-grid">
-            <div class="loader-tile">F</div>
-            <div class="loader-tile">L</div>
-            <div class="loader-tile">E</div>
-            <div class="loader-tile">X</div>
+            <div class="loader-tile">В</div>
+            <div class="loader-tile">О</div>
+            <div class="loader-tile">Р</div>
+            <div class="loader-tile">Д</div>
         </div>
-        <div class="loader-title">FLEXLE</div>
+        <div class="loader-title">вордл</div>
     </div>
-
-    <canvas id="bg-canvas"></canvas>
 
     <div class="toast-container" id="toast-container"></div>
 
     <header class="header">
         <div class="header-title-group">
-            <a href="../../index.html" class="btn-icon" title="Back to Hub">
+            <a href="../../index.html" class="btn-icon" title="на главную">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
             </a>
-            <h1>Flexle</h1>
+            <h1 style="text-transform: lowercase; font-size: 1.15rem; font-weight: 700;">вордл</h1>
         </div>
-        <div style="display: flex; gap: 0.5rem;">
-            <button class="btn-icon" id="btn-custom-word" title="Create Challenge / Загадать слово">
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button class="btn-icon theme-toggle-btn" id="btn-theme-toggle" title="переключить тему"></button>
+            <button class="btn-icon" id="btn-custom-word" title="загадать слово">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
@@ -1397,6 +1430,13 @@
                 </div>
                 <button class="len-btn" id="modal-lang-toggle" style="padding: 0.4rem 0.8rem;">RU</button>
             </div>
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">тема оформления</div>
+                    <div class="setting-sub">переключение между светлой и тёмной темой</div>
+                </div>
+                <button class="len-btn" id="modal-theme-toggle" style="padding: 0.4rem 0.8rem; text-transform: lowercase;">тёмная</button>
+            </div>
         </div>
     </div>
 
@@ -1464,5 +1504,45 @@
     <script src="sound.js"></script>
     <script src="words.js"></script>
     <script src="game.js"></script>
+    <script>
+        function updateFlexleThemeIcons() {
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            const btn = document.getElementById('btn-theme-toggle');
+            if (btn) {
+                btn.innerHTML = isLight 
+                    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'
+                    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+            }
+            const modalBtn = document.getElementById('modal-theme-toggle');
+            if (modalBtn) {
+                modalBtn.textContent = isLight ? 'светлая' : 'тёмная';
+            }
+        }
+        function toggleFlexleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            const next = current === 'light' ? 'dark' : 'light';
+            localStorage.setItem('stash_theme', next);
+            if (next === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            updateFlexleThemeIcons();
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            updateFlexleThemeIcons();
+            const btn = document.getElementById('btn-theme-toggle');
+            if (btn) btn.addEventListener('click', toggleFlexleTheme);
+            const modalBtn = document.getElementById('modal-theme-toggle');
+            if (modalBtn) modalBtn.addEventListener('click', toggleFlexleTheme);
+        });
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'stash_theme') {
+                if (e.newValue === 'light') document.documentElement.setAttribute('data-theme', 'light');
+                else document.documentElement.removeAttribute('data-theme');
+                updateFlexleThemeIcons();
+            }
+        });
+    </script>
 </body>
 </html>
