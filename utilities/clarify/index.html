@@ -79,11 +79,11 @@
                 </div>
 
                 <!-- Interactive Split Viewport -->
-                <div class="split-viewport" id="split-viewport" title="Drag anywhere to compare Before / After">
+                <div class="split-viewport" id="split-viewport" title="перетащите для сравнения">
                     <div class="split-stage" id="split-stage">
                         <div class="split-labels">
-                            <span class="split-tag tag-original">Original</span>
-                            <span class="split-tag tag-enhanced">Clarify AI</span>
+                            <span class="split-tag tag-original">до</span>
+                            <span class="split-tag tag-enhanced">после</span>
                         </div>
 
                         <!-- Before (Original) Canvas Layer -->
@@ -93,7 +93,7 @@
 
                         <!-- Draggable Divider Line & Handle (inside stage) -->
                         <div class="split-divider-line" id="split-divider">
-                            <div class="split-handle" id="split-handle" title="Drag to compare">
+                            <div class="split-handle" id="split-handle" title="сравнить">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="8 17 3 12 8 7"></polyline>
                                     <polyline points="16 7 21 12 16 17"></polyline>
@@ -108,23 +108,23 @@
             <div class="panel-card">
                 <!-- Scale Factor Selection -->
                 <div>
-                    <div class="section-label">Upscale Multiplier</div>
+                    <div class="section-label">множитель разрешения</div>
                     <div class="scale-options-grid">
                         <button class="scale-btn" data-scale="2">
                             <span>2×</span>
-                            <span class="scale-btn-sub">Double Res</span>
+                            <span class="scale-btn-sub">2x</span>
                         </button>
                         <button class="scale-btn active" data-scale="4">
                             <span>4×</span>
-                            <span class="scale-btn-sub">Ultra 4K</span>
+                            <span class="scale-btn-sub">4x</span>
                         </button>
                         <button class="scale-btn" data-scale="6">
                             <span>6×</span>
-                            <span class="scale-btn-sub">Hexa Res</span>
+                            <span class="scale-btn-sub">6x</span>
                         </button>
                         <button class="scale-btn" data-scale="8">
                             <span>8×</span>
-                            <span class="scale-btn-sub">Octa 8K</span>
+                            <span class="scale-btn-sub">8x</span>
                         </button>
                     </div>
                 </div>
@@ -132,13 +132,13 @@
                 <!-- AI Model Selection -->
                 <div class="setting-row" id="row-model-select">
                     <div class="setting-header-row">
-                        <span>AI Neural Model</span>
-                        <span class="setting-val-badge" id="val-model-badge">Real-ESRGAN</span>
+                        <span>нейросетевая модель</span>
+                        <span class="setting-val-badge" id="val-model-badge">realesrgan</span>
                     </div>
                     <select class="form-input" id="select-ai-model" style="margin-top: 2px;">
-                        <option value="realesrgan-x4plus">Real-ESRGAN 4K (General Photo)</option>
-                        <option value="realesrgan-x4plus-anime">Anime & Vector Art (x4plus-anime)</option>
-                        <option value="realesr-animevideov3-x2">Fast Crisp 2x (animevideov3)</option>
+                        <option value="realesrgan-x4plus">realesrgan 4k (фото)</option>
+                        <option value="realesrgan-x4plus-anime">аниме и векторная графика</option>
+                        <option value="realesr-animevideov3-x2">быстрый 2x</option>
                     </select>
                 </div>
 
@@ -146,7 +146,7 @@
                 <div style="display: flex; flex-direction: column; gap: 0.85rem;">
                     <div class="setting-row">
                         <div class="setting-header-row">
-                            <span>Denoise Strength</span>
+                            <span>подавление шума</span>
                             <span class="setting-val-badge" id="val-denoise">25%</span>
                         </div>
                         <input type="range" class="range-input" id="input-denoise" min="0" max="100" value="25">
@@ -154,7 +154,7 @@
 
                     <div class="setting-row">
                         <div class="setting-header-row">
-                            <span>Adaptive Sharpness</span>
+                            <span>адаптивная резкость</span>
                             <span class="setting-val-badge" id="val-sharpness">55%</span>
                         </div>
                         <input type="range" class="range-input" id="input-sharpness" min="0" max="100" value="55">
@@ -164,7 +164,7 @@
                 <!-- Processing Progress Box -->
                 <div class="progress-box" id="progress-box">
                     <div class="progress-header">
-                        <span id="progress-status">Processing...</span>
+                        <span id="progress-status">обработка...</span>
                         <span id="progress-pct">0%</span>
                     </div>
                     <div class="progress-bar-rail">
@@ -177,12 +177,12 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
-                    Upscale Image
+                    увеличить разрешение
                 </button>
 
                 <!-- Export & Sharing Section -->
                 <div class="export-section">
-                    <div class="section-label">Export Options</div>
+                    <div class="section-label">параметры экспорта</div>
                     <div class="format-pills">
                         <button class="format-pill active" data-format="png">PNG</button>
                         <button class="format-pill" data-format="webp">WebP</button>
@@ -195,7 +195,7 @@
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
-                        Download Image
+                        скачать файл
                     </button>
 
                     <button class="btn-secondary" id="btn-copy">
@@ -203,7 +203,7 @@
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
-                        Copy to Clipboard
+                        скопировать в буфер
                     </button>
 
                     <button class="btn-secondary" id="btn-new-image" style="margin-top: 0.25rem;">
@@ -211,7 +211,7 @@
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
-                        Open Another Image
+                        открыть другое фото
                     </button>
                 </div>
             </div>

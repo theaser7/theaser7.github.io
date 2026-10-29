@@ -135,7 +135,7 @@
             align-items: center;
             justify-content: center;
             color: var(--mint);
-            box-shadow: 0 0 12px var(--mint-glow);
+            box-shadow: none;
         }
 
         .brand-logo svg {
@@ -148,7 +148,7 @@
             font-weight: 800;
             letter-spacing: 0.08em;
             color: var(--mint);
-            text-shadow: 0 0 10px var(--mint-glow);
+            text-shadow: none;
         }
 
         .brand-badge {
@@ -187,8 +187,8 @@
         .hud-btn:hover {
             border-color: var(--border-active);
             color: var(--mint);
-            box-shadow: 0 0 10px var(--mint-soft-glow);
-            background: rgba(0, 255, 157, 0.05);
+            box-shadow: none;
+            background: var(--bg-surface-hover);
         }
 
         .hud-btn.muted {
@@ -206,7 +206,7 @@
             font-weight: 800;
             color: var(--mint);
             letter-spacing: 0.08em;
-            text-shadow: 0 0 15px var(--mint-glow);
+            text-shadow: none;
             margin-bottom: 0.4rem;
         }
 
@@ -238,8 +238,8 @@
 
         .dropzone:hover, .dropzone.drag-over {
             border-color: var(--mint);
-            background: rgba(0, 255, 157, 0.04);
-            box-shadow: 0 0 25px var(--mint-soft-glow);
+            background: var(--bg-surface-hover);
+            box-shadow: none;
             transform: translateY(-2px);
         }
 
@@ -254,7 +254,7 @@
             justify-content: center;
             color: var(--mint);
             margin-bottom: 1.25rem;
-            box-shadow: 0 0 15px var(--mint-glow);
+            box-shadow: none;
         }
 
         .dropzone-icon svg {
@@ -332,7 +332,7 @@
         .btn-convert-all {
             background: var(--mint);
             color: var(--bg-deep);
-            box-shadow: 0 0 15px var(--mint-glow);
+            box-shadow: none;
         }
 
         .btn-convert-all:hover {
@@ -347,7 +347,7 @@
         }
 
         .btn-download-all:hover {
-            background: rgba(0, 255, 157, 0.1);
+            background: var(--bg-surface-hover);
         }
 
         .btn-clear-queue {
@@ -407,7 +407,7 @@
 
         .queue-row.status-processing {
             border-color: var(--mint);
-            background: rgba(0, 255, 157, 0.04);
+            background: var(--bg-surface-hover);
         }
 
         .queue-cell {
@@ -441,7 +441,7 @@
         }
 
         .badge-cat-video { background: rgba(56, 189, 248, 0.15); color: var(--cyan); border: 1px solid var(--cyan); }
-        .badge-cat-image { background: rgba(0, 255, 157, 0.15); color: var(--mint); border: 1px solid var(--mint); }
+        .badge-cat-image { background: var(--bg-surface-hover); color: var(--text-main); border: 1px solid var(--border-medium); }
         .badge-cat-audio { background: rgba(192, 132, 252, 0.15); color: var(--purple); border: 1px solid var(--purple); }
         .badge-cat-data  { background: rgba(250, 204, 21, 0.15); color: var(--amber); border: 1px solid var(--amber); }
 
@@ -487,7 +487,7 @@
             white-space: nowrap;
         }
 
-        .save-green { background: rgba(0, 255, 157, 0.15); color: var(--mint); }
+        .save-green { background: var(--bg-surface-hover); color: var(--text-main); }
         .save-red { background: rgba(255, 51, 102, 0.15); color: var(--danger); }
 
         .progress-bar-wrap {
@@ -673,8 +673,8 @@
             <div class="dropzone-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </div>
-            <h2 class="dropzone-title">DRAG & DROP FILES HERE</h2>
-            <p class="dropzone-subtitle">or click to select from your device (Videos, Images, Audio, Data)</p>
+            <h2 class="dropzone-title">перетащите файлы сюда</h2>
+            <p class="dropzone-subtitle">или нажмите для выбора с устройства (видео, картинки, аудио, данные)</p>
         </div>
 
         <!-- Conversion Queue -->
@@ -682,31 +682,31 @@
             <div class="queue-top-bar">
                 <h3 class="queue-header-title">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                    <span>CONVERSION QUEUE</span>
+                    <span>очередь конвертации</span>
                 </h3>
                 <div class="queue-global-actions">
                     <button class="btn-global btn-convert-all" id="btn-convert-all">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                        <span>CONVERT ALL</span>
+                        <span>конвертировать все</span>
                     </button>
                     <button class="btn-global btn-download-all" id="btn-download-all">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        <span>DOWNLOAD ALL</span>
+                        <span>скачать все</span>
                     </button>
                     <button class="btn-global btn-clear-queue" id="btn-clear-queue">
-                        <span>CLEAR QUEUE</span>
+                        <span>очистить очередь</span>
                     </button>
                 </div>
             </div>
 
             <!-- Table Headers -->
             <div class="queue-table-header">
-                <span class="queue-col-header">FILE</span>
-                <span class="queue-col-header">TYPE</span>
-                <span class="queue-col-header">ORIGINAL</span>
-                <span class="queue-col-header">TARGET FORMAT</span>
-                <span class="queue-col-header">CONVERTED</span>
-                <span class="queue-col-header" style="text-align: right;">ACTION</span>
+                <span class="queue-col-header">файл</span>
+                <span class="queue-col-header">тип</span>
+                <span class="queue-col-header">исходный</span>
+                <span class="queue-col-header">целевой формат</span>
+                <span class="queue-col-header">результат</span>
+                <span class="queue-col-header" style="text-align: right;">действие</span>
             </div>
 
             <!-- Queue Items List -->

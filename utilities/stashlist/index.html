@@ -241,8 +241,8 @@
 
         .hud-btn.primary:hover {
             background: var(--mint);
-            color: #050807;
-            box-shadow: 0 0 20px var(--mint-glow);
+            color: var(--bg-deep);
+            box-shadow: none;
         }
 
         /* Dashboard Banner / Progress Box */
@@ -335,11 +335,11 @@
 
         .progress-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00ff9d, #38bdf8);
+            background: var(--mint);
             border-radius: 999px;
             width: 0%;
             transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 0 10px var(--mint-glow);
+            box-shadow: none;
         }
 
         /* Controls: Views & Filters */
@@ -390,7 +390,7 @@
             background: var(--mint-dark);
             color: var(--mint);
             border: 1px solid var(--border-active);
-            box-shadow: 0 0 10px var(--mint-soft-glow);
+            box-shadow: none;
         }
 
         .tab-pill-count {
@@ -428,7 +428,7 @@
 
         .search-input:focus {
             border-color: var(--border-active);
-            box-shadow: 0 0 10px var(--mint-soft-glow);
+            box-shadow: none;
         }
 
         .search-icon {
@@ -536,13 +536,13 @@
 
         .task-checkbox-btn:hover {
             border-color: var(--mint);
-            box-shadow: 0 0 10px var(--mint-soft-glow);
+            box-shadow: none;
         }
 
         .task-card.completed .task-checkbox-btn {
             background: var(--mint);
             border-color: var(--mint);
-            color: #050807;
+            color: var(--bg-deep);
             
         }
 
@@ -858,7 +858,7 @@
 
         .form-input:focus, .form-textarea:focus, .form-select:focus {
             border-color: var(--mint);
-            box-shadow: 0 0 10px var(--mint-soft-glow);
+            box-shadow: none;
         }
 
         
@@ -994,7 +994,7 @@
         input:checked + .slider:before {
             transform: translateX(20px);
             background-color: var(--mint);
-            box-shadow: 0 0 8px var(--mint);
+            box-shadow: none;
         }
 
         .reminder-config {
@@ -1215,25 +1215,25 @@
             <div class="dash-top">
                 <div class="dash-title-group">
                     <h2>
-                        <span id="txt-dash-title">Daily Recurring Checklist</span>
+                        <span id="txt-dash-title">ежедневный чеклист</span>
                     </h2>
-                    <p id="dash-schedule-status">Tracking routines active for today &bull; Auto-resets at midnight</p>
+                    <p id="dash-schedule-status">активные рутины на сегодня &bull; автосброс в полночь</p>
                 </div>
                 <div class="dash-stats">
                     <div class="stat-item">
                         <div class="stat-val" id="stat-completed-num">0 / 0</div>
-                        <div class="stat-lbl" id="lbl-completed-today">Completed Today</div>
+                        <div class="stat-lbl" id="lbl-completed-today">выполнено</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-val" id="stat-percent-num">0%</div>
-                        <div class="stat-lbl" id="lbl-stat-progress">Progress</div>
+                        <div class="stat-lbl" id="lbl-stat-progress">прогресс</div>
                     </div>
                     <button class="hud-btn primary" id="btn-open-create" style="padding: 0.65rem 1rem;">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
-                        <span id="txt-btn-new-task">NEW TASK</span>
+                        <span id="txt-btn-new-task">новая задача</span>
                     </button>
                 </div>
             </div>
@@ -1259,7 +1259,7 @@
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
                         </svg>
-                        <span id="txt-tab-today">Today's Tasks</span>
+                        <span id="txt-tab-today">задачи на сегодня</span>
                         <span class="tab-pill-count" id="count-tab-today">0</span>
                     </button>
                     <button class="tab-btn" data-view="all" id="tab-view-all">
@@ -1359,7 +1359,7 @@
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                             </svg>
-                            <span id="txt-scheduled-reminder">Enable Scheduled Reminders</span>
+                            <span id="txt-scheduled-reminder">включить напоминания</span>
                         </span>
                         <label class="switch">
                             <input type="checkbox" id="form-reminders-toggle">
@@ -1369,14 +1369,14 @@
 
                     <div class="reminder-config" id="reminder-config-box">
                         <div class="form-group">
-                            <label class="form-label" for="form-reminder-time" id="lbl-reminder-time">Reminder Time (HH:MM)</label>
+                            <label class="form-label" for="form-reminder-time" id="lbl-reminder-time">время напоминания (чч:мм)</label>
                             <input type="time" id="form-reminder-time" class="form-input" value="09:00" style="font-family: var(--font-mono); width: 140px;">
                         </div>
 
                         <div class="form-group">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <label class="form-label" id="lbl-reminder-days">Reminder Trigger Days</label>
-                                <button type="button" class="preset-btn" id="btn-sync-reminder-days">Same as Active Days</button>
+                                <label class="form-label" id="lbl-reminder-days">дни напоминаний</label>
+                                <button type="button" class="preset-btn" id="btn-sync-reminder-days">как в расписании</button>
                             </div>
                             <div class="days-grid" id="form-reminder-days">
                                 <button type="button" class="day-toggle-btn active" data-day="1">Mon</button>
@@ -1392,8 +1392,8 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="hud-btn" id="btn-modal-cancel">Cancel</button>
-                    <button type="submit" class="hud-btn primary" id="btn-modal-save">Save Task</button>
+                    <button type="button" class="hud-btn" id="btn-modal-cancel">отмена</button>
+                    <button type="submit" class="hud-btn primary" id="btn-modal-save">сохранить</button>
                 </div>
             </form>
         </div>
@@ -1403,7 +1403,7 @@
     <div class="modal-overlay" id="backup-modal">
         <div class="modal-card" style="max-width: 480px;">
             <div class="modal-header">
-                <span class="modal-title" id="txt-backup-title">// DATA MANAGEMENT</span>
+                <span class="modal-title" id="txt-backup-title">управление данными</span>
                 <button class="modal-close" id="btn-backup-close">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1422,7 +1422,7 @@
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
-                    <span id="txt-btn-export-json">Download JSON Backup</span>
+                    <span id="txt-btn-export-json">скачать копию json</span>
                 </button>
 
                 <label class="hud-btn" style="justify-content: center; padding: 0.75rem; cursor: pointer;">
@@ -1431,7 +1431,7 @@
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                     </svg>
-                    <span id="txt-btn-import-json">Restore from JSON File</span>
+                    <span id="txt-btn-import-json">восстановить из json</span>
                     <input type="file" id="file-import-json" accept=".json" style="display: none;">
                 </label>
 
@@ -1440,7 +1440,7 @@
                         <polyline points="1 4 1 10 7 10"></polyline>
                         <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
                     </svg>
-                    <span id="txt-btn-reset-today">Reset Today's Completions</span>
+                    <span id="txt-btn-reset-today">сбросить отметки за сегодня</span>
                 </button>
             </div>
         </div>
@@ -1809,8 +1809,8 @@
                 emptyNoMatchTitle: "no matching tasks",
                 emptyNoMatchDesc: "no tasks match your current view or filter.",
                 btnClearFilters: "clear all filters",
-                modalNewHeading: "// new recurring task",
-                modalEditHeading: "// edit recurring task",
+                modalNewHeading: "new recurring task",
+                modalEditHeading: "edit recurring task",
                 lblTaskTitle: "task title *",
                 phTaskTitle: "e.g., daily morning stretches, code review, backup db...",
                 lblNotes: "notes / instructions (optional)",
@@ -1826,7 +1826,7 @@
                 btnSyncDays: "same as active days",
                 btnCancel: "cancel",
                 btnSaveTask: "save task",
-                txtBackupTitle: "// data management",
+                txtBackupTitle: "data management",
                 txtBackupDesc: "all data is stored locally in your browser storage. you can backup your recurring tasks as a json file or restore them anytime.",
                 btnExportJson: "download json backup",
                 btnImportJson: "restore from json file",
@@ -1895,8 +1895,8 @@
                 emptyNoMatchTitle: "нет подходящих задач",
                 emptyNoMatchDesc: "нет задач, соответствующих текущему фильтру.",
                 btnClearFilters: "сбросить все фильтры",
-                modalNewHeading: "// новая повторяющаяся задача",
-                modalEditHeading: "// редактирование задачи",
+                modalNewHeading: "новая повторяющаяся задача",
+                modalEditHeading: "редактирование задачи",
                 lblTaskTitle: "название задачи *",
                 phTaskTitle: "например: утренняя растяжка, ревью кода, бэкап БД...",
                 lblNotes: "заметки / инструкции (опционально)",
@@ -1912,7 +1912,7 @@
                 btnSyncDays: "как в активных днях",
                 btnCancel: "отмена",
                 btnSaveTask: "сохранить задачу",
-                txtBackupTitle: "// управление данными",
+                txtBackupTitle: "управление данными",
                 txtBackupDesc: "все данные хранятся локально в вашем браузере. вы можете экспортировать задачи в JSON или восстановить их в любое время.",
                 btnExportJson: "скачать бэкап JSON",
                 btnImportJson: "восстановить из JSON",
@@ -2574,9 +2574,9 @@
             // Native Browser Notification
             if (window.Notification && Notification.permission === 'granted') {
                 try {
-                    const n = new Notification(`StashList: ${task.title}`, {
+                    const n = new Notification(`чеклист: ${task.title}`, {
                         body: task.notes || 'Time to complete your recurring routine!',
-                        icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
+                        icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
                     });
                     n.onclick = function() {
                         window.focus();
@@ -2669,7 +2669,7 @@
                         try {
                             new Notification('StashList', {
                                 body: currentLang === 'ru' ? 'Оповещения включены! Вы будете получать напоминания.' : 'Test notification: reminder alerts are now active.',
-                                icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
+                                icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
                             });
                         } catch (e) {}
                     } else {
@@ -2925,7 +2925,7 @@
                     try {
                         new Notification('StashList', {
                             body: currentLang === 'ru' ? 'Тестовое оповещение: напоминания активны!' : 'Test notification: reminder alerts are active!',
-                            icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
+                            icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
                         });
                     } catch (e) {}
                     showToast(currentLang === 'ru' ? 'Тестовое оповещение отправлено!' : 'Test notification sent!');
@@ -2937,7 +2937,7 @@
                             try {
                                 new Notification('StashList', {
                                     body: currentLang === 'ru' ? 'Оповещения включены! Вы будете получать напоминания.' : 'Test notification: reminder alerts are now active.',
-                                    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2300ff9d%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
+                                    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
                                 });
                             } catch (e) {}
                         } else {

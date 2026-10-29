@@ -131,7 +131,7 @@
             align-items: center;
             justify-content: center;
             color: var(--mint);
-            box-shadow: 0 0 12px var(--mint-glow);
+            box-shadow: none;
         }
 
         .brand-logo svg {
@@ -144,7 +144,7 @@
             font-weight: 800;
             letter-spacing: 0.08em;
             color: var(--mint);
-            text-shadow: 0 0 10px var(--mint-glow);
+            text-shadow: none;
         }
 
         .brand-badge {
@@ -183,8 +183,8 @@
         .hud-btn:hover {
             border-color: var(--border-active);
             color: var(--mint);
-            box-shadow: 0 0 10px var(--mint-soft-glow);
-            background: rgba(0, 255, 157, 0.05);
+            box-shadow: none;
+            background: var(--bg-surface-hover);
         }
 
         .hud-btn.muted {
@@ -250,7 +250,7 @@
             font-weight: 800;
             color: var(--mint);
             letter-spacing: 0.05em;
-            text-shadow: 0 0 20px var(--mint-glow);
+            text-shadow: none;
             font-family: var(--font-mono);
             user-select: text;
             -webkit-user-select: text;
@@ -264,7 +264,7 @@
             border: 1px solid var(--border-active);
             padding: 0.25rem 0.6rem;
             border-radius: 4px;
-            box-shadow: 0 0 10px var(--mint-soft-glow);
+            box-shadow: none;
         }
 
         .ip-controls {
@@ -288,13 +288,13 @@
             align-items: center;
             gap: 0.5rem;
             transition: all 0.2s ease;
-            box-shadow: 0 0 15px var(--mint-glow);
+            box-shadow: none;
         }
 
         .btn-copy-ip:hover {
             background: #05f0a5;
             transform: translateY(-2px);
-            box-shadow: 0 0 25px var(--mint-glow);
+            box-shadow: none;
         }
 
         .btn-secondary {
@@ -426,13 +426,13 @@
 
         .speed-dual-card:hover {
             border-color: var(--border-medium);
-            background: rgba(0, 255, 157, 0.03);
+            background: var(--bg-surface-hover);
         }
 
         .speed-dual-card.active-measuring {
             border-color: var(--mint);
-            box-shadow: 0 0 20px var(--mint-glow);
-            background: rgba(0, 255, 157, 0.06);
+            box-shadow: none;
+            background: var(--bg-surface-hover);
             transform: scale(1.03);
         }
 
@@ -446,7 +446,7 @@
             font-size: 2.2rem;
             font-weight: 800;
             color: var(--mint);
-            text-shadow: 0 0 15px var(--mint-glow);
+            text-shadow: none;
             line-height: 1;
             font-family: var(--font-mono);
         }
@@ -489,7 +489,7 @@
             font-weight: 800;
             color: var(--mint);
             letter-spacing: 0.15em;
-            background: rgba(0, 255, 157, 0.08);
+            background: var(--bg-surface-hover);
             border: 1px solid var(--border-medium);
             padding: 0.25rem 0.75rem;
             border-radius: 4px;
@@ -550,7 +550,7 @@
             font-family: var(--font-mono);
             cursor: pointer;
             transition: all 0.25s ease;
-            box-shadow: 0 0 25px var(--mint-glow);
+            box-shadow: none;
             display: inline-flex;
             align-items: center;
             gap: 0.75rem;
@@ -558,7 +558,7 @@
 
         .btn-speed-run:hover {
             background: #05f0a5;
-            box-shadow: 0 0 35px var(--mint-glow);
+            box-shadow: none;
             transform: translateY(-2px);
         }
 
@@ -749,9 +749,9 @@
         <section class="speedtest-panel">
             <h2 class="speedtest-title">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                <span>SPEEDTEST PROTOCOL</span>
+                <span>тест скорости</span>
             </h2>
-            <p class="speedtest-subtitle">Measure live download bandwidth, ping latency, and jitter variance</p>
+            <p class="speedtest-subtitle">замер скорости скачивания, отдачи, пинга и джиттера</p>
 
             <!-- Dual Download & Upload Speed Displays (Per User Sketch) -->
             <div class="speed-dual-header">
@@ -760,7 +760,7 @@
                         <span id="speed-dl-val" class="dual-speed-number">0.0</span>
                         <span id="speed-dl-unit" class="dual-speed-unit">Mbps</span>
                     </div>
-                    <div class="dual-speed-label">DOWNLOAD</div>
+                    <div class="dual-speed-label">скачивание</div>
                 </div>
 
                 <div class="speed-dual-card upload-card" id="dual-card-upload" title="Toggle unit (Mbps / MB/s) / Сменить единицы скорости">
@@ -768,68 +768,61 @@
                         <span id="speed-ul-val" class="dual-speed-number">0.0</span>
                         <span id="speed-ul-unit" class="dual-speed-unit">Mbps</span>
                     </div>
-                    <div class="dual-speed-label">UPLOAD</div>
+                    <div class="dual-speed-label">отдача</div>
                 </div>
             </div>
 
-            <!-- Cyberpunk Radial SVG Speedometer Gauge (Per Sketch) -->
+            <!-- Monochrome Radial SVG Speedometer Gauge -->
             <div class="gauge-container">
                 <svg class="gauge-svg" viewBox="0 0 360 270">
                     <defs>
                         <linearGradient id="gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#00ff9d" stop-opacity="0.3"/>
-                            <stop offset="100%" stop-color="#00ff9d" stop-opacity="1"/>
+                            <stop offset="0%" stop-color="var(--text-muted)" stop-opacity="0.3"/>
+                            <stop offset="100%" stop-color="var(--mint)" stop-opacity="1"/>
                         </linearGradient>
-                        <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="3" result="blur" />
-                            <feMerge>
-                                <feMergeNode in="blur" />
-                                <feMergeNode in="SourceGraphic" />
-                            </feMerge>
-                        </filter>
                     </defs>
 
                     <!-- Radial Scale Ticks & Outer Scale Numbers (0 to 500) -->
                     <!-- Tick 0 -->
-                    <line x1="95.1" y1="224.0" x2="84.7" y2="230.0" stroke="#00ff9d" stroke-width="2" opacity="0.8" />
-                    <text x="70.9" y="242.0" fill="#86a896" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">0</text>
+                    <line x1="95.1" y1="224.0" x2="84.7" y2="230.0" stroke="var(--border-medium)" stroke-width="2" />
+                    <text x="70.9" y="242.0" fill="var(--text-muted)" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">0</text>
 
                     <!-- Tick 1 -->
-                    <line x1="82.0" y1="175.0" x2="70.0" y2="175.0" stroke="#00ff9d" stroke-width="2" opacity="0.8" />
-                    <text x="54.0" y="179.0" fill="#86a896" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">1</text>
+                    <line x1="82.0" y1="175.0" x2="70.0" y2="175.0" stroke="var(--border-medium)" stroke-width="2" />
+                    <text x="54.0" y="179.0" fill="var(--text-muted)" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">1</text>
 
                     <!-- Tick 5 -->
-                    <line x1="95.1" y1="126.0" x2="84.7" y2="120.0" stroke="#00ff9d" stroke-width="2" opacity="0.8" />
-                    <text x="70.9" y="116.0" fill="#86a896" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">5</text>
+                    <line x1="95.1" y1="126.0" x2="84.7" y2="120.0" stroke="var(--border-medium)" stroke-width="2" />
+                    <text x="70.9" y="116.0" fill="var(--text-muted)" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">5</text>
 
                     <!-- Tick 10 -->
-                    <line x1="131.0" y1="90.1" x2="125.0" y2="79.7" stroke="#00ff9d" stroke-width="2" opacity="0.8" />
-                    <text x="117.0" y="69.9" fill="#86a896" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">10</text>
+                    <line x1="131.0" y1="90.1" x2="125.0" y2="79.7" stroke="var(--border-medium)" stroke-width="2" />
+                    <text x="117.0" y="69.9" fill="var(--text-muted)" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">10</text>
 
                     <!-- Tick 25 -->
-                    <line x1="180.0" y1="77.0" x2="180.0" y2="65.0" stroke="#00ff9d" stroke-width="2" opacity="0.8" />
-                    <text x="180.0" y="53.0" fill="#86a896" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">25</text>
+                    <line x1="180.0" y1="77.0" x2="180.0" y2="65.0" stroke="var(--border-medium)" stroke-width="2" />
+                    <text x="180.0" y="53.0" fill="var(--text-muted)" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">25</text>
 
                     <!-- Tick 50 -->
-                    <line x1="229.0" y1="90.1" x2="235.0" y2="79.7" stroke="#00ff9d" stroke-width="2" opacity="0.8" />
-                    <text x="243.0" y="69.9" fill="#86a896" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">50</text>
+                    <line x1="229.0" y1="90.1" x2="235.0" y2="79.7" stroke="var(--border-medium)" stroke-width="2" />
+                    <text x="243.0" y="69.9" fill="var(--text-muted)" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">50</text>
 
                     <!-- Tick 100 -->
-                    <line x1="264.9" y1="126.0" x2="275.3" y2="120.0" stroke="#00ff9d" stroke-width="2" opacity="0.8" />
-                    <text x="289.1" y="116.0" fill="#86a896" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">100</text>
+                    <line x1="264.9" y1="126.0" x2="275.3" y2="120.0" stroke="var(--border-medium)" stroke-width="2" />
+                    <text x="289.1" y="116.0" fill="var(--text-muted)" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">100</text>
 
                     <!-- Tick 250 -->
-                    <line x1="278.0" y1="175.0" x2="290.0" y2="175.0" stroke="#00ff9d" stroke-width="2" opacity="0.8" />
-                    <text x="306.0" y="179.0" fill="#86a896" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">250</text>
+                    <line x1="278.0" y1="175.0" x2="290.0" y2="175.0" stroke="var(--border-medium)" stroke-width="2" />
+                    <text x="306.0" y="179.0" fill="var(--text-muted)" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">250</text>
 
                     <!-- Tick 500 -->
-                    <line x1="264.9" y1="224.0" x2="275.3" y2="230.0" stroke="#00ff9d" stroke-width="2" opacity="0.8" />
-                    <text x="289.1" y="242.0" fill="#86a896" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">500</text>
+                    <line x1="264.9" y1="224.0" x2="275.3" y2="230.0" stroke="var(--border-medium)" stroke-width="2" />
+                    <text x="289.1" y="242.0" fill="var(--text-muted)" font-size="11" font-weight="700" font-family="monospace" text-anchor="middle">500</text>
 
                     <!-- Background Track Arc (240 deg) -->
                     <path d="M 93.40 225.00 A 100 100 0 1 1 266.60 225.00" 
                           fill="none" 
-                          stroke="#13221b" 
+                          stroke="var(--border-dim)" 
                           stroke-width="12" 
                           stroke-linecap="round"/>
 
@@ -840,25 +833,24 @@
                           stroke="url(#gauge-grad)" 
                           stroke-width="12" 
                           stroke-linecap="round"
-                          stroke-dasharray="0, 419"
-                          filter="url(#glow-filter)"/>
+                          stroke-dasharray="0, 419" />
 
                     <!-- Center Pivot Base -->
-                    <circle cx="180" cy="175" r="14" fill="#04251a" stroke="#00ff9d" stroke-width="2"/>
-                    <circle cx="180" cy="175" r="5" fill="#00ff9d"/>
+                    <circle cx="180" cy="175" r="14" fill="var(--bg-card)" stroke="var(--border-active)" stroke-width="2"/>
+                    <circle cx="180" cy="175" r="5" fill="var(--mint)"/>
 
                     <!-- Animated Needle (Rotates around 180, 175) -->
                     <g id="gauge-needle" transform="rotate(-120, 180, 175)">
-                        <polygon points="177,175 183,175 180.5,88" fill="#00ff9d" filter="url(#glow-filter)"/>
-                        <circle cx="180" cy="88" r="3.5" fill="#ffffff"/>
+                        <polygon points="177,175 183,175 180.5,88" fill="var(--mint)" />
+                        <circle cx="180" cy="88" r="3.5" fill="var(--bg-surface)"/>
                     </g>
                 </svg>
 
                 <!-- Center Status Badge inside Gauge -->
-                <div id="gauge-center-status" class="gauge-center-badge">READY</div>
+                <div id="gauge-center-status" class="gauge-center-badge">готово</div>
             </div>
 
-            <div id="speed-status-text" class="speed-status-banner">STANDBY // READY</div>
+            <div id="speed-status-text" class="speed-status-banner">готов к замеру</div>
 
             <!-- Metrics Row (Ping, Jitter, Download, Upload, Transferred) -->
             <div class="speed-metrics-row">

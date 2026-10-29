@@ -156,10 +156,11 @@ class StashDownloaderHandler(BaseHTTPRequestHandler):
             file_size = os.path.getsize(file_path)
             raw_filename = job.get("filename") or os.path.basename(file_path)
             safe_filename = urllib.parse.quote(raw_filename.encode("utf-8"))
+            ascii_filename = raw_filename.encode("ascii", "replace").decode("ascii").replace('"', '_')
 
             self.send_response(200)
             self.send_header("Content-Type", "application/octet-stream")
-            self.send_header("Content-Disposition", f'attachment; filename="{safe_filename}"; filename*=UTF-8\'\'{safe_filename}')
+            self.send_header("Content-Disposition", f'attachment; filename="{ascii_filename}"; filename*=UTF-8\'\'{safe_filename}')
             self.send_header("Content-Length", str(file_size))
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Access-Control-Allow-Private-Network", "true")

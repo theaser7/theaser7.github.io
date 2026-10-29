@@ -209,8 +209,8 @@ body {
 
 .dropzone:hover, .dropzone.drag-over {
     border-color: var(--accent);
-    background: rgba(0, 255, 157, 0.04);
-    box-shadow: 0 0 25px var(--accent-glow);
+    background: var(--card-bg);
+    box-shadow: none;
     transform: translateY(-2px);
 }
 
@@ -218,13 +218,13 @@ body {
     width: 64px;
     height: 64px;
     border-radius: 12px;
-    background: rgba(0, 255, 157, 0.08);
+    background: var(--card-border);
     border: 1px solid var(--card-border);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--accent);
-    box-shadow: 0 0 20px var(--accent-glow);
+    box-shadow: none;
 }
 
 .dropzone-text-group {
@@ -333,7 +333,7 @@ body {
 .tool-btn.active {
     background: var(--accent);
     border-color: var(--accent);
-    color: #050807;
+    color: var(--accent-contrast);
     font-weight: 800;
 }
 
@@ -401,7 +401,7 @@ body {
     left: 50%;
     width: 3px;
     background: var(--accent);
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.9), 0 0 10px var(--accent-glow);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
     z-index: 10;
     pointer-events: none;
     transform: translateX(-50%);
@@ -416,11 +416,11 @@ body {
     border-radius: 50%;
     background: var(--accent);
     border: 2px solid #ffffff;
-    color: #050807;
+    color: var(--accent-contrast);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7), 0 0 15px var(--accent-glow);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     z-index: 15;
     transform: translate(-50%, -50%);
     cursor: ew-resize;
@@ -456,11 +456,11 @@ body {
 }
 
 .tag-enhanced {
-    background: rgba(0, 255, 157, 0.85);
-    color: #050807;
+    background: var(--accent);
+    color: var(--accent-contrast);
     font-weight: 900;
     border: 1px solid var(--accent);
-    box-shadow: 0 0 12px var(--accent-glow);
+    box-shadow: none;
 }
 
 /* Zoom indicator pill */
@@ -532,18 +532,18 @@ body {
 
 .scale-btn:hover {
     border-color: var(--accent);
-    background: rgba(0, 255, 157, 0.08);
+    background: var(--card-border);
 }
 
 .scale-btn.active {
     background: var(--accent);
     border-color: var(--accent);
-    color: #050807;
-    box-shadow: 0 0 16px var(--accent-glow);
+    color: var(--accent-contrast);
+    box-shadow: none;
 }
 
 .scale-btn.active .scale-btn-sub {
-    color: #050807;
+    color: var(--accent-contrast);
 }
 
 /* Enhancement Sliders */
@@ -569,7 +569,7 @@ body {
 .range-input {
     width: 100%;
     height: 6px;
-    background: #1c362a;
+    background: var(--card-border);
     border-radius: 999px;
     outline: none;
     -webkit-appearance: none;
@@ -582,8 +582,8 @@ body {
     height: 18px;
     border-radius: 50%;
     background: var(--accent);
-    border: 2px solid #050807;
-    box-shadow: 0 0 10px var(--accent-glow);
+    border: 2px solid var(--accent-contrast);
+    box-shadow: none;
     cursor: grab;
 }
 
@@ -592,7 +592,7 @@ body {
     display: none;
     flex-direction: column;
     gap: 0.45rem;
-    background: rgba(0, 255, 157, 0.06);
+    background: var(--card-bg);
     border: 1px solid var(--card-border);
     padding: 0.75rem;
     border-radius: 10px;
@@ -613,7 +613,7 @@ body {
 
 .progress-bar-rail {
     height: 6px;
-    background: #13221b;
+    background: var(--card-border);
     border-radius: 999px;
     overflow: hidden;
     position: relative;
@@ -625,13 +625,13 @@ body {
     background: var(--accent);
     border-radius: 999px;
     transition: width 0.15s ease;
-    box-shadow: 0 0 10px var(--accent-glow);
+    box-shadow: none;
 }
 
 /* Action Buttons */
 .btn-primary {
     background: var(--accent);
-    color: #050807;
+    color: var(--accent-contrast);
     border: none;
     border-radius: 10px;
     padding: 0.85rem 1.25rem;
@@ -643,12 +643,12 @@ body {
     justify-content: center;
     gap: 0.5rem;
     width: 100%;
-    box-shadow: 0 4px 15px var(--accent-glow);
+    box-shadow: none;
     transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-    box-shadow: 0 6px 25px var(--accent-glow);
+    box-shadow: none;
     background: var(--accent-hover);
     transform: translateY(-1px);
 }
@@ -677,7 +677,7 @@ body {
 .btn-secondary:hover {
     border-color: var(--accent);
     color: var(--accent);
-    background: rgba(0, 255, 157, 0.08);
+    background: var(--card-border);
 }
 
 /* Export Options Section */
@@ -711,7 +711,7 @@ body {
 .format-pill.active {
     background: var(--accent);
     border-color: var(--accent);
-    color: #050807;
+    color: var(--accent-contrast);
 }
 
 /* Toast Notifications */
@@ -735,7 +735,7 @@ body {
     border-radius: 10px;
     font-size: 0.9rem;
     font-weight: 700;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 15px var(--accent-glow);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     animation: toastIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     pointer-events: auto;
 }
@@ -770,13 +770,13 @@ body {
 }
 
 .modal-card {
-    background: #08110d;
+    background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 14px;
     width: 100%;
     max-width: 480px;
     padding: 1.75rem;
-    box-shadow: 0 0 45px rgba(0, 255, 157, 0.15);
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
@@ -819,7 +819,7 @@ body {
 }
 
 .form-input {
-    background: #060e0a;
+    background: var(--bg-color);
     border: 1px solid var(--card-border);
     border-radius: 8px;
     padding: 0.65rem 0.85rem;
@@ -831,7 +831,7 @@ body {
 
 .form-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 12px var(--accent-glow);
+    box-shadow: none;
 }
 
 .form-hint {

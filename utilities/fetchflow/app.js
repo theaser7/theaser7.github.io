@@ -127,6 +127,17 @@ class FetchFlowApp {
 
         this.btnTestServer.addEventListener('click', () => this.checkServerHealth());
 
+        const btnThemeDark = document.getElementById('btn-theme-dark');
+        const btnThemeLight = document.getElementById('btn-theme-light');
+        if (btnThemeDark) btnThemeDark.addEventListener('click', () => {
+            localStorage.setItem('stash_theme', 'dark');
+            this.applyTheme('dark');
+        });
+        if (btnThemeLight) btnThemeLight.addEventListener('click', () => {
+            localStorage.setItem('stash_theme', 'light');
+            this.applyTheme('light');
+        });
+
         window.addEventListener('storage', (e) => {
             if (e.key === 'stash_theme') {
                 this.applyTheme(e.newValue || 'dark');
