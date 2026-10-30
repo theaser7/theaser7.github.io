@@ -68,7 +68,8 @@ const FETCHFLOW_I18N = {
         statusCompleted: "завершено (файл скачан)",
         statusError: "ошибка:",
         statusEta: "осталось:",
-        pasteAlert: "не удалось прочитать буфер обмена. вставьте ссылки вручную."
+        pasteAlert: "не удалось прочитать буфер обмена. вставьте ссылки вручную.",
+        alertNoUrls: "не найдено корректных ссылок (ссылки должны начинаться с http:// или https://)"
     },
     en: {
         pageTitle: "video downloader • the stash",
@@ -112,7 +113,8 @@ const FETCHFLOW_I18N = {
         statusCompleted: "completed (file downloaded)",
         statusError: "error:",
         statusEta: "eta:",
-        pasteAlert: "could not read clipboard. please paste URLs manually."
+        pasteAlert: "could not read clipboard. please paste URLs manually.",
+        alertNoUrls: "no valid URLs found (URLs must begin with http:// or https://)"
     }
 };
 
@@ -191,7 +193,8 @@ class FetchFlowApp {
                     if (window.fetchflowSound) window.fetchflowSound.playPaste();
                 }
             } catch (e) {
-                alert('Не удалось прочитать буфер обмена. Вставьте ссылки вручную.');
+                const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.ru;
+                alert(dict.pasteAlert);
             }
         });
 
@@ -385,6 +388,7 @@ class FetchFlowApp {
             b.classList.toggle('active', b.getAttribute('data-lang') === lang);
         });
 
+        this.applyTheme(localStorage.getItem('stash_theme') || 'dark');
         this.renderQueue();
     }
 
@@ -394,14 +398,15 @@ class FetchFlowApp {
     }
 
     applyTheme(theme) {
+        const isRu = this.currentLang === 'ru';
         if (theme === 'light') {
             document.documentElement.setAttribute('data-theme', 'light');
             this.themeToggleBtn.innerHTML = getMoonIcon();
-            this.themeToggleBtn.setAttribute('title', 'переключить на тёмную тему');
+            this.themeToggleBtn.setAttribute('title', isRu ? 'переключить на тёмную тему' : 'switch to dark theme');
         } else {
             document.documentElement.removeAttribute('data-theme');
             this.themeToggleBtn.innerHTML = getSunIcon();
-            this.themeToggleBtn.setAttribute('title', 'переключить на светлую тему');
+            this.themeToggleBtn.setAttribute('title', isRu ? 'переключить на светлую тему' : 'switch to light theme');
         }
         const btnDark = document.getElementById('btn-theme-dark');
         const btnLight = document.getElementById('btn-theme-light');
@@ -436,8 +441,9 @@ class FetchFlowApp {
     }
 
     async detectBackend() {
+        const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.ru;
         if (this.serverStatusIndicator) {
-            this.serverStatusIndicator.textContent = 'проверка связи...';
+            this.serverStatusIndicator.textContent = dict.serverChecking;
             this.serverStatusIndicator.style.color = 'var(--text-muted)';
         }
 
@@ -450,7 +456,7 @@ class FetchFlowApp {
                 this.isBackendOnline = true;
                 const warp = checkOrigin.data?.warp_active ? ' (warp)' : '';
                 if (this.serverStatusIndicator) {
-                    this.serverStatusIndicator.textContent = `онлайн • vps downloader${warp}`;
+                    this.serverStatusIndicator.textContent = `${dict.serverOnline}${warp}`;
                     this.serverStatusIndicator.style.color = 'var(--text-main)';
                 }
                 return true;
@@ -464,7 +470,7 @@ class FetchFlowApp {
             this.isBackendOnline = true;
             const warp = checkVPS.data?.warp_active ? ' (warp)' : '';
             if (this.serverStatusIndicator) {
-                this.serverStatusIndicator.textContent = `онлайн • thestash.space${warp}`;
+                this.serverStatusIndicator.textContent = `${dict.serverOnline}${warp}`;
                 this.serverStatusIndicator.style.color = 'var(--text-main)';
             }
             return true;
@@ -477,7 +483,7 @@ class FetchFlowApp {
             this.isBackendOnline = true;
             const warp = check7861.data?.warp_active ? ' (warp)' : '';
             if (this.serverStatusIndicator) {
-                this.serverStatusIndicator.textContent = `онлайн • vps downloader локально${warp}`;
+                this.serverStatusIndicator.textContent = `${dict.serverOnline} [local]${warp}`;
                 this.serverStatusIndicator.style.color = 'var(--text-main)';
             }
             return true;
@@ -487,7 +493,7 @@ class FetchFlowApp {
         this.backendUrl = isStashSpace ? '' : 'https://thestash.space';
         this.isBackendOnline = true;
         if (this.serverStatusIndicator) {
-            this.serverStatusIndicator.textContent = 'онлайн • thestash.space';
+            this.serverStatusIndicator.textContent = dict.serverOnline;
             this.serverStatusIndicator.style.color = 'var(--text-main)';
         }
         return true;
@@ -502,7 +508,8 @@ class FetchFlowApp {
             .filter(l => l.length > 5 && (l.startsWith('http://') || l.startsWith('https://')));
 
         if (lines.length === 0) {
-            alert('Не найдено корректных URL ссылок (ссылки должны начинаться с http:// или https://)');
+            const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.ru;
+            alert(dict.alertNoUrls);
             return;
         }
 
@@ -556,7 +563,7 @@ class FetchFlowApp {
     }
 
     getFormatBadge(format) {
-        if (format === 'best') return 'макс mp4';
+        if (format === 'best') return this.currentLang === 'en' ? 'max mp4' : 'макс mp4';
         if (format === '1080') return '1080p mp4';
         if (format === '720') return '720p mp4';
         if (format === '480') return '480p mp4';

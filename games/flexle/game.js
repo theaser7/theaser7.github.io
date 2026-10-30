@@ -274,7 +274,13 @@ function startNewGame() {
     const toggleStrict = document.getElementById('toggle-strict');
     if (toggleStrict) toggleStrict.checked = state.strictMode;
 
-    document.getElementById('attempts-pill').textContent = `${state.maxAttempts} attempts (${chosenLen} letters)`;
+    const isRu = (state.lang || '').toUpperCase() === 'RU';
+    const attemptsPill = document.getElementById('attempts-pill');
+    if (attemptsPill) {
+        attemptsPill.textContent = isRu 
+            ? `${state.maxAttempts} попыток (${chosenLen} букв)` 
+            : `${state.maxAttempts} attempts (${chosenLen} letters)`;
+    }
     setControlsLocked(false);
 
     // Update challenge banner
@@ -562,6 +568,10 @@ function showGameOver(isWin) {
     }
 
     wordElem.textContent = state.targetWord;
+    const playAgainBtn = document.getElementById('btn-play-again');
+    if (playAgainBtn) {
+        playAgainBtn.textContent = state.lang === 'RU' ? 'играть снова' : 'play again';
+    }
     modal.classList.add('open');
 }
 
@@ -622,6 +632,7 @@ function updateSettingsModalLocalization() {
 
 function setGameLanguage(lang) {
     state.lang = lang === 'RU' ? 'RU' : 'EN';
+    document.documentElement.lang = state.lang.toLowerCase();
     localStorage.setItem('flexle_lang', state.lang);
     localStorage.setItem('the_stash_lang', state.lang.toLowerCase());
 

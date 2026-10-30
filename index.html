@@ -757,6 +757,9 @@
             if (e.key === 'stash_theme') {
                 applyStashTheme(e.newValue || 'dark');
             }
+            if (e.key === 'the_stash_lang' && e.newValue) {
+                applyLanguage(e.newValue);
+            }
         });
 
         const themeToggleBtn = document.getElementById('btn-theme-toggle');
@@ -987,7 +990,6 @@
 
         // Initialize
         applyLanguage(currentLang);
-        updateGrid();
     </script>
 </body>
 </html>

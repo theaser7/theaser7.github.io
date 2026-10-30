@@ -1,5 +1,91 @@
-// Clarify • AI Photo Upscaler & Image Enhancer Engine
 // 100% Client-Side • Directional Super-Resolution & Neural Enhancement • Zero Telemetry
+
+const CLARIFY_I18N = {
+    ru: {
+        pageTitle: "нейроапскейлер • the stash",
+        brandTitle: "нейроапскейлер",
+        brandBadge: "клиентский / webgl",
+        heroTitle: "нейроапскейлер",
+        heroSubtitle: "локальное увеличение разрешения фотографий без потери качества и без передачи данных на сторонние серверы",
+        dropzoneTitle: "перетащите изображение сюда или выберите файл",
+        dropzoneSub: "поддерживаются png, jpg, webp, avif • до 50 мб",
+        dropzoneHint: "подсказка: можно вставить из буфера обмена (ctrl+v)",
+        splitBefore: "до",
+        splitAfter: "после",
+        scaleLabel: "множитель разрешения",
+        modelLabel: "нейросетевая модель",
+        optModelPhoto: "realesrgan 4k (фото)",
+        optModelAnime: "аниме и векторная графика",
+        optModelFast: "быстрый 2x",
+        denoiseLabel: "подавление шума",
+        sharpnessLabel: "адаптивная резкость",
+        btnUpscale: "увеличить разрешение",
+        exportLabel: "параметры экспорта",
+        btnDownload: "скачать файл",
+        btnCopy: "скопировать в буфер",
+        btnNew: "открыть другое фото",
+        settingsBadge: "параметры",
+        settingsTitle: "настройки",
+        lblSettingTheme: "тема оформления",
+        descSettingTheme: "светлая или темная тема",
+        btnThemeDark: "темная",
+        btnThemeLight: "светлая",
+        lblSettingLang: "язык интерфейса",
+        descSettingLang: "выберите язык отображения",
+        lblBackendTitle: "нейросетевой бэкенд",
+        lblBackendStatus: "на паузе",
+        lblBackendDesc: "серверная нейросеть Real-ESRGAN приостановлена (требуется GPU сервер). активен локальный клиентский режим (WebGL / Canvas).",
+        lblEngineTitle: "режим обработки",
+        optEngineBrowser: "клиентский браузерный режим (WebGL / Canvas)",
+        lblEngineDesc: "100% приватность, без телеметрии и без отправки изображений во внешнюю сеть.",
+        btnSettingsSave: "сохранить и закрыть",
+        toastCopied: "изображение скопировано в буфер",
+        toastDownloaded: "файл скачан",
+        toastSaved: "настройки сохранены"
+    },
+    en: {
+        pageTitle: "ai upscaler • the stash",
+        brandTitle: "ai upscaler",
+        brandBadge: "client-side / webgl",
+        heroTitle: "ai upscaler",
+        heroSubtitle: "local photo upscaling without quality loss or transmitting data to external servers",
+        dropzoneTitle: "drag & drop image here or browse files",
+        dropzoneSub: "supports png, jpg, webp, avif • up to 50 mb",
+        dropzoneHint: "tip: you can paste from clipboard (ctrl+v)",
+        splitBefore: "before",
+        splitAfter: "after",
+        scaleLabel: "scale multiplier",
+        modelLabel: "neural model",
+        optModelPhoto: "realesrgan 4k (photo)",
+        optModelAnime: "anime & vector graphics",
+        optModelFast: "fast 2x",
+        denoiseLabel: "denoise strength",
+        sharpnessLabel: "adaptive sharpness",
+        btnUpscale: "upscale image",
+        exportLabel: "export options",
+        btnDownload: "download file",
+        btnCopy: "copy to clipboard",
+        btnNew: "open another photo",
+        settingsBadge: "preferences",
+        settingsTitle: "settings",
+        lblSettingTheme: "color theme",
+        descSettingTheme: "light or dark mode",
+        btnThemeDark: "dark",
+        btnThemeLight: "light",
+        lblSettingLang: "interface language",
+        descSettingLang: "choose display language for the stash",
+        lblBackendTitle: "neural backend",
+        lblBackendStatus: "paused",
+        lblBackendDesc: "server-side Real-ESRGAN paused (GPU server required). client-side WebGL / Canvas active.",
+        lblEngineTitle: "processing mode",
+        optEngineBrowser: "client-side browser mode (WebGL / Canvas)",
+        lblEngineDesc: "100% private, zero telemetry, no external network requests.",
+        btnSettingsSave: "save & close",
+        toastCopied: "image copied to clipboard",
+        toastDownloaded: "file downloaded",
+        toastSaved: "settings saved"
+    }
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Application State ---
@@ -63,19 +149,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSaveSettings = document.getElementById('btn-save-settings');
     const engineStatusPill = document.getElementById('engine-status-pill');
 
+    let currentClarifyLang = localStorage.getItem('the_stash_lang') || 'ru';
+
     // --- Neural Upscaler / Client-Side Engine Status ---
     function checkEngineStatus() {
         const accelText = document.getElementById('accel-text');
         const accelDot = document.querySelector('.accel-dot');
         state.isEngineOnline = false;
         state.activeEngine = 'browser';
-        if (accelText) accelText.textContent = 'клиентский режим (webgl)';
+        const dict = CLARIFY_I18N[currentClarifyLang] || CLARIFY_I18N.ru;
+        if (accelText) accelText.textContent = dict.optEngineBrowser || 'клиентский режим (webgl)';
         if (accelDot) {
             accelDot.style.background = 'var(--text-muted)';
             accelDot.style.boxShadow = 'none';
         }
         if (engineStatusPill) {
-            engineStatusPill.textContent = 'на паузе (требуется GPU сервер)';
+            engineStatusPill.textContent = dict.lblBackendStatus;
             engineStatusPill.style.background = 'var(--card-border)';
             engineStatusPill.style.color = 'var(--text-muted)';
         }
@@ -503,96 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 18n & Theme Implementation ---
-    const CLARIFY_I18N = {
-        ru: {
-            pageTitle: "нейроапскейлер • the stash",
-            brandTitle: "нейроапскейлер",
-            brandBadge: "клиентский / webgl",
-            heroTitle: "нейроапскейлер",
-            heroSubtitle: "локальное увеличение разрешения фотографий без потери качества и без передачи данных на сторонние серверы",
-            dropzoneTitle: "перетащите изображение сюда или выберите файл",
-            dropzoneSub: "поддерживаются png, jpg, webp, avif • до 50 мб",
-            dropzoneHint: "подсказка: можно вставить из буфера обмена (ctrl+v)",
-            splitBefore: "до",
-            splitAfter: "после",
-            scaleLabel: "множитель разрешения",
-            modelLabel: "нейросетевая модель",
-            optModelPhoto: "realesrgan 4k (фото)",
-            optModelAnime: "аниме и векторная графика",
-            optModelFast: "быстрый 2x",
-            denoiseLabel: "подавление шума",
-            sharpnessLabel: "адаптивная резкость",
-            btnUpscale: "увеличить разрешение",
-            exportLabel: "параметры экспорта",
-            btnDownload: "скачать файл",
-            btnCopy: "скопировать в буфер",
-            btnNew: "открыть другое фото",
-            settingsBadge: "параметры",
-            settingsTitle: "настройки",
-            lblSettingTheme: "тема оформления",
-            descSettingTheme: "светлая или темная тема",
-            btnThemeDark: "темная",
-            btnThemeLight: "светлая",
-            lblSettingLang: "язык интерфейса",
-            descSettingLang: "выберите язык отображения",
-            lblBackendTitle: "нейросетевой бэкенд",
-            lblBackendStatus: "на паузе",
-            lblBackendDesc: "серверная нейросеть Real-ESRGAN приостановлена (требуется GPU сервер). активен локальный клиентский режим (WebGL / Canvas).",
-            lblEngineTitle: "режим обработки",
-            optEngineBrowser: "клиентский браузерный режим (WebGL / Canvas)",
-            lblEngineDesc: "100% приватность, без телеметрии и без отправки изображений во внешнюю сеть.",
-            btnSettingsSave: "сохранить и закрыть",
-            toastCopied: "изображение скопировано в буфер",
-            toastDownloaded: "файл скачан",
-            toastSaved: "настройки сохранены"
-        },
-        en: {
-            pageTitle: "ai upscaler • the stash",
-            brandTitle: "ai upscaler",
-            brandBadge: "client-side / webgl",
-            heroTitle: "ai upscaler",
-            heroSubtitle: "local photo upscaling without quality loss or transmitting data to external servers",
-            dropzoneTitle: "drag & drop image here or browse files",
-            dropzoneSub: "supports png, jpg, webp, avif • up to 50 mb",
-            dropzoneHint: "tip: you can paste from clipboard (ctrl+v)",
-            splitBefore: "before",
-            splitAfter: "after",
-            scaleLabel: "scale multiplier",
-            modelLabel: "neural model",
-            optModelPhoto: "realesrgan 4k (photo)",
-            optModelAnime: "anime & vector graphics",
-            optModelFast: "fast 2x",
-            denoiseLabel: "denoise strength",
-            sharpnessLabel: "adaptive sharpness",
-            btnUpscale: "upscale image",
-            exportLabel: "export options",
-            btnDownload: "download file",
-            btnCopy: "copy to clipboard",
-            btnNew: "open another photo",
-            settingsBadge: "preferences",
-            settingsTitle: "settings",
-            lblSettingTheme: "color theme",
-            descSettingTheme: "light or dark mode",
-            btnThemeDark: "dark",
-            btnThemeLight: "light",
-            lblSettingLang: "interface language",
-            descSettingLang: "choose display language for the stash",
-            lblBackendTitle: "neural backend",
-            lblBackendStatus: "paused",
-            lblBackendDesc: "server-side Real-ESRGAN paused (GPU server required). client-side WebGL / Canvas active.",
-            lblEngineTitle: "processing mode",
-            optEngineBrowser: "client-side browser mode (WebGL / Canvas)",
-            lblEngineDesc: "100% private, zero telemetry, no external network requests.",
-            btnSettingsSave: "save & close",
-            toastCopied: "image copied to clipboard",
-            toastDownloaded: "file downloaded",
-            toastSaved: "settings saved"
-        }
-    };
-
-    let currentClarifyLang = localStorage.getItem('the_stash_lang') || 'ru';
-
+    // --- i18n & Theme Implementation ---
     function applyClarifyLanguage(lang) {
         currentClarifyLang = lang;
         localStorage.setItem('the_stash_lang', lang);

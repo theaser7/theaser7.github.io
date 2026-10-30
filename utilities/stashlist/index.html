@@ -1275,7 +1275,7 @@
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
-                    <span>тема</span>
+                    <span id="txt-theme-btn">тема</span>
                 </button>
 
                 <button class="hud-btn" id="btn-toggle-sound" title="Toggle audio feedback">
@@ -1399,7 +1399,7 @@
 
         <!-- Footer -->
         <footer>
-            <span id="txt-footer-left">StashList &bull; 100% Client-Side Recurring Checklist</span>
+            <span id="txt-footer-left">чеклист &bull; 100% локальный чеклист</span>
             <span>Part of <a href="../../index.html" id="txt-footer-right">the stash</a></span>
         </footer>
     </div>
@@ -1512,7 +1512,7 @@
                 </button>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;" id="txt-backup-desc">
-                All StashList data is stored locally in your browser storage. You can backup your recurring tasks as a JSON file or restore them anytime.
+                Все данные хранятся локально в вашем браузере. Вы можете экспортировать задачи в JSON или восстановить их в любое время.
             </p>
 
             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -1659,10 +1659,10 @@
             </svg>
         </div>
         <div style="display: flex; flex-direction: column;">
-            <span style="font-size: 0.75rem; color: var(--mint); font-family: var(--font-mono); font-weight: 700;">STASHLIST REMINDER</span>
-            <span style="font-weight: 700;" id="banner-task-title">Task Title</span>
+            <span id="banner-reminder-badge" style="font-size: 0.75rem; color: var(--mint); font-family: var(--font-mono); font-weight: 700;">НАПОМИНАНИЕ</span>
+            <span style="font-weight: 700;" id="banner-task-title">Задача</span>
         </div>
-        <button class="hud-btn primary" id="btn-banner-complete" style="margin-left: auto;">Done</button>
+        <button class="hud-btn primary" id="btn-banner-complete" style="margin-left: auto;">готово</button>
         <button class="icon-btn" id="btn-banner-close" title="Dismiss" style="color: var(--text-muted);">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1672,7 +1672,7 @@
     </div>
 
     <!-- Toast Notification -->
-    <div class="toast" id="toast-notify">Notification text</div>
+    <div class="toast" id="toast-notify">уведомление</div>
 
     <!-- Web Audio Engine -->
     <script>
@@ -1921,8 +1921,13 @@
                 btnResetToday: "reset today's completions",
                 settingsBadge: "preferences",
                 settingsTitle: "settings",
+                lblSettingTheme: "color theme",
+                descSettingTheme: "light or dark mode",
+                btnThemeDark: "dark",
+                btnThemeLight: "light",
+                btnTheme: "theme",
                 lblSettingLang: "interface language",
-                descSettingLang: "choose language for stashlist & hub",
+                descSettingLang: "choose display language for the stash",
                 lblSettingSound: "audio chimes & sound effects",
                 descSettingSound: "interactive webaudio feedback for completions",
                 txtTestSound: "test chime",
@@ -1933,8 +1938,10 @@
                 btnSettingsResetToday: "reset today's progress",
                 btnSettingsClearAll: "clear all tasks",
                 btnSettingsSave: "save & close",
-                bannerReminder: "напоминание",
-                btnBannerComplete: "готово",
+                bannerReminder: "reminder",
+                btnBannerComplete: "done",
+                alertInvalidJson: "invalid JSON format: expected an array of tasks.",
+                alertNoTasksJson: "no valid tasks found in the uploaded JSON.",
                 footerLeft: "habit checklist • 100% offline checklist",
                 footerRight: "the stash",
                 dayNames: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
@@ -2007,8 +2014,13 @@
                 btnResetToday: "сбросить сегодняшние отметки",
                 settingsBadge: "параметры",
                 settingsTitle: "настройки",
+                lblSettingTheme: "тема оформления",
+                descSettingTheme: "светлая или темная тема",
+                btnThemeDark: "темная",
+                btnThemeLight: "светлая",
+                btnTheme: "тема",
                 lblSettingLang: "язык интерфейса",
-                descSettingLang: "выберите язык для чеклиста и хаба",
+                descSettingLang: "выберите язык отображения",
                 lblSettingSound: "звуковые сигналы и эффекты",
                 descSettingSound: "интерактивный звук WebAudio при выполнении задач",
                 txtTestSound: "тест звука",
@@ -2021,6 +2033,8 @@
                 btnSettingsSave: "сохранить и закрыть",
                 bannerReminder: "напоминание",
                 btnBannerComplete: "готово",
+                alertInvalidJson: "неверный формат JSON: ожидался массив задач.",
+                alertNoTasksJson: "в загруженном JSON не найдено корректных задач.",
                 footerLeft: "чеклист • 100% локальный чеклист",
                 footerRight: "the stash",
                 dayNames: ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'],
@@ -2668,8 +2682,10 @@
             // Native Browser Notification
             if (window.Notification && Notification.permission === 'granted') {
                 try {
-                    const n = new Notification(`чеклист: ${task.title}`, {
-                        body: task.notes || 'Time to complete your recurring routine!',
+                    const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.ru;
+                    const defaultMsg = currentLang === 'ru' ? 'Пора выполнить запланированную задачу!' : 'Time to complete your recurring routine!';
+                    const n = new Notification(`${dict.brandTitle}: ${task.title}`, {
+                        body: task.notes || defaultMsg,
                         icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
                     });
                     n.onclick = function() {
@@ -2761,7 +2777,7 @@
                     if (permission === 'granted') {
                         showToast(dict.toastNotifyGranted);
                         try {
-                            new Notification('StashList', {
+                            new Notification(dict.brandTitle, {
                                 body: currentLang === 'ru' ? 'Оповещения включены! Вы будете получать напоминания.' : 'Test notification: reminder alerts are now active.',
                                 icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
                             });
@@ -2927,15 +2943,17 @@
                             saveTasks();
                             renderTasks();
                             backupModal.classList.remove('active');
-                            showToast(`Imported ${sanitized.length} tasks successfully!`);
+                            showToast(currentLang === 'ru' ? `Успешно импортировано ${sanitized.length} задач!` : `Imported ${sanitized.length} tasks successfully!`);
                         } else {
-                            alert('No valid tasks found in the uploaded JSON.');
+                            const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.ru;
+                            alert(dict.alertNoTasksJson);
                         }
                     } else {
-                        alert('Invalid StashList JSON format: expected an array.');
+                        const dict = STASHLIST_I18N[currentLang] || STASHLIST_I18N.ru;
+                        alert(dict.alertInvalidJson);
                     }
                 } catch (err) {
-                    alert('Failed to parse JSON file: ' + err.message);
+                    alert((currentLang === 'ru' ? 'Ошибка чтения JSON: ' : 'Failed to parse JSON file: ') + err.message);
                 }
             };
             reader.readAsText(file);
@@ -3017,7 +3035,7 @@
                 }
                 if (Notification.permission === 'granted') {
                     try {
-                        new Notification('StashList', {
+                        new Notification(dict.brandTitle, {
                             body: currentLang === 'ru' ? 'Тестовое оповещение: напоминания активны!' : 'Test notification: reminder alerts are active!',
                             icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
                         });
@@ -3029,7 +3047,7 @@
                         if (permission === 'granted') {
                             showToast(dict.toastNotifyGranted);
                             try {
-                                new Notification('StashList', {
+                                new Notification(dict.brandTitle, {
                                     body: currentLang === 'ru' ? 'Оповещения включены! Вы будете получать напоминания.' : 'Test notification: reminder alerts are now active.',
                                     icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22><polyline points=%229 11 12 14 22 4%22/><path d=%22M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11%22/></svg>'
                                 });
@@ -3202,6 +3220,18 @@
             if (modalSetBadge) modalSetBadge.textContent = dict.settingsBadge;
             const modalSetTitle = document.getElementById('modal-settings-title');
             if (modalSetTitle) modalSetTitle.textContent = dict.settingsTitle;
+            const lblSettingTheme = document.getElementById('lbl-setting-theme');
+            if (lblSettingTheme) lblSettingTheme.textContent = dict.lblSettingTheme;
+            const descSettingTheme = document.getElementById('desc-setting-theme');
+            if (descSettingTheme) descSettingTheme.textContent = dict.descSettingTheme;
+            const btnThemeDark = document.getElementById('btn-theme-dark');
+            if (btnThemeDark) btnThemeDark.textContent = dict.btnThemeDark;
+            const btnThemeLight = document.getElementById('btn-theme-light');
+            if (btnThemeLight) btnThemeLight.textContent = dict.btnThemeLight;
+            const txtThemeBtn = document.getElementById('txt-theme-btn');
+            if (txtThemeBtn) txtThemeBtn.textContent = dict.btnTheme;
+            const btnThemeToggle = document.getElementById('btn-theme-toggle');
+            if (btnThemeToggle) btnThemeToggle.title = dict.btnTheme;
             const lblSettingLang = document.getElementById('lbl-setting-lang');
             if (lblSettingLang) lblSettingLang.textContent = dict.lblSettingLang;
             const descSettingLang = document.getElementById('desc-setting-lang');
@@ -3224,6 +3254,12 @@
             if (txtSettingsClearAll) txtSettingsClearAll.textContent = dict.btnSettingsClearAll;
             const btnSettingsSave = document.getElementById('btn-settings-save');
             if (btnSettingsSave) btnSettingsSave.textContent = dict.btnSettingsSave;
+
+            // Reminder Banner
+            const bannerReminderBadge = document.getElementById('banner-reminder-badge');
+            if (bannerReminderBadge) bannerReminderBadge.textContent = dict.bannerReminder;
+            const btnBannerComplete = document.getElementById('btn-banner-complete');
+            if (btnBannerComplete) btnBannerComplete.textContent = dict.btnBannerComplete;
 
             // Active lang button states in modal
             const btnLangEn = document.getElementById('btn-lang-en');
