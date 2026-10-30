@@ -1,8 +1,10 @@
 // Game State
 const savedRange = JSON.parse(localStorage.getItem('flexle_rnd_range') || '{"min": 4, "max": 10}');
+const stashLang = localStorage.getItem('the_stash_lang');
+const initialFlexleLang = stashLang ? (stashLang.toLowerCase() === 'en' ? 'EN' : 'RU') : (localStorage.getItem('flexle_lang') || 'RU');
 
 const state = {
-    lang: localStorage.getItem('flexle_lang') || 'RU',
+    lang: initialFlexleLang,
     strictMode: localStorage.getItem('flexle_strict') !== null 
         ? localStorage.getItem('flexle_strict') === 'true' 
         : true,
@@ -163,21 +165,10 @@ function calcAttempts(len) {
 
 // Lock / Unlock In-Game Language and Length Settings
 function setControlsLocked(isLocked) {
-    const btnLang = document.getElementById('btn-lang');
-    const modalLangToggle = document.getElementById('modal-lang-toggle');
     const lenBtns = document.querySelectorAll('.len-btn');
     const btnDots = document.getElementById('btn-open-range');
 
     if (isLocked) {
-        btnLang.classList.add('locked');
-        btnLang.setAttribute('disabled', 'true');
-        btnLang.title = state.lang === 'RU' ? 'Язык заблокирован во время раунда' : 'Language locked during round';
-
-        if (modalLangToggle) {
-            modalLangToggle.classList.add('locked');
-            modalLangToggle.setAttribute('disabled', 'true');
-        }
-
         lenBtns.forEach(btn => {
             btn.classList.add('locked');
             btn.setAttribute('disabled', 'true');
@@ -188,14 +179,6 @@ function setControlsLocked(isLocked) {
             btnDots.style.opacity = '0.4';
         }
     } else {
-        btnLang.classList.remove('locked');
-        btnLang.removeAttribute('disabled');
-        btnLang.title = state.lang === 'RU' ? 'Сменить язык' : 'Switch Language';
-
-        if (modalLangToggle) {
-            modalLangToggle.classList.remove('locked');
-            modalLangToggle.removeAttribute('disabled');
-        }
 
         lenBtns.forEach(btn => {
             if (state.isCustomMode) {
@@ -602,6 +585,71 @@ function updateSoundUI() {
     }
 }
 
+function updateSettingsModalLocalization() {
+    const isRu = state.lang === 'RU';
+    const badge = document.getElementById('modal-settings-badge');
+    const title = document.getElementById('modal-settings-title');
+    const lblTheme = document.getElementById('lbl-setting-theme');
+    const descTheme = document.getElementById('desc-setting-theme');
+    const themeDark = document.getElementById('btn-theme-dark');
+    const themeLight = document.getElementById('btn-theme-light');
+    const lblLang = document.getElementById('lbl-setting-lang');
+    const descLang = document.getElementById('desc-setting-lang');
+    const lblSound = document.getElementById('lbl-setting-sound');
+    const descSound = document.getElementById('desc-setting-sound');
+    const lblStrict = document.getElementById('lbl-setting-strict');
+    const descStrict = document.getElementById('desc-setting-strict');
+    const lblHard = document.getElementById('lbl-setting-hard');
+    const descHard = document.getElementById('desc-setting-hard');
+    const btnSave = document.getElementById('btn-save-settings');
+
+    if (badge) badge.textContent = isRu ? 'параметры' : 'preferences';
+    if (title) title.textContent = isRu ? 'настройки' : 'settings';
+    if (lblTheme) lblTheme.textContent = isRu ? 'тема оформления' : 'theme';
+    if (descTheme) descTheme.textContent = isRu ? 'светлая или темная тема' : 'light or dark theme';
+    if (themeDark) themeDark.textContent = isRu ? 'темная' : 'dark';
+    if (themeLight) themeLight.textContent = isRu ? 'светлая' : 'light';
+    if (lblLang) lblLang.textContent = isRu ? 'язык интерфейса' : 'language';
+    if (descLang) descLang.textContent = isRu ? 'выберите язык словаря' : 'select dictionary language';
+    if (lblSound) lblSound.textContent = isRu ? 'звуковые эффекты' : 'sound effects';
+    if (descSound) descSound.textContent = isRu ? 'процедурные звуковые сигналы' : 'procedural audio cues';
+    if (lblStrict) lblStrict.textContent = isRu ? 'строгий режим' : 'strict mode';
+    if (descStrict) descStrict.textContent = isRu ? 'разрешать только словарные слова' : 'allow only dictionary words';
+    if (lblHard) lblHard.textContent = isRu ? 'сложный режим' : 'hard mode';
+    if (descHard) descHard.textContent = isRu ? 'слова повышенной сложности' : 'advanced vocabulary';
+    if (btnSave) btnSave.textContent = isRu ? 'сохранить и закрыть' : 'save & close';
+}
+
+function setGameLanguage(lang) {
+    state.lang = lang === 'RU' ? 'RU' : 'EN';
+    localStorage.setItem('flexle_lang', state.lang);
+    localStorage.setItem('the_stash_lang', state.lang.toLowerCase());
+
+    const btnLang = document.getElementById('btn-lang');
+    if (btnLang) {
+        btnLang.textContent = state.lang;
+        btnLang.title = state.lang === 'RU' ? 'Сменить язык' : 'Switch Language';
+    }
+
+    const btnEn = document.getElementById('btn-lang-en');
+    const btnRu = document.getElementById('btn-lang-ru');
+    if (btnEn && btnRu) {
+        btnEn.classList.toggle('active', state.lang === 'EN');
+        btnRu.classList.toggle('active', state.lang === 'RU');
+    }
+
+    const appTitle = document.getElementById('app-title');
+    if (appTitle) appTitle.textContent = state.lang === 'RU' ? 'вордл' : 'wordle';
+    document.title = (state.lang === 'RU' ? 'вордл' : 'wordle') + ' — the stash';
+
+    updateSettingsModalLocalization();
+    updateRangeModalLocalization();
+    updateCustomModalLocalization();
+    updateChallengeBannerLocalization();
+    renderAxisUI();
+    startNewGame();
+}
+
 // --- Interactive Dual Drum / Wheel Range Picker [ MIN ] - [ MAX ] ---
 const TICKS = [4, 5, 6, 7, 8, 9, 10, 11]; // 11 represents 11+
 const ITEM_HEIGHT = 56;
@@ -939,22 +987,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Language Toggle Button (Header)
+    // Sync initial Language UI & settings
     const btnLang = document.getElementById('btn-lang');
-    btnLang.textContent = state.lang;
-    btnLang.addEventListener('click', () => {
-        if (state.hasStarted && !state.isGameOver) {
-            showToast(state.lang === 'RU' ? 'Смена языка заблокирована во время раунда' : 'Language locked during round');
-            return;
-        }
-        state.lang = state.lang === 'RU' ? 'EN' : 'RU';
-        localStorage.setItem('flexle_lang', state.lang);
+    if (btnLang) {
         btnLang.textContent = state.lang;
-        document.getElementById('modal-lang-toggle').textContent = state.lang;
-        updateRangeModalLocalization();
-        renderAxisUI();
-        startNewGame();
-    });
+        btnLang.title = state.lang === 'RU' ? 'Сменить язык' : 'Switch Language';
+        btnLang.addEventListener('click', () => {
+            setGameLanguage(state.lang === 'RU' ? 'EN' : 'RU');
+        });
+    }
+
+    const btnLangEn = document.getElementById('btn-lang-en');
+    const btnLangRu = document.getElementById('btn-lang-ru');
+    if (btnLangEn) {
+        btnLangEn.classList.toggle('active', state.lang === 'EN');
+        btnLangEn.addEventListener('click', () => setGameLanguage('EN'));
+    }
+    if (btnLangRu) {
+        btnLangRu.classList.toggle('active', state.lang === 'RU');
+        btnLangRu.addEventListener('click', () => setGameLanguage('RU'));
+    }
+
+    const appTitle = document.getElementById('app-title');
+    if (appTitle) appTitle.textContent = state.lang === 'RU' ? 'вордл' : 'wordle';
+    document.title = (state.lang === 'RU' ? 'вордл' : 'wordle') + ' — the stash';
+    updateSettingsModalLocalization();
 
     // Restart Button
     document.getElementById('btn-restart').addEventListener('click', () => {
@@ -963,21 +1020,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Settings Modal
     const modalSettings = document.getElementById('modal-settings');
-    document.getElementById('btn-settings').addEventListener('click', () => {
-        modalSettings.classList.add('open');
-    });
-    document.getElementById('close-settings').addEventListener('click', () => {
-        modalSettings.classList.remove('open');
+    const btnSettings = document.getElementById('btn-settings');
+    if (btnSettings && modalSettings) {
+        btnSettings.addEventListener('click', () => {
+            modalSettings.classList.add('open');
+        });
+    }
+    const closeSettings = document.getElementById('close-settings');
+    if (closeSettings && modalSettings) {
+        closeSettings.addEventListener('click', () => {
+            modalSettings.classList.remove('open');
+        });
+    }
+    const btnSaveSettings = document.getElementById('btn-save-settings');
+    if (btnSaveSettings && modalSettings) {
+        btnSaveSettings.addEventListener('click', () => {
+            modalSettings.classList.remove('open');
+        });
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalSettings && modalSettings.classList.contains('open')) {
+            modalSettings.classList.remove('open');
+        }
     });
 
     // Strict Mode Switch
     const toggleStrict = document.getElementById('toggle-strict');
-    toggleStrict.checked = state.strictMode;
-    toggleStrict.addEventListener('change', (e) => {
-        state.strictMode = e.target.checked;
-        localStorage.setItem('flexle_strict', state.strictMode);
-        showToast(state.strictMode ? 'Strict Mode: ON' : 'Strict Mode: OFF');
-    });
+    if (toggleStrict) {
+        toggleStrict.checked = state.strictMode;
+        toggleStrict.addEventListener('change', (e) => {
+            state.strictMode = e.target.checked;
+            localStorage.setItem('flexle_strict', state.strictMode);
+            showToast(state.strictMode 
+                ? (state.lang === 'RU' ? 'Строгий режим: ВКЛ' : 'Strict Mode: ON') 
+                : (state.lang === 'RU' ? 'Строгий режим: ВЫКЛ' : 'Strict Mode: OFF'));
+        });
+    }
 
     // Hard Mode Switch
     const toggleHard = document.getElementById('toggle-hard');
@@ -986,26 +1064,20 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleHard.addEventListener('change', (e) => {
             state.hardMode = e.target.checked;
             localStorage.setItem('flexle_hard', state.hardMode);
-            showToast(state.hardMode ? 'Hard Mode: ON' : 'Hard Mode: OFF');
+            showToast(state.hardMode 
+                ? (state.lang === 'RU' ? 'Сложный режим: ВКЛ' : 'Hard Mode: ON') 
+                : (state.lang === 'RU' ? 'Сложный режим: ВЫКЛ' : 'Hard Mode: OFF'));
         });
     }
 
-    // Modal Language Switch
-    const modalLangToggle = document.getElementById('modal-lang-toggle');
-    modalLangToggle.textContent = state.lang;
-    modalLangToggle.addEventListener('click', () => {
-        if (state.hasStarted && !state.isGameOver) {
-            showToast(state.lang === 'RU' ? 'Смена языка заблокирована во время раунда' : 'Language locked during round');
-            return;
+    // Storage listener for cross-app language
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'the_stash_lang' && e.newValue) {
+            const nextLang = e.newValue.toUpperCase();
+            if ((nextLang === 'RU' || nextLang === 'EN') && nextLang !== state.lang) {
+                setGameLanguage(nextLang);
+            }
         }
-        state.lang = state.lang === 'RU' ? 'EN' : 'RU';
-        localStorage.setItem('flexle_lang', state.lang);
-        btnLang.textContent = state.lang;
-        modalLangToggle.textContent = state.lang;
-        updateRangeModalLocalization();
-        updateCustomModalLocalization();
-        renderAxisUI();
-        startNewGame();
     });
 
     // Game Over Modal Close & Play Again
@@ -1029,8 +1101,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initCustomWordModal();
     const hasChallenge = checkUrlChallenge();
     if (hasChallenge) {
-        btnLang.textContent = state.lang;
-        if (modalLangToggle) modalLangToggle.textContent = state.lang;
+        if (btnLang) btnLang.textContent = state.lang;
+        if (btnLangEn) btnLangEn.classList.toggle('active', state.lang === 'EN');
+        if (btnLangRu) btnLangRu.classList.toggle('active', state.lang === 'RU');
         showToast(state.lang === 'RU' ? 'Загружен челлендж от друга!' : 'Custom challenge loaded!');
     }
 

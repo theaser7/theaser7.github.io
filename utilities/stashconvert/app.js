@@ -5,11 +5,23 @@
 
 const STASHCONVERT_I18N = {
     en: {
-        langBtn: "ru",
-        soundBtn: "sound",
-        muteBtn: "mute",
+        brandTitle: "file converter",
+        settingsLabel: "settings",
+        modalBadge: "preferences",
+        modalTitle: "settings",
+        settingTheme: "theme",
+        descSettingTheme: "light or dark color scheme",
+        themeDark: "dark",
+        themeLight: "light",
+        settingLang: "interface language",
+        descSettingLang: "select display language",
+        settingSound: "sound effects",
+        descSettingSound: "audio cues on conversion and clicks",
+        soundOn: "on",
+        soundOff: "off",
+        btnSaveSettings: "save & close",
         hubBtn: "hub",
-        heroTitle: "converter",
+        heroTitle: "file converter",
         heroSubtitle: "local batch conversion for video, audio, images, and documents right in your browser",
         dropzoneTitle: "drag & drop files here",
         dropzoneSubtitle: "or click to select from your device (video, images, audio, data)",
@@ -31,13 +43,25 @@ const STASHCONVERT_I18N = {
         btnConvert: "convert",
         btnReconvert: "reconvert",
         btnDownload: "download",
-        footerLeft: "stashconvert • 100% local in-browser processing",
+        footerLeft: "file converter • 100% local in-browser processing",
         footerRight: "the stash"
     },
     ru: {
-        langBtn: "en",
-        soundBtn: "звук",
-        muteBtn: "без звука",
+        brandTitle: "конвертер",
+        settingsLabel: "настройки",
+        modalBadge: "параметры",
+        modalTitle: "настройки",
+        settingTheme: "тема оформления",
+        descSettingTheme: "светлая или темная тема",
+        themeDark: "темная",
+        themeLight: "светлая",
+        settingLang: "язык интерфейса",
+        descSettingLang: "выберите язык отображения",
+        settingSound: "звуковые эффекты",
+        descSettingSound: "звуки при конвертации и кликах",
+        soundOn: "вкл",
+        soundOff: "выкл",
+        btnSaveSettings: "сохранить и закрыть",
         hubBtn: "хаб",
         heroTitle: "конвертер",
         heroSubtitle: "локальная пакетная конвертация видео, аудио, картинок и документов прямо в браузере",
@@ -357,10 +381,12 @@ class StashConvertApp {
 
     constructor() {
         this.queue = [];
-        this.currentLang = localStorage.getItem('the_stash_lang') || 'en';
+        this.currentLang = localStorage.getItem('the_stash_lang') || 'ru';
         this.initDOM();
         this.initEvents();
         this.applyLanguage(this.currentLang);
+        this.syncThemeUI();
+        this.updateSoundButtons();
     }
 
     initDOM() {
@@ -374,16 +400,25 @@ class StashConvertApp {
         this.btnDownloadAll = document.getElementById('btn-download-all');
         this.btnClearQueue = document.getElementById('btn-clear-queue');
 
-        this.btnLang = document.getElementById('btn-lang');
-        this.btnLangText = document.getElementById('btn-lang-text');
-        this.btnMute = document.getElementById('btn-mute');
         this.toast = document.getElementById('toast-notify');
+
+        // Modal and Settings elements
+        this.settingsModal = document.getElementById('settings-modal');
+        this.btnSettings = document.getElementById('btn-settings');
+        this.btnSettingsClose = document.getElementById('modal-settings-close');
+        this.btnSaveSettings = document.getElementById('btn-save-settings');
+        this.btnThemeDark = document.getElementById('btn-theme-dark');
+        this.btnThemeLight = document.getElementById('btn-theme-light');
+        this.btnLangEn = document.getElementById('btn-lang-en');
+        this.btnLangRu = document.getElementById('btn-lang-ru');
+        this.btnSoundOn = document.getElementById('btn-sound-on');
+        this.btnSoundOff = document.getElementById('btn-sound-off');
     }
 
     initEvents() {
         // Drag & Drop
         if (this.dropzone) {
-            this.dropzone.addEventListener('click', () => this.fileInput.click());
+            this.dropzone.addEventListener('click', () => this.fileInput && this.fileInput.click());
             this.dropzone.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 this.dropzone.classList.add('drag-over');
@@ -395,7 +430,7 @@ class StashConvertApp {
                 e.preventDefault();
                 this.dropzone.classList.remove('drag-over');
                 if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                    window.stashconvertSound.playDrop();
+                    window.stashconvertSound?.playDrop?.();
                     this.addFilesToQueue(Array.from(e.dataTransfer.files));
                 }
             });
@@ -404,7 +439,7 @@ class StashConvertApp {
         if (this.fileInput) {
             this.fileInput.addEventListener('change', (e) => {
                 if (e.target.files && e.target.files.length > 0) {
-                    window.stashconvertSound.playDrop();
+                    window.stashconvertSound?.playDrop?.();
                     this.addFilesToQueue(Array.from(e.target.files));
                     this.fileInput.value = '';
                 }
@@ -414,56 +449,215 @@ class StashConvertApp {
         // Action Buttons
         if (this.btnConvertAll) {
             this.btnConvertAll.addEventListener('click', () => {
-                window.stashconvertSound.playClick();
+                window.stashconvertSound?.playClick?.();
                 this.convertAll();
             });
         }
 
         if (this.btnDownloadAll) {
             this.btnDownloadAll.addEventListener('click', () => {
-                window.stashconvertSound.playClick();
+                window.stashconvertSound?.playClick?.();
                 this.downloadAll();
             });
         }
 
         if (this.btnClearQueue) {
             this.btnClearQueue.addEventListener('click', () => {
-                window.stashconvertSound.playClick();
+                window.stashconvertSound?.playClick?.();
                 this.clearQueue();
             });
         }
 
-        // Language & Sound
-        if (this.btnLang) {
-            this.btnLang.addEventListener('click', () => {
-                window.stashconvertSound.playClick();
-                this.currentLang = this.currentLang === 'en' ? 'ru' : 'en';
-                localStorage.setItem('the_stash_lang', this.currentLang);
-                this.applyLanguage(this.currentLang);
+        // Settings Modal events
+        if (this.btnSettings) {
+            this.btnSettings.addEventListener('click', () => {
+                window.stashconvertSound?.playClick?.();
+                this.openSettings();
             });
         }
 
-        if (this.btnMute) {
-            this.btnMute.addEventListener('click', () => {
-                const muted = window.stashconvertSound.toggleMute();
-                this.updateMuteButton(muted);
+        if (this.btnSettingsClose) {
+            this.btnSettingsClose.addEventListener('click', () => {
+                window.stashconvertSound?.playClick?.();
+                this.closeSettings();
             });
-            this.updateMuteButton(window.stashconvertSound.isMuted);
+        }
+
+        if (this.btnSaveSettings) {
+            this.btnSaveSettings.addEventListener('click', () => {
+                window.stashconvertSound?.playClick?.();
+                this.closeSettings();
+            });
+        }
+
+        if (this.settingsModal) {
+            this.settingsModal.addEventListener('click', (e) => {
+                if (e.target === this.settingsModal) {
+                    this.closeSettings();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.settingsModal?.classList.contains('active')) {
+                this.closeSettings();
+            }
+        });
+
+        // Theme buttons inside modal
+        if (this.btnThemeDark) {
+            this.btnThemeDark.addEventListener('click', () => {
+                window.stashconvertSound?.playClick?.();
+                this.applyTheme('dark');
+            });
+        }
+
+        if (this.btnThemeLight) {
+            this.btnThemeLight.addEventListener('click', () => {
+                window.stashconvertSound?.playClick?.();
+                this.applyTheme('light');
+            });
+        }
+
+        // Language buttons inside modal
+        if (this.btnLangEn) {
+            this.btnLangEn.addEventListener('click', () => {
+                window.stashconvertSound?.playClick?.();
+                this.setLanguage('en');
+            });
+        }
+
+        if (this.btnLangRu) {
+            this.btnLangRu.addEventListener('click', () => {
+                window.stashconvertSound?.playClick?.();
+                this.setLanguage('ru');
+            });
+        }
+
+        // Sound buttons inside modal
+        if (this.btnSoundOn) {
+            this.btnSoundOn.addEventListener('click', () => {
+                window.stashconvertSound?.setMuted?.(false);
+                this.updateSoundButtons();
+                window.stashconvertSound?.playClick?.();
+            });
+        }
+
+        if (this.btnSoundOff) {
+            this.btnSoundOff.addEventListener('click', () => {
+                window.stashconvertSound?.setMuted?.(true);
+                this.updateSoundButtons();
+            });
+        }
+
+        // Storage listener for cross-tab sync
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'the_stash_lang' && e.newValue) {
+                this.setLanguage(e.newValue, false);
+            } else if (e.key === 'stash_theme') {
+                this.syncThemeUI();
+            }
+        });
+    }
+
+    openSettings() {
+        if (!this.settingsModal) return;
+        this.syncThemeUI();
+        this.updateSoundButtons();
+        this.settingsModal.classList.add('active');
+    }
+
+    closeSettings() {
+        if (!this.settingsModal) return;
+        this.settingsModal.classList.remove('active');
+    }
+
+    applyTheme(theme) {
+        localStorage.setItem('stash_theme', theme);
+        if (theme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+        this.syncThemeUI();
+        if (typeof updateConvertThemeIcons === 'function') {
+            updateConvertThemeIcons();
         }
     }
 
-    applyLanguage(lang) {
-        const dict = STASHCONVERT_I18N[lang] || STASHCONVERT_I18N.en;
+    syncThemeUI() {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        if (this.btnThemeLight) this.btnThemeLight.classList.toggle('active', isLight);
+        if (this.btnThemeDark) this.btnThemeDark.classList.toggle('active', !isLight);
+    }
 
-        if (this.btnLangText) this.btnLangText.textContent = dict.langBtn;
+    updateSoundButtons() {
+        const isMuted = window.stashconvertSound ? window.stashconvertSound.isMuted : false;
+        if (this.btnSoundOn) this.btnSoundOn.classList.toggle('active', !isMuted);
+        if (this.btnSoundOff) this.btnSoundOff.classList.toggle('active', isMuted);
+    }
+
+    setLanguage(lang, save = true) {
+        this.currentLang = (lang === 'ru' || lang === 'en') ? lang : 'ru';
+        if (save) {
+            localStorage.setItem('the_stash_lang', this.currentLang);
+        }
+        this.applyLanguage(this.currentLang);
+    }
+
+    applyLanguage(lang) {
+        const dict = STASHCONVERT_I18N[lang] || STASHCONVERT_I18N.ru;
+
+        const txtBrand = document.getElementById('txt-brand-title');
+        if (txtBrand) txtBrand.textContent = dict.brandTitle;
+
+        const txtSettings = document.getElementById('txt-settings-label');
+        if (txtSettings) txtSettings.textContent = dict.settingsLabel;
+
+        const modalBadge = document.getElementById('modal-settings-badge');
+        if (modalBadge) modalBadge.textContent = dict.modalBadge;
+
+        const modalTitle = document.getElementById('modal-settings-title');
+        if (modalTitle) modalTitle.textContent = dict.modalTitle;
+
+        const lblTheme = document.getElementById('lbl-setting-theme');
+        if (lblTheme) lblTheme.textContent = dict.settingTheme;
+
+        const descTheme = document.getElementById('desc-setting-theme');
+        if (descTheme) descTheme.textContent = dict.descSettingTheme;
+
+        if (this.btnThemeDark) this.btnThemeDark.textContent = dict.themeDark;
+        if (this.btnThemeLight) this.btnThemeLight.textContent = dict.themeLight;
+
+        const lblLang = document.getElementById('lbl-setting-lang');
+        if (lblLang) lblLang.textContent = dict.settingLang;
+
+        const descLang = document.getElementById('desc-setting-lang');
+        if (descLang) descLang.textContent = dict.descSettingLang;
+
+        const lblSound = document.getElementById('lbl-setting-sound');
+        if (lblSound) lblSound.textContent = dict.settingSound;
+
+        const descSound = document.getElementById('desc-setting-sound');
+        if (descSound) descSound.textContent = dict.descSettingSound;
+
+        if (this.btnSoundOn) this.btnSoundOn.textContent = dict.soundOn;
+        if (this.btnSoundOff) this.btnSoundOff.textContent = dict.soundOff;
+
+        if (this.btnSaveSettings) this.btnSaveSettings.textContent = dict.btnSaveSettings;
+
         const txtHub = document.getElementById('txt-btn-hub');
         if (txtHub) txtHub.textContent = dict.hubBtn;
+
+        const heroTitle = document.querySelector('.hero-title');
+        if (heroTitle) heroTitle.textContent = dict.heroTitle;
 
         const heroSub = document.querySelector('.hero-subtitle');
         if (heroSub) heroSub.textContent = dict.heroSubtitle;
 
         const dzTitle = document.querySelector('.dropzone-title');
         if (dzTitle) dzTitle.textContent = dict.dropzoneTitle;
+
         const dzSub = document.querySelector('.dropzone-subtitle');
         if (dzSub) dzSub.textContent = dict.dropzoneSubtitle;
 
@@ -473,8 +667,10 @@ class StashConvertApp {
 
         const btnConvAllSpan = document.querySelector('#btn-convert-all span');
         if (btnConvAllSpan) btnConvAllSpan.textContent = dict.btnConvertAll;
+
         const btnDlAllSpan = document.querySelector('#btn-download-all span');
         if (btnDlAllSpan) btnDlAllSpan.textContent = dict.btnDownloadAll;
+
         const btnClearSpan = document.querySelector('#btn-clear-queue span');
         if (btnClearSpan) btnClearSpan.textContent = dict.btnClearQueue;
 
@@ -491,20 +687,12 @@ class StashConvertApp {
         const footerLeft = document.querySelector('footer span:first-child');
         if (footerLeft) footerLeft.textContent = dict.footerLeft;
 
-        this.updateMuteButton(window.stashconvertSound.isMuted);
-        this.renderQueue();
-    }
+        if (this.btnLangEn) this.btnLangEn.classList.toggle('active', this.currentLang === 'en');
+        if (this.btnLangRu) this.btnLangRu.classList.toggle('active', this.currentLang === 'ru');
 
-    updateMuteButton(isMuted) {
-        if (!this.btnMute) return;
-        const dict = STASHCONVERT_I18N[this.currentLang] || STASHCONVERT_I18N.en;
-        const label = isMuted ? dict.muteBtn : dict.soundBtn;
-        const iconSvg = isMuted
-            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`
-            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
-        this.btnMute.innerHTML = `${iconSvg} <span>${label}</span>`;
-        if (isMuted) this.btnMute.classList.add('muted');
-        else this.btnMute.classList.remove('muted');
+        this.syncThemeUI();
+        this.updateSoundButtons();
+        this.renderQueue();
     }
 
     showToast(message) {

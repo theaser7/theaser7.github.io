@@ -23,6 +23,12 @@ class SoundManager {
         return this.isMuted;
     }
 
+    setMuted(muted) {
+        this.isMuted = !!muted;
+        localStorage.setItem('flexle_muted', this.isMuted);
+        return this.isMuted;
+    }
+
     playTick() {
         if (this.isMuted) return;
         this.init();

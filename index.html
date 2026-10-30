@@ -536,14 +536,14 @@
         <header class="hero-section">
             <div class="brand-heading">
                 <h1 class="brand-title">the stash</h1>
-                <span class="brand-version">v1.0.5</span>
+                <span class="brand-version">v1.0.6</span>
             </div>
-            
+            <p class="hero-desc" id="hero-desc">хаб утилит и игр</p>
         </header>
 
         <!-- Projects Grid -->
         <div class="projects-grid" id="projects-grid">
-                    <!-- 1. Flexle / вордл -->
+                    <!-- 1. вордл -->
                     <article class="project-card" data-type="games" data-category="playable">
                         <div>
                             <div class="card-top">
@@ -564,7 +564,7 @@
                         <a href="./games/flexle/index.html" class="btn-action">запустить вордл &rarr;</a>
                     </article>
 
-                    <!-- 2. Clarify / нейроапскейлер -->
+                    <!-- 2. нейроапскейлер -->
                     <article class="project-card" data-type="utilities" data-category="wip">
                         <div>
                             <div class="card-top">
@@ -590,7 +590,7 @@
                         <a href="./utilities/clarify/index.html" class="btn-action">запустить нейроапскейлер &rarr;</a>
                     </article>
 
-                    <!-- 3. FetchFlow / скачивание видео -->
+                    <!-- 3. скачивание видео -->
                     <article class="project-card" data-type="utilities" data-category="playable">
                         <div>
                             <div class="card-top">
@@ -615,7 +615,7 @@
                         <a href="./utilities/fetchflow/index.html" class="btn-action">запустить скачивание видео &rarr;</a>
                     </article>
 
-                    <!-- 4. StashConvert / конвертер -->
+                    <!-- 4. конвертер -->
                     <article class="project-card" data-type="utilities" data-category="playable">
                         <div>
                             <div class="card-top">
@@ -641,7 +641,7 @@
                         <a href="./utilities/stashconvert/index.html" class="btn-action">запустить конвертер &rarr;</a>
                     </article>
 
-                    <!-- 5. StashIP / проверка ip -->
+                    <!-- 5. проверка ip -->
                     <article class="project-card" data-type="utilities" data-category="playable">
                         <div>
                             <div class="card-top">
@@ -666,7 +666,7 @@
                         <a href="./utilities/staship/index.html" class="btn-action">запустить проверку ip &rarr;</a>
                     </article>
 
-                    <!-- 6. StashList / чеклист -->
+                    <!-- 6. чеклист -->
                     <article class="project-card" data-type="utilities" data-category="playable">
                         <div>
                             <div class="card-top">
@@ -778,6 +778,7 @@
                 sysOnline: "all systems operational",
                 btnTheme: "theme",
                 btnSettings: "settings",
+                heroDesc: "hub of utilities and games",
                 footerText: "the stash • web suite",
                 settingsBadge: "preferences",
                 settingsTitle: "settings",
@@ -797,35 +798,36 @@
                 cardFlexleTags: ["#wordle", "#game", "#words", "#webaudio"],
                 btnLaunchFlexle: "launch wordle →",
 
-                cardClarifyTitle: "clarify / upscaler",
+                cardClarifyTitle: "ai upscaler",
                 cardClarifyDesc: "neural photo upscaler (currently paused pending GPU server; basic client-side processing available).",
                 cardClarifyTags: ["#neural", "#upscaler", "#photo", "#gpu-paused"],
-                btnLaunchClarify: "launch clarify →",
+                btnLaunchClarify: "launch ai upscaler →",
 
-                cardFetchflowTitle: "fetchflow / video downloader",
+                cardFetchflowTitle: "video downloader",
                 cardFetchflowDesc: "batch video and audio download queue powered by yt-dlp backend on VPS with Cloudflare WARP SOCKS5 support. direct MP4 and MP3 downloads.",
                 cardFetchflowTags: ["#download", "#video", "#ytdlp", "#queue"],
-                btnLaunchFetchflow: "launch fetchflow →",
+                btnLaunchFetchflow: "launch video downloader →",
 
-                cardStashconvertTitle: "stashconvert / converter",
+                cardStashconvertTitle: "file converter",
                 cardStashconvertDesc: "universal client-side converter for video, images, audio, and documents. supports GIF, audio extraction, batch queues, and zero telemetry.",
                 cardStashconvertTags: ["#converter", "#video", "#audio", "#images"],
-                btnLaunchStashconvert: "launch stashconvert →",
+                btnLaunchStashconvert: "launch file converter →",
 
-                cardStashipTitle: "staship / network diagnostic",
+                cardStashipTitle: "ip lookup",
                 cardStashipDesc: "zero-telemetry network diagnostics (IP, ISP, ASN, geolocation, timezone) and client-side speed test engine.",
                 cardStashipTags: ["#network", "#ip", "#speed", "#geo"],
-                btnLaunchStaship: "launch staship →",
+                btnLaunchStaship: "launch ip lookup →",
 
-                cardStashlistTitle: "stashlist / habit tracker",
+                cardStashlistTitle: "habit checklist",
                 cardStashlistDesc: "recurring daily checklist and habit tracker. active day schedules, audio chimes, notifications, and auto-resets at midnight.",
                 cardStashlistTags: ["#checklist", "#habits", "#tasks", "#offline"],
-                btnLaunchStashlist: "launch stashlist →",
+                btnLaunchStashlist: "launch habit checklist →",
             },
             ru: {
                 sysOnline: "все системы в норме",
                 btnTheme: "тема",
                 btnSettings: "настройки",
+                heroDesc: "хаб утилит и игр",
                 footerText: "the stash • веб-сьют",
                 settingsBadge: "параметры",
                 settingsTitle: "настройки",
@@ -886,6 +888,9 @@
             if (btnThemeLabel) btnThemeLabel.textContent = dict.btnTheme;
             const btnSettingsLabel = document.getElementById('btn-settings-label');
             if (btnSettingsLabel) btnSettingsLabel.textContent = dict.btnSettings;
+
+            const heroDesc = document.getElementById('hero-desc');
+            if (heroDesc) heroDesc.textContent = dict.heroDesc;
 
             // Update status pills
             document.querySelectorAll('.status-pill.status-playable').forEach(p => p.textContent = dict.statusReady);

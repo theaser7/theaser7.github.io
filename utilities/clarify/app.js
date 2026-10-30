@@ -475,12 +475,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${state.fileName}_clarify_${state.scaleFactor}x_${outW}x${outH}.${ext}`;
+            a.download = `${state.fileName}_upscaled_${state.scaleFactor}x_${outW}x${outH}.${ext}`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            showToast(`Downloaded ${ext.toUpperCase()}`);
+            const dict = CLARIFY_I18N[currentClarifyLang] || CLARIFY_I18N.ru;
+            showToast(dict.toastDownloaded);
         }, mimeType, state.exportQuality);
     });
 
@@ -493,15 +494,213 @@ document.addEventListener('DOMContentLoaded', () => {
                 await navigator.clipboard.write([
                     new ClipboardItem({ 'image/png': blob })
                 ]);
-                showToast('Image copied to clipboard!');
+                const dict = CLARIFY_I18N[currentClarifyLang] || CLARIFY_I18N.ru;
+                showToast(dict.toastCopied);
             }, 'image/png');
         } catch (err) {
             console.error(err);
-            showToast('Clipboard access denied or unsupported');
+            showToast('clipboard access denied or unsupported');
         }
     });
 
-    // --- Settings Modal ---
+    // --- 18n & Theme Implementation ---
+    const CLARIFY_I18N = {
+        ru: {
+            pageTitle: "нейроапскейлер • the stash",
+            brandTitle: "нейроапскейлер",
+            brandBadge: "клиентский / webgl",
+            heroTitle: "нейроапскейлер",
+            heroSubtitle: "локальное увеличение разрешения фотографий без потери качества и без передачи данных на сторонние серверы",
+            dropzoneTitle: "перетащите изображение сюда или выберите файл",
+            dropzoneSub: "поддерживаются png, jpg, webp, avif • до 50 мб",
+            dropzoneHint: "подсказка: можно вставить из буфера обмена (ctrl+v)",
+            splitBefore: "до",
+            splitAfter: "после",
+            scaleLabel: "множитель разрешения",
+            modelLabel: "нейросетевая модель",
+            optModelPhoto: "realesrgan 4k (фото)",
+            optModelAnime: "аниме и векторная графика",
+            optModelFast: "быстрый 2x",
+            denoiseLabel: "подавление шума",
+            sharpnessLabel: "адаптивная резкость",
+            btnUpscale: "увеличить разрешение",
+            exportLabel: "параметры экспорта",
+            btnDownload: "скачать файл",
+            btnCopy: "скопировать в буфер",
+            btnNew: "открыть другое фото",
+            settingsBadge: "параметры",
+            settingsTitle: "настройки",
+            lblSettingTheme: "тема оформления",
+            descSettingTheme: "светлая или темная тема",
+            btnThemeDark: "темная",
+            btnThemeLight: "светлая",
+            lblSettingLang: "язык интерфейса",
+            descSettingLang: "выберите язык отображения",
+            lblBackendTitle: "нейросетевой бэкенд",
+            lblBackendStatus: "на паузе",
+            lblBackendDesc: "серверная нейросеть Real-ESRGAN приостановлена (требуется GPU сервер). активен локальный клиентский режим (WebGL / Canvas).",
+            lblEngineTitle: "режим обработки",
+            optEngineBrowser: "клиентский браузерный режим (WebGL / Canvas)",
+            lblEngineDesc: "100% приватность, без телеметрии и без отправки изображений во внешнюю сеть.",
+            btnSettingsSave: "сохранить и закрыть",
+            toastCopied: "изображение скопировано в буфер",
+            toastDownloaded: "файл скачан",
+            toastSaved: "настройки сохранены"
+        },
+        en: {
+            pageTitle: "ai upscaler • the stash",
+            brandTitle: "ai upscaler",
+            brandBadge: "client-side / webgl",
+            heroTitle: "ai upscaler",
+            heroSubtitle: "local photo upscaling without quality loss or transmitting data to external servers",
+            dropzoneTitle: "drag & drop image here or browse files",
+            dropzoneSub: "supports png, jpg, webp, avif • up to 50 mb",
+            dropzoneHint: "tip: you can paste from clipboard (ctrl+v)",
+            splitBefore: "before",
+            splitAfter: "after",
+            scaleLabel: "scale multiplier",
+            modelLabel: "neural model",
+            optModelPhoto: "realesrgan 4k (photo)",
+            optModelAnime: "anime & vector graphics",
+            optModelFast: "fast 2x",
+            denoiseLabel: "denoise strength",
+            sharpnessLabel: "adaptive sharpness",
+            btnUpscale: "upscale image",
+            exportLabel: "export options",
+            btnDownload: "download file",
+            btnCopy: "copy to clipboard",
+            btnNew: "open another photo",
+            settingsBadge: "preferences",
+            settingsTitle: "settings",
+            lblSettingTheme: "color theme",
+            descSettingTheme: "light or dark mode",
+            btnThemeDark: "dark",
+            btnThemeLight: "light",
+            lblSettingLang: "interface language",
+            descSettingLang: "choose display language for the stash",
+            lblBackendTitle: "neural backend",
+            lblBackendStatus: "paused",
+            lblBackendDesc: "server-side Real-ESRGAN paused (GPU server required). client-side WebGL / Canvas active.",
+            lblEngineTitle: "processing mode",
+            optEngineBrowser: "client-side browser mode (WebGL / Canvas)",
+            lblEngineDesc: "100% private, zero telemetry, no external network requests.",
+            btnSettingsSave: "save & close",
+            toastCopied: "image copied to clipboard",
+            toastDownloaded: "file downloaded",
+            toastSaved: "settings saved"
+        }
+    };
+
+    let currentClarifyLang = localStorage.getItem('the_stash_lang') || 'ru';
+
+    function applyClarifyLanguage(lang) {
+        currentClarifyLang = lang;
+        localStorage.setItem('the_stash_lang', lang);
+        document.documentElement.lang = lang;
+        const dict = CLARIFY_I18N[lang] || CLARIFY_I18N.ru;
+
+        const pageTitle = document.getElementById('page-title');
+        if (pageTitle) pageTitle.textContent = dict.pageTitle;
+        const txtBrandTitle = document.getElementById('txt-brand-title');
+        if (txtBrandTitle) txtBrandTitle.textContent = dict.brandTitle;
+        const txtBrandBadge = document.getElementById('txt-brand-badge');
+        if (txtBrandBadge) txtBrandBadge.textContent = dict.brandBadge;
+        const txtHeroTitle = document.getElementById('txt-hero-title');
+        if (txtHeroTitle) txtHeroTitle.textContent = dict.heroTitle;
+        const txtHeroSubtitle = document.getElementById('txt-hero-subtitle');
+        if (txtHeroSubtitle) txtHeroSubtitle.textContent = dict.heroSubtitle;
+        const txtDropzoneTitle = document.getElementById('txt-dropzone-title');
+        if (txtDropzoneTitle) txtDropzoneTitle.textContent = dict.dropzoneTitle;
+        const txtDropzoneSub = document.getElementById('txt-dropzone-sub');
+        if (txtDropzoneSub) txtDropzoneSub.textContent = dict.dropzoneSub;
+        const txtDropzoneHint = document.getElementById('txt-dropzone-hint');
+        if (txtDropzoneHint) txtDropzoneHint.textContent = dict.dropzoneHint;
+        const txtSplitBefore = document.getElementById('txt-split-before');
+        if (txtSplitBefore) txtSplitBefore.textContent = dict.splitBefore;
+        const txtSplitAfter = document.getElementById('txt-split-after');
+        if (txtSplitAfter) txtSplitAfter.textContent = dict.splitAfter;
+        const txtScaleLabel = document.getElementById('txt-scale-label');
+        if (txtScaleLabel) txtScaleLabel.textContent = dict.scaleLabel;
+        const txtModelLabel = document.getElementById('txt-model-label');
+        if (txtModelLabel) txtModelLabel.textContent = dict.modelLabel;
+        const optModelPhoto = document.getElementById('opt-model-photo');
+        if (optModelPhoto) optModelPhoto.textContent = dict.optModelPhoto;
+        const optModelAnime = document.getElementById('opt-model-anime');
+        if (optModelAnime) optModelAnime.textContent = dict.optModelAnime;
+        const optModelFast = document.getElementById('opt-model-fast');
+        if (optModelFast) optModelFast.textContent = dict.optModelFast;
+        const txtDenoiseLabel = document.getElementById('txt-denoise-label');
+        if (txtDenoiseLabel) txtDenoiseLabel.textContent = dict.denoiseLabel;
+        const txtSharpnessLabel = document.getElementById('txt-sharpness-label');
+        if (txtSharpnessLabel) txtSharpnessLabel.textContent = dict.sharpnessLabel;
+        const txtBtnUpscale = document.getElementById('txt-btn-upscale');
+        if (txtBtnUpscale) txtBtnUpscale.textContent = dict.btnUpscale;
+        const txtExportLabel = document.getElementById('txt-export-label');
+        if (txtExportLabel) txtExportLabel.textContent = dict.exportLabel;
+        const txtBtnDownload = document.getElementById('txt-btn-download');
+        if (txtBtnDownload) txtBtnDownload.textContent = dict.btnDownload;
+        const txtBtnCopy = document.getElementById('txt-btn-copy');
+        if (txtBtnCopy) txtBtnCopy.textContent = dict.btnCopy;
+        const txtBtnNew = document.getElementById('txt-btn-new');
+        if (txtBtnNew) txtBtnNew.textContent = dict.btnNew;
+
+        const modalSettingsBadge = document.getElementById('modal-settings-badge');
+        if (modalSettingsBadge) modalSettingsBadge.textContent = dict.settingsBadge;
+        const modalSettingsTitle = document.getElementById('modal-settings-title');
+        if (modalSettingsTitle) modalSettingsTitle.textContent = dict.settingsTitle;
+        const lblSettingTheme = document.getElementById('lbl-setting-theme');
+        if (lblSettingTheme) lblSettingTheme.textContent = dict.lblSettingTheme;
+        const descSettingTheme = document.getElementById('desc-setting-theme');
+        if (descSettingTheme) descSettingTheme.textContent = dict.descSettingTheme;
+        const btnThemeDark = document.getElementById('btn-theme-dark');
+        if (btnThemeDark) btnThemeDark.textContent = dict.btnThemeDark;
+        const btnThemeLight = document.getElementById('btn-theme-light');
+        if (btnThemeLight) btnThemeLight.textContent = dict.btnThemeLight;
+        const lblSettingLang = document.getElementById('lbl-setting-lang');
+        if (lblSettingLang) lblSettingLang.textContent = dict.lblSettingLang;
+        const descSettingLang = document.getElementById('desc-setting-lang');
+        if (descSettingLang) descSettingLang.textContent = dict.descSettingLang;
+        const lblBackendTitle = document.getElementById('lbl-backend-title');
+        if (lblBackendTitle) lblBackendTitle.textContent = dict.lblBackendTitle;
+        if (engineStatusPill) engineStatusPill.textContent = dict.lblBackendStatus;
+        const lblBackendDesc = document.getElementById('lbl-backend-desc');
+        if (lblBackendDesc) lblBackendDesc.textContent = dict.lblBackendDesc;
+        const lblEngineTitle = document.getElementById('lbl-engine-title');
+        if (lblEngineTitle) lblEngineTitle.textContent = dict.lblEngineTitle;
+        const optEngineBrowser = document.getElementById('opt-engine-browser');
+        if (optEngineBrowser) optEngineBrowser.textContent = dict.optEngineBrowser;
+        const lblEngineDesc = document.getElementById('lbl-engine-desc');
+        if (lblEngineDesc) lblEngineDesc.textContent = dict.lblEngineDesc;
+        const btnSaveSettings = document.getElementById('btn-save-settings');
+        if (btnSaveSettings) btnSaveSettings.textContent = dict.btnSettingsSave;
+
+        document.querySelectorAll('.lang-btn[data-lang]').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-lang') === lang);
+        });
+    }
+
+    function applyClarifyTheme(theme) {
+        const current = theme === 'light' ? 'light' : 'dark';
+        localStorage.setItem('stash_theme', current);
+        if (current === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+        const btnDark = document.getElementById('btn-theme-dark');
+        const btnLight = document.getElementById('btn-theme-light');
+        if (btnDark) btnDark.classList.toggle('active', current === 'dark');
+        if (btnLight) btnLight.classList.toggle('active', current === 'light');
+
+        const btnToggle = document.getElementById('btn-theme-toggle');
+        if (btnToggle) {
+            btnToggle.innerHTML = current === 'light'
+                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'
+                : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+        }
+    }
+
+    // --- Settings Modal & Theme / Lang Events ---
     btnSettings.addEventListener('click', () => {
         if (selectEngine) selectEngine.value = state.engineBackend;
         modalSettings.classList.add('open');
@@ -515,13 +714,54 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === modalSettings) modalSettings.classList.remove('open');
     });
 
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalSettings.classList.contains('open')) {
+            modalSettings.classList.remove('open');
+        }
+    });
+
     btnSaveSettings.addEventListener('click', () => {
         if (selectEngine) {
             state.engineBackend = selectEngine.value;
             localStorage.setItem('clarify_engine', state.engineBackend);
         }
         modalSettings.classList.remove('open');
-        showToast('Settings saved');
+        const dict = CLARIFY_I18N[currentClarifyLang] || CLARIFY_I18N.ru;
+        showToast(dict.toastSaved);
         checkEngineStatus();
     });
+
+    const btnThemeToggle = document.getElementById('btn-theme-toggle');
+    if (btnThemeToggle) {
+        btnThemeToggle.addEventListener('click', () => {
+            const current = localStorage.getItem('stash_theme') || 'dark';
+            applyClarifyTheme(current === 'dark' ? 'light' : 'dark');
+        });
+    }
+
+    const btnThemeDark = document.getElementById('btn-theme-dark');
+    if (btnThemeDark) btnThemeDark.addEventListener('click', () => applyClarifyTheme('dark'));
+
+    const btnThemeLight = document.getElementById('btn-theme-light');
+    if (btnThemeLight) btnThemeLight.addEventListener('click', () => applyClarifyTheme('light'));
+
+    document.querySelectorAll('.lang-btn[data-lang]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const selectedLang = btn.getAttribute('data-lang');
+            applyClarifyLanguage(selectedLang);
+        });
+    });
+
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'the_stash_lang') {
+            applyClarifyLanguage(e.newValue || 'ru');
+        }
+        if (e.key === 'stash_theme') {
+            applyClarifyTheme(e.newValue || 'dark');
+        }
+    });
+
+    // Initialize state
+    applyClarifyLanguage(currentClarifyLang);
+    applyClarifyTheme(localStorage.getItem('stash_theme') || 'dark');
 });

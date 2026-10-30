@@ -36,6 +36,14 @@ class StashConvertSound {
         return this.isMuted;
     }
 
+    setMuted(muted) {
+        this.isMuted = !!muted;
+        try {
+            localStorage.setItem('stashconvert_sound_muted', JSON.stringify(this.isMuted));
+        } catch (e) {}
+        return this.isMuted;
+    }
+
     // Precise tactile terminal click
     playClick() {
         if (this.isMuted) return;

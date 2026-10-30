@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
-    <title>вордл • the stash</title>
+    <title>вордл — the stash</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22><rect x=%223%22 y=%223%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%23ffffff%22/><rect x=%2213%22 y=%223%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%23222226%22 stroke=%22%23ffffff%22 stroke-width=%221.5%22/><rect x=%223%22 y=%2213%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%23222226%22 stroke=%22%23ffffff%22 stroke-width=%221.5%22/><rect x=%2213%22 y=%2213%22 width=%228%22 height=%228%22 rx=%222%22 fill=%22%23ffffff%22/></svg>">
     <script>
         (function() {
@@ -567,33 +567,121 @@
         }
 
         .modal-close {
-            background: none;
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: transparent;
             border: none;
             color: var(--text-secondary);
-            font-size: 1.5rem;
             cursor: pointer;
+            padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-badge {
+            font-size: 0.7rem;
             color: var(--accent);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            width: fit-content;
+            text-transform: lowercase;
+            font-family: var(--font-mono);
+        }
+
+        .settings-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .setting-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 1rem;
+            padding: 0.85rem;
+            background: var(--bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
         }
 
-        .setting-label {
-            font-size: 0.95rem;
-            font-weight: 600;
+        .setting-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            text-transform: lowercase;
         }
 
-        .setting-sub {
-            font-size: 0.8rem;
+        .setting-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .setting-desc {
+            font-size: 0.72rem;
             color: var(--text-secondary);
+        }
+
+        .lang-switch-buttons {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .lang-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: lowercase;
+            font-family: var(--font-mono);
+        }
+
+        .lang-btn:hover {
+            border-color: var(--card-hover-border);
+            color: var(--text-primary);
+        }
+
+        .lang-btn.active {
+            background: var(--card-border);
+            border-color: var(--card-hover-border);
+            color: var(--accent);
+        }
+
+        .btn-action {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            text-transform: lowercase;
+            font-family: var(--font-mono);
+            width: 100%;
+        }
+
+        .btn-action:hover {
+            border-color: var(--card-hover-border);
+            background: var(--accent);
+            color: var(--accent-contrast);
         }
 
         /* Modal General Enhancements */
@@ -1216,7 +1304,7 @@
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
             </a>
-            <h1 style="text-transform: lowercase; font-size: 1.15rem; font-weight: 700;">вордл</h1>
+            <h1 id="app-title" style="text-transform: lowercase; font-size: 1.15rem; font-weight: 700;">вордл</h1>
         </div>
         <div style="display: flex; gap: 0.5rem; align-items: center;">
             <button class="btn-icon theme-toggle-btn" id="btn-theme-toggle" title="переключить тему"></button>
@@ -1381,54 +1469,73 @@
     <!-- Settings Modal -->
     <div class="modal-overlay" id="modal-settings">
         <div class="modal-card">
-            <div class="modal-header">
-                <h2 class="modal-title">настройки</h2>
-                <button class="modal-close" id="close-settings">&times;</button>
-            </div>
-            <div class="setting-item">
-                <div>
-                    <div class="setting-label">звуковые эффекты</div>
-                    <div class="setting-sub">процедурные звуковые сигналы</div>
+            <button class="modal-close" id="close-settings" title="закрыть">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <span class="modal-badge" id="modal-settings-badge">параметры</span>
+            <h3 class="modal-title" id="modal-settings-title">настройки</h3>
+
+            <div class="settings-group">
+                <!-- Theme setting -->
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name" id="lbl-setting-theme">тема оформления</span>
+                        <span class="setting-desc" id="desc-setting-theme">светлая или темная тема</span>
+                    </div>
+                    <div class="lang-switch-buttons">
+                        <button class="lang-btn theme-choice-btn" id="btn-theme-dark" data-theme="dark">темная</button>
+                        <button class="lang-btn theme-choice-btn" id="btn-theme-light" data-theme="light">светлая</button>
+                    </div>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-sound" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <div>
-                    <div class="setting-label">строгий режим</div>
-                    <div class="setting-sub">разрешать только словарные слова</div>
+
+                <!-- Language setting -->
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name" id="lbl-setting-lang">язык интерфейса</span>
+                        <span class="setting-desc" id="desc-setting-lang">выберите язык словаря</span>
+                    </div>
+                    <div class="lang-switch-buttons">
+                        <button class="lang-btn" id="btn-lang-en" data-lang="EN">EN</button>
+                        <button class="lang-btn" id="btn-lang-ru" data-lang="RU">RU</button>
+                    </div>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-strict" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <div>
-                    <div class="setting-label">сложный режим</div>
-                    <div class="setting-sub">загаданные слова повышенной сложности</div>
+
+                <!-- Flexle specific settings below -->
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name" id="lbl-setting-sound">звуковые эффекты</span>
+                        <span class="setting-desc" id="desc-setting-sound">процедурные звуковые сигналы</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-sound" checked>
+                        <span class="slider"></span>
+                    </label>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-hard">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <div>
-                    <div class="setting-label">язык</div>
-                    <div class="setting-sub">переключение словаря (RU / EN)</div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name" id="lbl-setting-strict">строгий режим</span>
+                        <span class="setting-desc" id="desc-setting-strict">разрешать только словарные слова</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-strict" checked>
+                        <span class="slider"></span>
+                    </label>
                 </div>
-                <button class="len-btn" id="modal-lang-toggle" style="padding: 0.4rem 0.8rem;">RU</button>
-            </div>
-            <div class="setting-item">
-                <div>
-                    <div class="setting-label">тема оформления</div>
-                    <div class="setting-sub">переключение между светлой и тёмной темой</div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name" id="lbl-setting-hard">сложный режим</span>
+                        <span class="setting-desc" id="desc-setting-hard">слова повышенной сложности</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-hard">
+                        <span class="slider"></span>
+                    </label>
                 </div>
-                <button class="len-btn" id="modal-theme-toggle" style="padding: 0.4rem 0.8rem; text-transform: lowercase;">тёмная</button>
             </div>
+
+            <button class="btn-action" id="btn-save-settings">сохранить и закрыть</button>
         </div>
     </div>
 
@@ -1493,9 +1600,9 @@
         </div>
     </div>
 
-    <script src="sound.js"></script>
-    <script src="words.js"></script>
-    <script src="game.js"></script>
+    <script src="sound.js?v=1.0.6"></script>
+    <script src="words.js?v=1.0.6"></script>
+    <script src="game.js?v=1.0.6"></script>
     <script>
         function updateFlexleThemeIcons() {
             const isLight = document.documentElement.getAttribute('data-theme') === 'light';
@@ -1505,28 +1612,32 @@
                     ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'
                     : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
             }
-            const modalBtn = document.getElementById('modal-theme-toggle');
-            if (modalBtn) {
-                modalBtn.textContent = isLight ? 'светлая' : 'тёмная';
-            }
+            const darkBtn = document.getElementById('btn-theme-dark');
+            const lightBtn = document.getElementById('btn-theme-light');
+            if (darkBtn) darkBtn.classList.toggle('active', !isLight);
+            if (lightBtn) lightBtn.classList.toggle('active', isLight);
         }
-        function toggleFlexleTheme() {
-            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-            const next = current === 'light' ? 'dark' : 'light';
-            localStorage.setItem('stash_theme', next);
-            if (next === 'light') {
+        function setFlexleTheme(theme) {
+            localStorage.setItem('stash_theme', theme);
+            if (theme === 'light') {
                 document.documentElement.setAttribute('data-theme', 'light');
             } else {
                 document.documentElement.removeAttribute('data-theme');
             }
             updateFlexleThemeIcons();
         }
+        function toggleFlexleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            setFlexleTheme(current === 'light' ? 'dark' : 'light');
+        }
         document.addEventListener('DOMContentLoaded', () => {
             updateFlexleThemeIcons();
             const btn = document.getElementById('btn-theme-toggle');
             if (btn) btn.addEventListener('click', toggleFlexleTheme);
-            const modalBtn = document.getElementById('modal-theme-toggle');
-            if (modalBtn) modalBtn.addEventListener('click', toggleFlexleTheme);
+            const darkBtn = document.getElementById('btn-theme-dark');
+            const lightBtn = document.getElementById('btn-theme-light');
+            if (darkBtn) darkBtn.addEventListener('click', () => setFlexleTheme('dark'));
+            if (lightBtn) lightBtn.addEventListener('click', () => setFlexleTheme('light'));
         });
         window.addEventListener('storage', (e) => {
             if (e.key === 'stash_theme') {

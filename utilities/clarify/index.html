@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>нейроапскейлер • the stash</title>
+    <title id="page-title">нейроапскейлер • the stash</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%2215 3 21 3 21 9%22/><polyline points=%229 21 3 21 3 15%22/><line x1=%2221%22 y1=%223%22 x2=%2214%22 y2=%2210%22/><line x1=%223%22 y1=%2221%22 x2=%2210%22 y2=%2214%22/></svg>">
-    <link rel="stylesheet" href="style.css?v=1.0.5">
+    <link rel="stylesheet" href="style.css?v=1.0.6">
     <script>
         (function() {
             const theme = localStorage.getItem('stash_theme') || 'dark';
@@ -23,15 +23,15 @@
     <!-- Header Bar -->
     <header class="header">
         <div class="header-left">
-            <a href="../../index.html" class="btn-icon" title="на главную">
+            <a href="../../index.html" class="btn-icon" id="btn-back-hub" title="на главную">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
             </a>
             <div class="brand-title">
-                нейроапскейлер
-                <span class="brand-badge">клиентский / webgl</span>
+                <span id="txt-brand-title">нейроапскейлер</span>
+                <span class="brand-badge" id="txt-brand-badge">клиентский / webgl</span>
             </div>
         </div>
 
@@ -48,8 +48,8 @@
 
         <!-- Hero Section -->
         <section class="hero-section" id="hero-section">
-            <h1 class="hero-title" style="text-transform: lowercase;">нейроапскейлер</h1>
-            <p class="hero-subtitle">локальное увеличение разрешения фотографий без потери качества и без передачи данных на сторонние серверы</p>
+            <h1 class="hero-title" id="txt-hero-title" style="text-transform: lowercase;">нейроапскейлер</h1>
+            <p class="hero-subtitle" id="txt-hero-subtitle">локальное увеличение разрешения фотографий без потери качества и без передачи данных на сторонние серверы</p>
         </section>
 
         <!-- Dropzone Upload Area -->
@@ -62,10 +62,10 @@
                 </svg>
             </div>
             <div class="dropzone-text-group">
-                <div class="dropzone-title">перетащите изображение сюда или выберите файл</div>
-                <div class="dropzone-sub">поддерживаются png, jpg, webp, avif • до 50 мб</div>
+                <div class="dropzone-title" id="txt-dropzone-title">перетащите изображение сюда или выберите файл</div>
+                <div class="dropzone-sub" id="txt-dropzone-sub">поддерживаются png, jpg, webp, avif • до 50 мб</div>
             </div>
-            <div class="dropzone-hint-badge">подсказка: можно вставить из буфера обмена (ctrl+v)</div>
+            <div class="dropzone-hint-badge" id="txt-dropzone-hint">подсказка: можно вставить из буфера обмена (ctrl+v)</div>
             <input type="file" id="file-input" accept="image/*" style="display: none;">
         </section>
 
@@ -84,8 +84,8 @@
                 <div class="split-viewport" id="split-viewport" title="перетащите для сравнения">
                     <div class="split-stage" id="split-stage">
                         <div class="split-labels">
-                            <span class="split-tag tag-original">до</span>
-                            <span class="split-tag tag-enhanced">после</span>
+                            <span class="split-tag tag-original" id="txt-split-before">до</span>
+                            <span class="split-tag tag-enhanced" id="txt-split-after">после</span>
                         </div>
 
                         <!-- Before (Original) Canvas Layer -->
@@ -110,7 +110,7 @@
             <div class="panel-card">
                 <!-- Scale Factor Selection -->
                 <div>
-                    <div class="section-label">множитель разрешения</div>
+                    <div class="section-label" id="txt-scale-label">множитель разрешения</div>
                     <div class="scale-options-grid">
                         <button class="scale-btn" data-scale="2">
                             <span>2×</span>
@@ -134,13 +134,13 @@
                 <!-- AI Model Selection -->
                 <div class="setting-row" id="row-model-select">
                     <div class="setting-header-row">
-                        <span>нейросетевая модель</span>
+                        <span id="txt-model-label">нейросетевая модель</span>
                         <span class="setting-val-badge" id="val-model-badge">realesrgan</span>
                     </div>
                     <select class="form-input" id="select-ai-model" style="margin-top: 2px;">
-                        <option value="realesrgan-x4plus">realesrgan 4k (фото)</option>
-                        <option value="realesrgan-x4plus-anime">аниме и векторная графика</option>
-                        <option value="realesr-animevideov3-x2">быстрый 2x</option>
+                        <option value="realesrgan-x4plus" id="opt-model-photo">realesrgan 4k (фото)</option>
+                        <option value="realesrgan-x4plus-anime" id="opt-model-anime">аниме и векторная графика</option>
+                        <option value="realesr-animevideov3-x2" id="opt-model-fast">быстрый 2x</option>
                     </select>
                 </div>
 
@@ -148,7 +148,7 @@
                 <div style="display: flex; flex-direction: column; gap: 0.85rem;">
                     <div class="setting-row">
                         <div class="setting-header-row">
-                            <span>подавление шума</span>
+                            <span id="txt-denoise-label">подавление шума</span>
                             <span class="setting-val-badge" id="val-denoise">25%</span>
                         </div>
                         <input type="range" class="range-input" id="input-denoise" min="0" max="100" value="25">
@@ -156,7 +156,7 @@
 
                     <div class="setting-row">
                         <div class="setting-header-row">
-                            <span>адаптивная резкость</span>
+                            <span id="txt-sharpness-label">адаптивная резкость</span>
                             <span class="setting-val-badge" id="val-sharpness">55%</span>
                         </div>
                         <input type="range" class="range-input" id="input-sharpness" min="0" max="100" value="55">
@@ -179,12 +179,12 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
-                    увеличить разрешение
+                    <span id="txt-btn-upscale">увеличить разрешение</span>
                 </button>
 
                 <!-- Export & Sharing Section -->
                 <div class="export-section">
-                    <div class="section-label">параметры экспорта</div>
+                    <div class="section-label" id="txt-export-label">параметры экспорта</div>
                     <div class="format-pills">
                         <button class="format-pill active" data-format="png">PNG</button>
                         <button class="format-pill" data-format="webp">WebP</button>
@@ -197,7 +197,7 @@
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
-                        скачать файл
+                        <span id="txt-btn-download">скачать файл</span>
                     </button>
 
                     <button class="btn-secondary" id="btn-copy">
@@ -205,7 +205,7 @@
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
-                        скопировать в буфер
+                        <span id="txt-btn-copy">скопировать в буфер</span>
                     </button>
 
                     <button class="btn-secondary" id="btn-new-image" style="margin-top: 0.25rem;">
@@ -213,7 +213,7 @@
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
-                        открыть другое фото
+                        <span id="txt-btn-new">открыть другое фото</span>
                     </button>
                 </div>
             </div>
@@ -223,81 +223,57 @@
     <!-- Settings Modal -->
     <div class="modal-overlay" id="modal-settings">
         <div class="modal-card">
-            <div class="modal-header">
-                <h2 class="modal-title">настройки</h2>
-                <button class="modal-close" id="close-settings">&times;</button>
-            </div>
+            <button class="modal-close" id="close-settings" title="закрыть">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <span class="modal-badge" id="modal-settings-badge">параметры</span>
+            <h3 class="modal-title" id="modal-settings-title">настройки</h3>
 
-            <!-- Neural Engine Status -->
-            <div class="form-group" style="background: var(--card-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--card-border);">
-                <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: space-between;">
-                    <span>нейросетевой бэкенд</span>
-                    <span id="engine-status-pill" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: var(--badge-bg); color: var(--text-muted); border: 1px solid var(--card-border);">на паузе</span>
+            <div class="settings-group">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name" id="lbl-setting-theme">тема оформления</span>
+                        <span class="setting-desc" id="desc-setting-theme">светлая или темная тема</span>
+                    </div>
+                    <div class="lang-switch-buttons">
+                        <button class="lang-btn theme-choice-btn" id="btn-theme-dark" data-theme="dark">темная</button>
+                        <button class="lang-btn theme-choice-btn" id="btn-theme-light" data-theme="light">светлая</button>
+                    </div>
                 </div>
-                <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0;">
-                    серверная нейросеть Real-ESRGAN приостановлена (требуется GPU сервер). активен локальный клиентский режим (WebGL / Canvas).
-                </p>
-            </div>
 
-            <div class="form-group">
-                <label class="form-label" for="select-engine">режим обработки</label>
-                <select class="form-input" id="select-engine">
-                    <option value="browser" selected>клиентский браузерный режим (WebGL / Canvas)</option>
-                </select>
-                <span class="form-hint">100% приватность, без телеметрии и без отправки изображений во внешнюю сеть.</span>
-            </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name" id="lbl-setting-lang">язык интерфейса</span>
+                        <span class="setting-desc" id="desc-setting-lang">выберите язык отображения</span>
+                    </div>
+                    <div class="lang-switch-buttons">
+                        <button class="lang-btn" id="btn-lang-en" data-lang="en">EN</button>
+                        <button class="lang-btn" id="btn-lang-ru" data-lang="ru">RU</button>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label class="form-label">тема оформления</label>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn-secondary" id="btn-modal-theme" style="padding: 0.45rem 1rem; font-size: 0.8rem;">тёмная тема</button>
+                <!-- Neural Engine Status -->
+                <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span class="setting-name" id="lbl-backend-title">нейросетевой бэкенд</span>
+                        <span id="engine-status-pill" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: var(--badge-bg); color: var(--text-muted); border: 1px solid var(--card-border);">на паузе</span>
+                    </div>
+                    <span class="setting-desc" id="lbl-backend-desc">серверная нейросеть Real-ESRGAN приостановлена (требуется GPU сервер). активен локальный клиентский режим (WebGL / Canvas).</span>
+                </div>
+
+                <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+                    <span class="setting-name" id="lbl-engine-title">режим обработки</span>
+                    <select class="form-input" id="select-engine" style="width: 100%;">
+                        <option value="browser" selected id="opt-engine-browser">клиентский браузерный режим (WebGL / Canvas)</option>
+                    </select>
+                    <span class="setting-desc" id="lbl-engine-desc">100% приватность, без телеметрии и без отправки изображений во внешнюю сеть.</span>
                 </div>
             </div>
 
-            <button class="btn-primary" id="btn-save-settings">сохранить</button>
+            <button class="btn-action" id="btn-save-settings">сохранить и закрыть</button>
         </div>
     </div>
 
-    <script src="app.js?v=1.0.5"></script>
-    <script>
-        function updateClarifyThemeIcons() {
-            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-            const btn = document.getElementById('btn-theme-toggle');
-            if (btn) {
-                btn.innerHTML = isLight 
-                    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'
-                    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
-            }
-            const modalThemeBtn = document.getElementById('btn-modal-theme');
-            if (modalThemeBtn) {
-                modalThemeBtn.textContent = isLight ? 'переключить на тёмную' : 'переключить на светлую';
-            }
-        }
-        function toggleClarifyTheme() {
-            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-            const next = current === 'light' ? 'dark' : 'light';
-            localStorage.setItem('stash_theme', next);
-            if (next === 'light') {
-                document.documentElement.setAttribute('data-theme', 'light');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-            }
-            updateClarifyThemeIcons();
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            updateClarifyThemeIcons();
-            const btn = document.getElementById('btn-theme-toggle');
-            if (btn) btn.addEventListener('click', toggleClarifyTheme);
-            const modalBtn = document.getElementById('btn-modal-theme');
-            if (modalBtn) modalBtn.addEventListener('click', toggleClarifyTheme);
-        });
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'stash_theme') {
-                if (e.newValue === 'light') document.documentElement.setAttribute('data-theme', 'light');
-                else document.documentElement.removeAttribute('data-theme');
-                updateClarifyThemeIcons();
-            }
-        });
-    </script>
+    <script src="app.js?v=1.0.6"></script>
 </body>
 </html>

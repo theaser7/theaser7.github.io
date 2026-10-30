@@ -36,6 +36,14 @@ class StashIPSound {
         return this.isMuted;
     }
 
+    setMuted(muted) {
+        this.isMuted = !!muted;
+        try {
+            localStorage.setItem('staship_sound_muted', JSON.stringify(this.isMuted));
+        } catch (e) {}
+        return this.isMuted;
+    }
+
     // High-precision tactile optic terminal click
     playClick() {
         if (this.isMuted) return;

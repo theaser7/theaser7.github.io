@@ -5,6 +5,23 @@
 
 const STASHIP_I18N = {
     en: {
+        brandTitle: "ip lookup",
+        settingsLabel: "settings",
+        modalBadge: "preferences",
+        modalTitle: "settings",
+        settingTheme: "theme",
+        descSettingTheme: "light or dark color scheme",
+        themeDark: "dark",
+        themeLight: "light",
+        settingLang: "interface language",
+        descSettingLang: "select display language",
+        settingUnit: "speed unit",
+        descSettingUnit: "megabits per second or megabytes",
+        settingSound: "sound effects",
+        descSettingSound: "audio cues on tests and clicks",
+        soundOn: "on",
+        soundOff: "off",
+        btnSaveSettings: "save & close",
         langBtn: "ru",
         unitMbps: "mbps",
         unitMBs: "mb/s",
@@ -45,10 +62,27 @@ const STASHIP_I18N = {
         gaugeUl: "upload",
         gaugeComplete: "complete",
         toastCopied: "ip [ {ip} ] copied to clipboard",
-        footerLeft: "staship • zero-telemetry network diagnostics",
+        footerLeft: "ip lookup • zero-telemetry network diagnostics",
         footerRight: "the stash"
     },
     ru: {
+        brandTitle: "проверка ip",
+        settingsLabel: "настройки",
+        modalBadge: "параметры",
+        modalTitle: "настройки",
+        settingTheme: "тема оформления",
+        descSettingTheme: "светлая или темная тема",
+        themeDark: "темная",
+        themeLight: "светлая",
+        settingLang: "язык интерфейса",
+        descSettingLang: "выберите язык отображения",
+        settingUnit: "единицы скорости",
+        descSettingUnit: "мбит/с или мегабайты в секунду",
+        settingSound: "звуковые эффекты",
+        descSettingSound: "звуки при тестировании и кликах",
+        soundOn: "вкл",
+        soundOff: "выкл",
+        btnSaveSettings: "сохранить и закрыть",
         langBtn: "en",
         unitMbps: "мбит/с",
         unitMBs: "мб/с",
@@ -101,7 +135,7 @@ class StashIP {
         this.speedtestAbortController = null;
         
         // Language & Units
-        this.currentLang = localStorage.getItem('the_stash_lang') || 'en';
+        this.currentLang = localStorage.getItem('the_stash_lang') || 'ru';
         this.speedUnit = localStorage.getItem('the_stash_speed_unit') || 'mbps'; // 'mbps' or 'mbyte'
 
         // Speedtest metrics (stored in Mbps base internally)
@@ -119,6 +153,9 @@ class StashIP {
         this.initEvents();
         this.applyLanguage(this.currentLang);
         this.updateUnitDisplay();
+        this.syncThemeUI();
+        this.updateSoundButtons();
+        this.updateUnitButtons();
         this.startGaugeAnimation();
 
         // Initial IP load + Background live ping probe on page load
@@ -137,15 +174,24 @@ class StashIP {
         this.elIpType = document.getElementById('badge-ip-type');
         
         // Buttons & Actions
-        this.btnLang = document.getElementById('btn-lang');
-        this.btnLangText = document.getElementById('btn-lang-text');
-        this.btnUnit = document.getElementById('btn-unit');
-        this.btnUnitText = document.getElementById('btn-unit-text');
         this.btnCopyIp = document.getElementById('btn-copy-ip');
         this.btnRefreshIp = document.getElementById('btn-refresh-ip');
         this.btnStartSpeed = document.getElementById('btn-start-speed');
-        this.btnMute = document.getElementById('btn-mute');
         this.toast = document.getElementById('toast-copy');
+
+        // Settings Modal Elements
+        this.settingsModal = document.getElementById('settings-modal');
+        this.btnSettings = document.getElementById('btn-settings');
+        this.btnSettingsClose = document.getElementById('modal-settings-close');
+        this.btnSaveSettings = document.getElementById('btn-save-settings');
+        this.btnThemeDark = document.getElementById('btn-theme-dark');
+        this.btnThemeLight = document.getElementById('btn-theme-light');
+        this.btnLangEn = document.getElementById('btn-lang-en');
+        this.btnLangRu = document.getElementById('btn-lang-ru');
+        this.btnUnitMbps = document.getElementById('btn-unit-mbps');
+        this.btnUnitMbyte = document.getElementById('btn-unit-mbyte');
+        this.btnSoundOn = document.getElementById('btn-sound-on');
+        this.btnSoundOff = document.getElementById('btn-sound-off');
 
         // Speedtest Dual Header Displays
         this.elCardDownload = document.getElementById('dual-card-download');
@@ -169,22 +215,113 @@ class StashIP {
     }
 
     initEvents() {
-        // Language Toggle
-        if (this.btnLang) {
-            this.btnLang.addEventListener('click', () => {
-                if (window.stashipSound) window.stashipSound.playClick();
-                this.currentLang = this.currentLang === 'en' ? 'ru' : 'en';
-                localStorage.setItem('the_stash_lang', this.currentLang);
-                this.applyLanguage(this.currentLang);
+        // Settings Modal events
+        if (this.btnSettings) {
+            this.btnSettings.addEventListener('click', () => {
+                window.stashipSound?.playClick?.();
+                this.openSettings();
             });
         }
 
-        // Unit Toggle (Header Button)
-        if (this.btnUnit) {
-            this.btnUnit.addEventListener('click', () => {
-                this.toggleSpeedUnit();
+        if (this.btnSettingsClose) {
+            this.btnSettingsClose.addEventListener('click', () => {
+                window.stashipSound?.playClick?.();
+                this.closeSettings();
             });
         }
+
+        if (this.btnSaveSettings) {
+            this.btnSaveSettings.addEventListener('click', () => {
+                window.stashipSound?.playClick?.();
+                this.closeSettings();
+            });
+        }
+
+        if (this.settingsModal) {
+            this.settingsModal.addEventListener('click', (e) => {
+                if (e.target === this.settingsModal) {
+                    this.closeSettings();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.settingsModal?.classList.contains('active')) {
+                this.closeSettings();
+            }
+        });
+
+        // Theme buttons inside modal
+        if (this.btnThemeDark) {
+            this.btnThemeDark.addEventListener('click', () => {
+                window.stashipSound?.playClick?.();
+                this.applyTheme('dark');
+            });
+        }
+
+        if (this.btnThemeLight) {
+            this.btnThemeLight.addEventListener('click', () => {
+                window.stashipSound?.playClick?.();
+                this.applyTheme('light');
+            });
+        }
+
+        // Language buttons inside modal
+        if (this.btnLangEn) {
+            this.btnLangEn.addEventListener('click', () => {
+                window.stashipSound?.playClick?.();
+                this.setLanguage('en');
+            });
+        }
+
+        if (this.btnLangRu) {
+            this.btnLangRu.addEventListener('click', () => {
+                window.stashipSound?.playClick?.();
+                this.setLanguage('ru');
+            });
+        }
+
+        // Unit buttons inside modal
+        if (this.btnUnitMbps) {
+            this.btnUnitMbps.addEventListener('click', () => {
+                window.stashipSound?.playClick?.();
+                this.setSpeedUnit('mbps');
+            });
+        }
+
+        if (this.btnUnitMbyte) {
+            this.btnUnitMbyte.addEventListener('click', () => {
+                window.stashipSound?.playClick?.();
+                this.setSpeedUnit('mbyte');
+            });
+        }
+
+        // Sound buttons inside modal
+        if (this.btnSoundOn) {
+            this.btnSoundOn.addEventListener('click', () => {
+                window.stashipSound?.setMuted?.(false);
+                this.updateSoundButtons();
+                window.stashipSound?.playClick?.();
+            });
+        }
+
+        if (this.btnSoundOff) {
+            this.btnSoundOff.addEventListener('click', () => {
+                window.stashipSound?.setMuted?.(true);
+                this.updateSoundButtons();
+            });
+        }
+
+        // Storage listener for cross-tab sync
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'the_stash_lang' && e.newValue) {
+                this.setLanguage(e.newValue, false);
+            } else if (e.key === 'stash_theme') {
+                this.syncThemeUI();
+            } else if (e.key === 'the_stash_speed_unit' && e.newValue) {
+                this.setSpeedUnit(e.newValue, false);
+            }
+        });
 
         // Unit Toggle via clicking Speed Cards
         if (this.elCardDownload) {
@@ -238,15 +375,66 @@ class StashIP {
                 }
             });
         }
+    }
 
-        // Sound Mute Toggle
-        if (this.btnMute) {
-            this.btnMute.addEventListener('click', () => {
-                const muted = window.stashipSound.toggleMute();
-                this.updateMuteButton(muted);
-            });
-            this.updateMuteButton(window.stashipSound.isMuted);
+    openSettings() {
+        if (!this.settingsModal) return;
+        this.syncThemeUI();
+        this.updateSoundButtons();
+        this.updateUnitButtons();
+        this.settingsModal.classList.add('active');
+    }
+
+    closeSettings() {
+        if (!this.settingsModal) return;
+        this.settingsModal.classList.remove('active');
+    }
+
+    applyTheme(theme) {
+        localStorage.setItem('stash_theme', theme);
+        if (theme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
         }
+        this.syncThemeUI();
+        if (typeof updateStashIpThemeIcons === 'function') {
+            updateStashIpThemeIcons();
+        }
+    }
+
+    syncThemeUI() {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        if (this.btnThemeLight) this.btnThemeLight.classList.toggle('active', isLight);
+        if (this.btnThemeDark) this.btnThemeDark.classList.toggle('active', !isLight);
+    }
+
+    updateSoundButtons() {
+        const isMuted = window.stashipSound ? window.stashipSound.isMuted : false;
+        if (this.btnSoundOn) this.btnSoundOn.classList.toggle('active', !isMuted);
+        if (this.btnSoundOff) this.btnSoundOff.classList.toggle('active', isMuted);
+    }
+
+    updateUnitButtons() {
+        if (this.btnUnitMbps) this.btnUnitMbps.classList.toggle('active', this.speedUnit === 'mbps');
+        if (this.btnUnitMbyte) this.btnUnitMbyte.classList.toggle('active', this.speedUnit === 'mbyte');
+    }
+
+    setSpeedUnit(unit, save = true) {
+        this.speedUnit = unit === 'mbyte' ? 'mbyte' : 'mbps';
+        if (save) {
+            localStorage.setItem('the_stash_speed_unit', this.speedUnit);
+        }
+        this.updateUnitDisplay();
+        this.updateUnitButtons();
+    }
+
+    setLanguage(lang, save = true) {
+        this.currentLang = (lang === 'ru' || lang === 'en') ? lang : 'ru';
+        if (save) {
+            localStorage.setItem('the_stash_lang', this.currentLang);
+        }
+        this.applyLanguage(this.currentLang);
     }
 
     formatSpeed(mbps) {
@@ -316,9 +504,43 @@ class StashIP {
     }
 
     applyLanguage(lang) {
-        const dict = STASHIP_I18N[lang] || STASHIP_I18N.en;
+        const dict = STASHIP_I18N[lang] || STASHIP_I18N.ru;
 
-        if (this.btnLangText) this.btnLangText.textContent = dict.langBtn;
+        const txtBrand = document.getElementById('txt-brand-title');
+        if (txtBrand) txtBrand.textContent = dict.brandTitle;
+        const txtSettings = document.getElementById('txt-settings-label');
+        if (txtSettings) txtSettings.textContent = dict.settingsLabel;
+        const modalBadge = document.getElementById('modal-settings-badge');
+        if (modalBadge) modalBadge.textContent = dict.modalBadge;
+        const modalTitle = document.getElementById('modal-settings-title');
+        if (modalTitle) modalTitle.textContent = dict.modalTitle;
+
+        const lblTheme = document.getElementById('lbl-setting-theme');
+        if (lblTheme) lblTheme.textContent = dict.settingTheme;
+        const descTheme = document.getElementById('desc-setting-theme');
+        if (descTheme) descTheme.textContent = dict.descSettingTheme;
+        if (this.btnThemeDark) this.btnThemeDark.textContent = dict.themeDark;
+        if (this.btnThemeLight) this.btnThemeLight.textContent = dict.themeLight;
+
+        const lblLang = document.getElementById('lbl-setting-lang');
+        if (lblLang) lblLang.textContent = dict.settingLang;
+        const descLang = document.getElementById('desc-setting-lang');
+        if (descLang) descLang.textContent = dict.descSettingLang;
+
+        const lblUnit = document.getElementById('lbl-setting-unit');
+        if (lblUnit) lblUnit.textContent = dict.settingUnit;
+        const descUnit = document.getElementById('desc-setting-unit');
+        if (descUnit) descUnit.textContent = dict.descSettingUnit;
+
+        const lblSound = document.getElementById('lbl-setting-sound');
+        if (lblSound) lblSound.textContent = dict.settingSound;
+        const descSound = document.getElementById('desc-setting-sound');
+        if (descSound) descSound.textContent = dict.descSettingSound;
+        if (this.btnSoundOn) this.btnSoundOn.textContent = dict.soundOn;
+        if (this.btnSoundOff) this.btnSoundOff.textContent = dict.soundOff;
+
+        if (this.btnSaveSettings) this.btnSaveSettings.textContent = dict.btnSaveSettings;
+
         const txtRefresh = document.getElementById('txt-btn-refresh');
         if (txtRefresh) txtRefresh.textContent = dict.refreshBtn;
         const txtHub = document.getElementById('txt-btn-hub');
@@ -367,7 +589,12 @@ class StashIP {
         const footerLeft = document.querySelector('footer span:first-child');
         if (footerLeft) footerLeft.textContent = dict.footerLeft;
 
-        this.updateMuteButton(window.stashipSound.isMuted);
+        if (this.btnLangEn) this.btnLangEn.classList.toggle('active', this.currentLang === 'en');
+        if (this.btnLangRu) this.btnLangRu.classList.toggle('active', this.currentLang === 'ru');
+
+        this.syncThemeUI();
+        this.updateSoundButtons();
+        this.updateUnitButtons();
         this.updateUnitDisplay();
     }
 

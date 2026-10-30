@@ -25,11 +25,103 @@ function getMoonIcon() {
     </svg>`;
 }
 
+const FETCHFLOW_I18N = {
+    ru: {
+        pageTitle: "скачивание видео • the stash",
+        headerTitle: "скачивание видео",
+        btnSettings: "настройки",
+        addUrlsTitle: "добавить ссылки",
+        btnPaste: "вставить из буфера",
+        urlsPlaceholder: "https://youtube.com/watch?v=...\nhttps://tiktok.com/@...\nhttps://vk.com/video...\n(вставьте одну или несколько ссылок, по одной на строку)",
+        formatLabel: "формат:",
+        optBest: "макс mp4",
+        opt1080: "1080p mp4",
+        opt720: "720p mp4",
+        opt480: "480p mp4",
+        optMp3: "mp3",
+        btnClearInput: "очистить",
+        btnAddQueue: "добавить в очередь",
+        queueTitle: "очередь загрузки",
+        statTotalLbl: "всего:",
+        statPendingLbl: "в очереди:",
+        statCompletedLbl: "загружено:",
+        btnClearAll: "очистить всю очередь",
+        btnClearCompleted: "очистить завершённые",
+        btnStartQueue: "запустить очередь",
+        queueEmpty: "очередь пуста. добавьте ссылки выше для начала загрузки.",
+        settingsBadge: "параметры",
+        settingsTitle: "настройки",
+        lblSettingTheme: "тема оформления",
+        descSettingTheme: "светлая или темная тема",
+        btnThemeDark: "темная",
+        btnThemeLight: "светлая",
+        lblSettingLang: "язык интерфейса",
+        descSettingLang: "выберите язык отображения",
+        lblServerStatusTitle: "статус vps сервера:",
+        btnTestServer: "проверить связь",
+        btnSettingsSave: "сохранить и закрыть",
+        serverChecking: "проверка связи...",
+        serverOnline: "бэкенд активен (vps yt-dlp)",
+        serverOffline: "сервер недоступен",
+        statusPending: "в очереди",
+        statusDownloading: "загрузка:",
+        statusCompleted: "завершено (файл скачан)",
+        statusError: "ошибка:",
+        statusEta: "осталось:",
+        pasteAlert: "не удалось прочитать буфер обмена. вставьте ссылки вручную."
+    },
+    en: {
+        pageTitle: "video downloader • the stash",
+        headerTitle: "video downloader",
+        btnSettings: "settings",
+        addUrlsTitle: "add links",
+        btnPaste: "paste from clipboard",
+        urlsPlaceholder: "https://youtube.com/watch?v=...\nhttps://tiktok.com/@...\nhttps://vk.com/video...\n(paste one or multiple URLs, one per line)",
+        formatLabel: "format:",
+        optBest: "max mp4",
+        opt1080: "1080p mp4",
+        opt720: "720p mp4",
+        opt480: "480p mp4",
+        optMp3: "mp3",
+        btnClearInput: "clear",
+        btnAddQueue: "add to queue",
+        queueTitle: "download queue",
+        statTotalLbl: "total:",
+        statPendingLbl: "queued:",
+        statCompletedLbl: "completed:",
+        btnClearAll: "clear queue",
+        btnClearCompleted: "clear completed",
+        btnStartQueue: "start queue",
+        queueEmpty: "queue is empty. add links above to start downloading.",
+        settingsBadge: "preferences",
+        settingsTitle: "settings",
+        lblSettingTheme: "color theme",
+        descSettingTheme: "light or dark mode",
+        btnThemeDark: "dark",
+        btnThemeLight: "light",
+        lblSettingLang: "interface language",
+        descSettingLang: "choose display language for the stash",
+        lblServerStatusTitle: "vps server status:",
+        btnTestServer: "check connection",
+        btnSettingsSave: "save & close",
+        serverChecking: "checking connection...",
+        serverOnline: "backend online (vps yt-dlp)",
+        serverOffline: "server unreachable",
+        statusPending: "queued",
+        statusDownloading: "downloading:",
+        statusCompleted: "completed (file downloaded)",
+        statusError: "error:",
+        statusEta: "eta:",
+        pasteAlert: "could not read clipboard. please paste URLs manually."
+    }
+};
+
 class FetchFlowApp {
     constructor() {
         this.queue = [];
         this.isProcessing = false;
         this.currentJobId = null;
+        this.currentLang = localStorage.getItem('the_stash_lang') || 'ru';
 
         // Clean up legacy companion settings from localStorage
         try {
@@ -51,6 +143,7 @@ class FetchFlowApp {
         this.cacheDom();
         this.bindEvents();
         this.initTheme();
+        this.initLanguage();
         this.renderStats();
         this.detectBackend();
     }
@@ -142,8 +235,19 @@ class FetchFlowApp {
             this.detectBackend();
         });
 
+        const btnClose = document.getElementById('modal-settings-close');
+        if (btnClose) {
+            btnClose.addEventListener('click', () => this.settingsModal.classList.remove('open'));
+        }
+
         this.settingsModal.addEventListener('click', (e) => {
             if (e.target === this.settingsModal) {
+                this.settingsModal.classList.remove('open');
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.settingsModal.classList.contains('open')) {
                 this.settingsModal.classList.remove('open');
             }
         });
@@ -165,9 +269,19 @@ class FetchFlowApp {
             this.applyTheme('light');
         });
 
+        document.querySelectorAll('.lang-btn[data-lang]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.getAttribute('data-lang');
+                this.applyLanguage(lang);
+            });
+        });
+
         window.addEventListener('storage', (e) => {
             if (e.key === 'stash_theme') {
                 this.applyTheme(e.newValue || 'dark');
+            }
+            if (e.key === 'the_stash_lang') {
+                this.applyLanguage(e.newValue || 'ru');
             }
         });
     }
@@ -179,6 +293,99 @@ class FetchFlowApp {
         this.renderQueue();
         this.renderStats();
         if (window.fetchflowSound) window.fetchflowSound.playClick();
+    }
+
+    initLanguage() {
+        this.applyLanguage(this.currentLang);
+    }
+
+    applyLanguage(lang) {
+        this.currentLang = lang;
+        localStorage.setItem('the_stash_lang', lang);
+        document.documentElement.lang = lang;
+        const dict = FETCHFLOW_I18N[lang] || FETCHFLOW_I18N.ru;
+
+        document.title = dict.pageTitle;
+
+        const headerTitle = document.getElementById('txt-header-title');
+        if (headerTitle) headerTitle.textContent = dict.headerTitle;
+
+        const settingsLabel = document.getElementById('txt-settings-label');
+        if (settingsLabel) settingsLabel.textContent = dict.btnSettings;
+
+        const addUrlsTitle = document.getElementById('txt-add-urls-title');
+        if (addUrlsTitle) addUrlsTitle.textContent = dict.addUrlsTitle;
+
+        const btnPaste = document.getElementById('btn-paste-clipboard');
+        if (btnPaste) btnPaste.textContent = dict.btnPaste;
+
+        if (this.urlsInput) this.urlsInput.placeholder = dict.urlsPlaceholder;
+
+        const formatLabel = document.getElementById('txt-format-label');
+        if (formatLabel) formatLabel.textContent = dict.formatLabel;
+
+        const optBest = document.getElementById('opt-fmt-best');
+        if (optBest) optBest.textContent = dict.optBest;
+        const opt1080 = document.getElementById('opt-fmt-1080');
+        if (opt1080) opt1080.textContent = dict.opt1080;
+        const opt720 = document.getElementById('opt-fmt-720');
+        if (opt720) opt720.textContent = dict.opt720;
+        const opt480 = document.getElementById('opt-fmt-480');
+        if (opt480) opt480.textContent = dict.opt480;
+        const optMp3 = document.getElementById('opt-fmt-mp3');
+        if (optMp3) optMp3.textContent = dict.optMp3;
+
+        const btnClearInput = document.getElementById('btn-clear-input');
+        if (btnClearInput) btnClearInput.textContent = dict.btnClearInput;
+        const btnAddQueue = document.getElementById('btn-add-queue');
+        if (btnAddQueue) btnAddQueue.textContent = dict.btnAddQueue;
+
+        const queueTitle = document.getElementById('txt-queue-title');
+        if (queueTitle) queueTitle.textContent = dict.queueTitle;
+
+        const statTotalLbl = document.getElementById('txt-stat-total-lbl');
+        if (statTotalLbl) statTotalLbl.textContent = dict.statTotalLbl;
+        const statPendingLbl = document.getElementById('txt-stat-pending-lbl');
+        if (statPendingLbl) statPendingLbl.textContent = dict.statPendingLbl;
+        const statCompletedLbl = document.getElementById('txt-stat-completed-lbl');
+        if (statCompletedLbl) statCompletedLbl.textContent = dict.statCompletedLbl;
+
+        const btnClearAll = document.getElementById('btn-clear-all');
+        if (btnClearAll) btnClearAll.textContent = dict.btnClearAll;
+        const btnClearCompleted = document.getElementById('btn-clear-completed');
+        if (btnClearCompleted) btnClearCompleted.textContent = dict.btnClearCompleted;
+        const btnStartQueue = document.getElementById('btn-start-queue');
+        if (btnStartQueue) btnStartQueue.textContent = dict.btnStartQueue;
+        const queueEmpty = document.getElementById('queue-empty');
+        if (queueEmpty) queueEmpty.textContent = dict.queueEmpty;
+
+        // Settings modal
+        const modalBadge = document.getElementById('modal-settings-badge');
+        if (modalBadge) modalBadge.textContent = dict.settingsBadge;
+        const modalTitle = document.getElementById('modal-settings-title');
+        if (modalTitle) modalTitle.textContent = dict.settingsTitle;
+        const lblSettingTheme = document.getElementById('lbl-setting-theme');
+        if (lblSettingTheme) lblSettingTheme.textContent = dict.lblSettingTheme;
+        const descSettingTheme = document.getElementById('desc-setting-theme');
+        if (descSettingTheme) descSettingTheme.textContent = dict.descSettingTheme;
+        const btnThemeDark = document.getElementById('btn-theme-dark');
+        if (btnThemeDark) btnThemeDark.textContent = dict.btnThemeDark;
+        const btnThemeLight = document.getElementById('btn-theme-light');
+        if (btnThemeLight) btnThemeLight.textContent = dict.btnThemeLight;
+        const lblSettingLang = document.getElementById('lbl-setting-lang');
+        if (lblSettingLang) lblSettingLang.textContent = dict.lblSettingLang;
+        const descSettingLang = document.getElementById('desc-setting-lang');
+        if (descSettingLang) descSettingLang.textContent = dict.descSettingLang;
+        const lblServerStatusTitle = document.getElementById('lbl-server-status-title');
+        if (lblServerStatusTitle) lblServerStatusTitle.textContent = dict.lblServerStatusTitle;
+        if (this.btnTestServer) this.btnTestServer.textContent = dict.btnTestServer;
+        if (this.btnSaveSettings) this.btnSaveSettings.textContent = dict.btnSettingsSave;
+
+        document.querySelectorAll('.lang-btn[data-lang]').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-lang') === lang);
+        });
+
+        this.renderQueue();
     }
 
     initTheme() {
@@ -196,6 +403,10 @@ class FetchFlowApp {
             this.themeToggleBtn.innerHTML = getSunIcon();
             this.themeToggleBtn.setAttribute('title', 'переключить на светлую тему');
         }
+        const btnDark = document.getElementById('btn-theme-dark');
+        const btnLight = document.getElementById('btn-theme-light');
+        if (btnDark) btnDark.classList.toggle('active', theme === 'dark');
+        if (btnLight) btnLight.classList.toggle('active', theme === 'light');
     }
 
     toggleTheme() {
@@ -377,15 +588,16 @@ class FetchFlowApp {
             div.className = `queue-item ${item.status === 'downloading' ? 'active' : ''}`;
             div.id = item.id;
 
-            let statusLabel = 'в очереди';
+            const dict = FETCHFLOW_I18N[this.currentLang] || FETCHFLOW_I18N.ru;
+            let statusLabel = dict.statusPending;
             let statusClass = '';
             if (item.status === 'downloading') {
-                statusLabel = `загрузка: ${Math.round(item.progress)}% ${item.speed ? `(${item.speed})` : ''}`;
+                statusLabel = `${dict.statusDownloading} ${Math.round(item.progress)}% ${item.speed ? `(${item.speed})` : ''}`;
             } else if (item.status === 'completed') {
-                statusLabel = 'завершено (файл скачан)';
+                statusLabel = dict.statusCompleted;
                 statusClass = 'status-completed';
             } else if (item.status === 'error') {
-                statusLabel = `ошибка: ${item.errorMsg || 'не удалось скачать'}`;
+                statusLabel = `${dict.statusError} ${item.errorMsg || 'error'}`;
                 statusClass = 'status-error';
             }
 
@@ -402,9 +614,9 @@ class FetchFlowApp {
                         </div>
                     </div>
                     <div class="queue-item-actions">
-                        ${item.status === 'error' ? `<button class="btn-item-action btn-retry" data-id="${item.id}" title="повторить">&#x21bb;</button>` : ''}
-                        ${item.status === 'completed' && item.jobId ? `<button class="btn-item-action btn-redownload" data-id="${item.id}" title="скачать файл повторно">&#x2913;</button>` : ''}
-                        <button class="btn-item-action btn-remove" data-id="${item.id}" title="удалить">&times;</button>
+                        ${item.status === 'error' ? `<button class="btn-item-action btn-retry" data-id="${item.id}" title="retry">&#x21bb;</button>` : ''}
+                        ${item.status === 'completed' && item.jobId ? `<button class="btn-item-action btn-redownload" data-id="${item.id}" title="download">&#x2913;</button>` : ''}
+                        <button class="btn-item-action btn-remove" data-id="${item.id}" title="remove">&times;</button>
                     </div>
                 </div>
 
@@ -414,7 +626,7 @@ class FetchFlowApp {
 
                 <div class="queue-item-status-row">
                     <span class="queue-item-status ${statusClass}">${statusLabel}</span>
-                    <span>${item.eta ? `осталось: ${item.eta}` : ''}</span>
+                    <span>${item.eta ? `${dict.statusEta} ${item.eta}` : ''}</span>
                 </div>
             `;
 
