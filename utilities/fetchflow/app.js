@@ -1,7 +1,7 @@
 /**
  * The Stash • Video Downloader Frontend
  * Sequential batch queue media extractor and downloader.
- * Connects directly to the VPS backend or local companion server /api/ endpoints.
+ * Connects directly to the VPS backend /api/ endpoints.
  */
 
 // Icons for theme toggle
@@ -59,7 +59,6 @@ class FetchFlowApp {
         this.themeToggleBtn = document.getElementById('btn-theme-toggle');
         this.btnSettings = document.getElementById('btn-settings');
         this.settingsModal = document.getElementById('settings-modal');
-        this.settingBackendUrl = document.getElementById('setting-backend-url');
         this.btnSaveSettings = document.getElementById('btn-save-settings');
         this.btnTestServer = document.getElementById('btn-test-server');
         this.serverStatusIndicator = document.getElementById('server-status-indicator');
@@ -124,8 +123,6 @@ class FetchFlowApp {
         this.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
 
         this.btnSettings.addEventListener('click', () => {
-            const saved = localStorage.getItem('stash_downloader_backend') || '';
-            this.settingBackendUrl.value = saved || this.backendUrl;
             this.settingsModal.classList.add('open');
             this.detectBackend();
         });
@@ -136,16 +133,7 @@ class FetchFlowApp {
             }
         });
 
-        this.btnSaveSettings.addEventListener('click', async () => {
-            const val = this.settingBackendUrl.value.trim().replace(/\/+$/, '');
-            if (val) {
-                localStorage.setItem('stash_downloader_backend', val);
-                this.backendUrl = val;
-            } else {
-                localStorage.removeItem('stash_downloader_backend');
-                this.backendUrl = '';
-            }
-            await this.detectBackend();
+        this.btnSaveSettings.addEventListener('click', () => {
             this.settingsModal.classList.remove('open');
         });
 
@@ -225,63 +213,43 @@ class FetchFlowApp {
         this.serverStatusIndicator.textContent = 'проверка связи...';
         this.serverStatusIndicator.style.color = 'var(--text-muted)';
 
-        // 1. Check user-configured URL from localStorage
-        const saved = (localStorage.getItem('stash_downloader_backend') || '').trim().replace(/\/+$/, '');
-        if (saved) {
-            const check = await this.pingEndpoint(saved);
-            if (check.ok) {
-                this.backendUrl = saved;
-                this.isBackendOnline = true;
-                const info = check.data.service || check.data.server || 'backend';
-                const proxy = check.data.warp_active ? ' • warp' : '';
-                this.serverStatusIndicator.textContent = `онлайн • ${info}${proxy} (${saved})`;
-                this.serverStatusIndicator.style.color = 'var(--text-main)';
-                return true;
-            }
+        // 1. Check current origin relative endpoint (/api/health)
+        const checkOrigin = await this.pingEndpoint('');
+        if (checkOrigin.ok) {
+            this.backendUrl = '';
+            this.isBackendOnline = true;
+            const warp = checkOrigin.data?.warp_active ? ' (warp)' : '';
+            this.serverStatusIndicator.textContent = `онлайн • vps downloader${warp}`;
+            this.serverStatusIndicator.style.color = 'var(--text-main)';
+            return true;
         }
 
-        // 2. Check local VPS downloader service (port 7861)
+        // 2. Check remote VPS directly (https://thestash.space)
+        const checkVPS = await this.pingEndpoint('https://thestash.space');
+        if (checkVPS.ok) {
+            this.backendUrl = 'https://thestash.space';
+            this.isBackendOnline = true;
+            const warp = checkVPS.data?.warp_active ? ' (warp)' : '';
+            this.serverStatusIndicator.textContent = `онлайн • thestash.space${warp}`;
+            this.serverStatusIndicator.style.color = 'var(--text-main)';
+            return true;
+        }
+
+        // 3. Check local VPS downloader daemon during development (port 7861)
         const check7861 = await this.pingEndpoint('http://127.0.0.1:7861');
         if (check7861.ok) {
             this.backendUrl = 'http://127.0.0.1:7861';
             this.isBackendOnline = true;
-            this.serverStatusIndicator.textContent = 'онлайн • vps downloader (127.0.0.1:7861)';
+            const warp = check7861.data?.warp_active ? ' (warp)' : '';
+            this.serverStatusIndicator.textContent = `онлайн • vps downloader локально${warp}`;
             this.serverStatusIndicator.style.color = 'var(--text-main)';
             return true;
         }
 
-        // 3. Check local companion server (port 7860)
-        const check7860 = await this.pingEndpoint('http://127.0.0.1:7860');
-        if (check7860.ok) {
-            this.backendUrl = 'http://127.0.0.1:7860';
-            this.isBackendOnline = true;
-            this.serverStatusIndicator.textContent = 'онлайн • companion server (127.0.0.1:7860)';
-            this.serverStatusIndicator.style.color = 'var(--text-main)';
-            return true;
-        }
-
-        // 4. If current host is local origin
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        if (isLocal) {
-            const checkOrigin = await this.pingEndpoint('');
-            if (checkOrigin.ok) {
-                this.backendUrl = '';
-                this.isBackendOnline = true;
-                this.serverStatusIndicator.textContent = 'онлайн • локальный хост';
-                this.serverStatusIndicator.style.color = 'var(--text-main)';
-                return true;
-            }
-        }
-
-        // 5. No reachable backend detected
+        // 4. No reachable backend detected
         this.isBackendOnline = false;
-        if (saved) {
-            this.backendUrl = saved;
-            this.serverStatusIndicator.textContent = `недоступен: ${saved}`;
-        } else {
-            this.backendUrl = '';
-            this.serverStatusIndicator.textContent = 'не подключен (запустите companion server или укажите vps в настройках)';
-        }
+        this.backendUrl = '';
+        this.serverStatusIndicator.textContent = 'сервер недоступен (проверьте связь с https://thestash.space)';
         this.serverStatusIndicator.style.color = 'var(--status-error)';
         return false;
     }
@@ -485,10 +453,9 @@ class FetchFlowApp {
             await this.detectBackend();
         }
 
-        const isStaticHost = window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:';
-        if (!this.isBackendOnline && (!this.backendUrl || isStaticHost)) {
+        if (!this.isBackendOnline) {
             item.status = 'error';
-            item.errorMsg = 'бэкенд не подключен (запустите companion.exe или укажите vps в настройках)';
+            item.errorMsg = 'vps сервер загрузки недоступен';
             this.renderQueue();
             this.renderStats();
             return;
@@ -510,7 +477,7 @@ class FetchFlowApp {
 
             if (!res.ok) {
                 if (res.status === 405) {
-                    throw new Error('HTTP 405 (сервер не поддерживает POST — проверьте адрес бэкенда в настройках)');
+                    throw new Error('HTTP 405 (сервер не поддерживает POST)');
                 }
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.error || `HTTP error ${res.status}`);

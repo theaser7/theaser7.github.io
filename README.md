@@ -7,7 +7,7 @@
 
 ## Overview
 
-**The Stash** is an independent collection of web-based utilities and interactive games designed to operate entirely in the browser sandbox. Heavy computing tasks (such as AI super-resolution and stream downloading) are handled locally by an optional lightweight companion daemon running on your machine.
+**The Stash** is an independent collection of web-based utilities and interactive games designed to operate entirely in the browser sandbox. Video downloading is handled by a high-throughput standalone daemon running on the VPS with Cloudflare WARP SOCKS5 integration.
 
 ---
 
@@ -26,7 +26,7 @@
 | **[конвертер / StashConvert](./utilities/stashconvert/)** | In-browser batch file converter supporting image formats, audio, video, and documents. | Web APIs, Canvas, HTML5 FileReader |
 | **[проверка ip / StashIP](./utilities/staship/)** | Network diagnostic tool providing IP intelligence, ASN lookups, and latency checks. | Native Fetch, WebRTC API |
 | **[чеклист / StashList](./utilities/stashlist/)** | Recurring daily checklist and habit tracker with weekday scheduling and audio notifications. | Web Audio API, Web Notifications, LocalStorage |
-| **[нейроапскейлер / Clarify](./utilities/clarify/)** | Super-resolution AI photo upscaling (2x, 4x, 6x, 8x true neural enhancement) powered by Vulkan NCNN. | StashCompanion (Real-ESRGAN Vulkan) |
+| **[нейроапскейлер / Clarify](./utilities/clarify/)** | Super-resolution AI photo upscaling with split-view comparison slider. (Server GPU upscaler paused, basic client-side filter active). | WebGL / HTML5 Canvas |
 | **[скачивание видео / FetchFlow](./utilities/fetchflow/)** | High-throughput batch media stream downloader with sequential queue processing. | VPS Downloader Backend (yt-dlp + Cloudflare WARP proxy) |
 
 ---
@@ -34,7 +34,6 @@
 ## Architecture
 
 - **Web Frontend:** Pure static assets (HTML5, modern CSS3, vanilla JavaScript ES6+). Minimalist monochrome aesthetic with dark/light themes.
-- **StashCompanion (`server/companion_server.py`):** Local hardware acceleration companion running on `http://127.0.0.1:7860` specifically for neural image upscaling (Clarify) via Real-ESRGAN Vulkan.
 - **VPS Downloader Backend (`server/vps_downloader.py`):** Standalone lightweight backend with yt-dlp, routing media traffic safely through Cloudflare WARP SOCKS5 proxy without affecting the VPS default gateway.
 
 ---
@@ -50,17 +49,12 @@ python -m http.server 8080
 ```
 Open `http://127.0.0.1:8080` in your browser.
 
-### 2. Running StashCompanion (for Clarify & FetchFlow)
+### 2. Running VPS Downloader Backend (Optional / Local Dev)
 
-#### From Executable:
-```cmd
-StashCompanion.exe
-```
-
-#### From Source:
 ```bash
-python server/companion_server.py
+python server/vps_downloader.py
 ```
+Listens on `http://127.0.0.1:7861`. On the production VPS, this runs continuously as a systemd service (`stash-downloader.service`) behind Nginx.
 
 ---
 

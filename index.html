@@ -525,10 +525,6 @@
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 <span id="btn-theme-label">тема</span>
             </button>
-            <a href="./downloads/the-stash-companion.exe" download class="hud-settings-btn" id="btn-download-companion" title="скачать companion server (.exe)">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span id="txt-btn-companion">companion server (.exe)</span>
-            </a>
             <button id="btn-settings" class="hud-settings-btn" title="настройки">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 <span id="btn-settings-label">настройки</span>
@@ -542,7 +538,7 @@
         <header class="hero-section">
             <div class="brand-heading">
                 <h1 class="brand-title">the stash</h1>
-                <span class="brand-version">v1.0.1</span>
+                <span class="brand-version">v1.0.3</span>
             </div>
             <p class="hero-desc">веб-сьют утилит и игр. без водяных знаков. без телеметрии. бесплатно.</p>
         </header>
@@ -571,7 +567,7 @@
                     </article>
 
                     <!-- 2. Clarify / нейроапскейлер -->
-                    <article class="project-card" data-type="utilities" data-category="playable">
+                    <article class="project-card" data-type="utilities" data-category="wip">
                         <div>
                             <div class="card-top">
                                 <div class="card-glyph-box">
@@ -582,15 +578,15 @@
                                         <line x1="3" y1="21" x2="10" y2="14"></line>
                                     </svg>
                                 </div>
-                                <span class="status-pill status-playable">готово</span>
+                                <span class="status-pill status-wip">на паузе</span>
                             </div>
                             <h2 class="card-title">нейроапскейлер</h2>
-                            <p class="card-desc">нейросетевой апскейлер фото на базе Vulkan AI. масштабирование до 4K, удаление шума, интерактивный слайдер до/после и нулевая телеметрия.</p>
+                            <p class="card-desc">нейросетевой апскейлер фото (временно на паузе до подключения GPU сервера; доступна базовая клиентская обработка).</p>
                             <div class="card-tags">
                                 <span class="tag-pill">#нейросеть</span>
                                 <span class="tag-pill">#апскейлер</span>
-                                <span class="tag-pill">#vulkan</span>
                                 <span class="tag-pill">#фото</span>
+                                <span class="tag-pill">#gpu-пауза</span>
                             </div>
                         </div>
                         <a href="./utilities/clarify/index.html" class="btn-action">запустить нейроапскейлер &rarr;</a>
@@ -696,31 +692,7 @@
                         <a href="./utilities/stashlist/index.html" class="btn-action">запустить чеклист &rarr;</a>
                     </article>
 
-                    <!-- 7. StashCompanion / компаньон -->
-                    <article class="project-card" data-type="utilities" data-category="playable">
-                        <div>
-                            <div class="card-top">
-                                <div class="card-glyph-box">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
-                                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
-                                        <line x1="6" y1="6" x2="6.01" y2="6"/>
-                                        <line x1="6" y1="18" x2="6.01" y2="18"/>
-                                    </svg>
-                                </div>
-                                <span class="status-pill status-playable">готово</span>
-                            </div>
-                            <h2 class="card-title">stashcompanion</h2>
-                            <p class="card-desc" id="desc-companion">локальный Python-бэкенд для нейроапскейлера Clarify на базе Vulkan AI. нулевая телеметрия и аппаратное ускорение.</p>
-                            <div class="card-tags">
-                                <span class="tag-pill">#python</span>
-                                <span class="tag-pill">#vulkan</span>
-                                <span class="tag-pill">#апскейлер</span>
-                                <span class="tag-pill">#бэкенд</span>
-                            </div>
-                        </div>
-                        <a href="./downloads/the-stash-companion.exe" download class="btn-action" id="btn-launch-companion">скачать сервер (.exe) &rarr;</a>
-                    </article>
+                    
         </div>
     </div>
 
@@ -809,7 +781,6 @@
                 sysMeta: "client runtime • zero latency",
                 btnTheme: "theme",
                 btnSettings: "settings",
-                txtBtnCompanion: "companion server (.exe)",
                 heroDesc: "suite of client-side web tools and games. zero watermarks. zero telemetry. free.",
                 footerText: "the stash • web suite",
                 settingsBadge: "preferences",
@@ -822,26 +793,23 @@
                 descSettingLang: "choose display language for the stash",
                 btnSettingsSave: "save & close",
                 cardFlexleDesc: "flexible wordle game with custom word lengths from 4 to 11+ letters, bracket drum picker for random ranges, and procedural WebAudio synthesizers.",
-                cardClarifyDesc: "neural photo upscaler powered by Vulkan AI. upscales up to 4K, denoises, interactive before/after split slider, and zero telemetry.",
+                cardClarifyDesc: "neural photo upscaler (currently paused pending GPU server; basic client-side processing available)",
                 cardFetchflowDesc: "batch video and audio download queue powered by yt-dlp backend on VPS with Cloudflare WARP SOCKS5 support. direct MP4 and MP3 downloads.",
                 cardStashconvertDesc: "universal client-side converter for video, images, audio, and documents. supports GIF, audio extraction, batch queues, and zero telemetry.",
                 cardStashipDesc: "zero-telemetry network diagnostics (IP, ISP, ASN, geolocation, timezone) and client-side speed test engine.",
                 cardStashlistDesc: "recurring daily checklist and habit tracker. active day schedules, audio chimes, notifications, and auto-resets at midnight.",
-                cardCompanionDesc: "local Python backend for Clarify AI upscaling via Vulkan AI. zero telemetry and hardware acceleration.",
                 btnLaunchFlexle: "launch вордл →",
                 btnLaunchClarify: "launch нейроапскейлер →",
                 btnLaunchFetchflow: "launch скачивание видео →",
                 btnLaunchStashconvert: "launch конвертер →",
                 btnLaunchStaship: "launch проверка ip →",
                 btnLaunchStashlist: "launch чеклист →",
-                btnLaunchCompanion: "download server (.exe) →"
             },
             ru: {
                 sysOnline: "все системы в норме",
                 sysMeta: "клиентский рантайм • нулевая задержка",
                 btnTheme: "тема",
                 btnSettings: "настройки",
-                txtBtnCompanion: "companion server (.exe)",
                 heroDesc: "веб-сьют утилит и игр. без водяных знаков. без телеметрии. бесплатно.",
                 footerText: "the stash • веб-сьют",
                 settingsBadge: "параметры",
@@ -854,19 +822,17 @@
                 descSettingLang: "выберите язык отображения",
                 btnSettingsSave: "сохранить и закрыть",
                 cardFlexleDesc: "гибкий вордл с выбором длины слова от 4 до 11+ букв, барабанным выбором случайных диапазонов и процедурным WebAudio звуком.",
-                cardClarifyDesc: "нейросетевой апскейлер фото на базе Vulkan AI. масштабирование до 4K, удаление шума, интерактивный слайдер до/после и нулевая телеметрия.",
+                cardClarifyDesc: "нейросетевой апскейлер фото (временно на паузе до подключения GPU сервера; доступна базовая клиентская обработка).",
                 cardFetchflowDesc: "пакетная очередь загрузки видео и аудио через yt-dlp бэкенд на VPS с поддержкой Cloudflare WARP SOCKS5. прямое скачивание MP4 и MP3.",
                 cardStashconvertDesc: "универсальный клиентский конвертер видео, картинок, аудио и документов. поддержка GIF, извлечение аудио, пакетная очередь и нулевая телеметрия.",
                 cardStashipDesc: "диагностика сетевого подключения без телеметрии (IP, провайдер, ASN, геолокация, часовой пояс) и клиентский спидометр скорости.",
                 cardStashlistDesc: "локальный трекер привычек и регулярных задач. расписание по дням недели, аудиосигналы, напоминания и автосброс в полночь.",
-                cardCompanionDesc: "локальный Python-бэкенд для нейроапскейлера Clarify на базе Vulkan AI. нулевая телеметрия и аппаратное ускорение.",
                 btnLaunchFlexle: "запустить вордл →",
                 btnLaunchClarify: "запустить нейроапскейлер →",
                 btnLaunchFetchflow: "запустить скачивание видео →",
                 btnLaunchStashconvert: "запустить конвертер →",
                 btnLaunchStaship: "запустить проверку ip →",
                 btnLaunchStashlist: "запустить чеклист →",
-                btnLaunchCompanion: "скачать сервер (.exe) →"
             }
         };
 
@@ -885,8 +851,6 @@
             if (btnThemeLabel) btnThemeLabel.textContent = dict.btnTheme;
             const btnSettingsLabel = document.getElementById('btn-settings-label');
             if (btnSettingsLabel) btnSettingsLabel.textContent = dict.btnSettings;
-            const txtBtnCompanion = document.getElementById('txt-btn-companion');
-            if (txtBtnCompanion) txtBtnCompanion.textContent = dict.txtBtnCompanion;
 
             const heroDesc = document.querySelector('.hero-desc');
             if (heroDesc) heroDesc.textContent = dict.heroDesc;
@@ -938,11 +902,6 @@
                 const btn = cardStashlist.querySelector('.btn-action');
                 if (btn) btn.textContent = dict.btnLaunchStashlist;
             }
-
-            const descCompanion = document.getElementById('desc-companion');
-            if (descCompanion) descCompanion.textContent = dict.cardCompanionDesc;
-            const btnLaunchCompanion = document.getElementById('btn-launch-companion');
-            if (btnLaunchCompanion) btnLaunchCompanion.textContent = dict.btnLaunchCompanion;
 
 
             const footerText = document.getElementById('footer-text');

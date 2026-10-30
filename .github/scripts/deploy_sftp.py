@@ -28,7 +28,7 @@ SFTP_KEY_PATH = os.environ.get("SFTP_KEY_PATH", str(Path.home() / ".ssh" / "id_e
 SFTP_REMOTE_DIR = os.environ.get("SFTP_REMOTE_DIR", "/stash")
 
 # Included root paths to synchronize
-INCLUDE_ROOTS = ["index.html", "games", "utilities", "server", "downloads/the-stash-companion.exe"]
+INCLUDE_ROOTS = ["index.html", "games", "utilities", "server"]
 
 # Exclude patterns/names
 EXCLUDE_NAMES = {

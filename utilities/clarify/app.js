@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         splitPosition: 50, // % (0..100)
         engineBackend: localStorage.getItem('clarify_engine') || 'auto',
         activeEngine: 'browser', // 'local', 'browser'
-        isCompanionOnline: false
+        isEngineOnline: false
     };
 
     // --- DOM Elements ---
@@ -61,57 +61,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeSettings = document.getElementById('close-settings');
     const selectEngine = document.getElementById('select-engine');
     const btnSaveSettings = document.getElementById('btn-save-settings');
-    const companionStatusPill = document.getElementById('companion-status-pill');
+    const engineStatusPill = document.getElementById('engine-status-pill');
 
-    // --- Local Companion Server Health Check & Detection ---
-    async function checkCompanionServer() {
+    // --- Neural Upscaler / Client-Side Engine Status ---
+    function checkEngineStatus() {
         const accelText = document.getElementById('accel-text');
         const accelDot = document.querySelector('.accel-dot');
-
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-            const res = await fetch('http://127.0.0.1:7860/health', {
-                method: 'GET',
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-
-            if (res.ok) {
-                state.isCompanionOnline = true;
-                state.activeEngine = 'local';
-                if (accelText) accelText.textContent = 'локальный сервер активен (vulkan)';
-                if (accelDot) {
-                    accelDot.style.background = 'var(--accent)';
-                    accelDot.style.boxShadow = 'none';
-                }
-                if (companionStatusPill) {
-                    companionStatusPill.textContent = 'онлайн (vulkan gpu)';
-                    companionStatusPill.style.background = 'var(--card-border)';
-                    companionStatusPill.style.color = 'var(--text-primary)';
-                }
-                return;
-            }
-        } catch (e) {}
-
-        // Fallback: Browser WebGL Engine
-        state.isCompanionOnline = false;
+        state.isEngineOnline = false;
         state.activeEngine = 'browser';
-        if (accelText) accelText.textContent = 'браузерный режим (webgl)';
+        if (accelText) accelText.textContent = 'клиентский режим (webgl)';
         if (accelDot) {
             accelDot.style.background = 'var(--text-muted)';
             accelDot.style.boxShadow = 'none';
         }
-        if (companionStatusPill) {
-            companionStatusPill.textContent = 'не запущен (the-stash-companion.exe)';
-            companionStatusPill.style.background = 'var(--card-border)';
-            companionStatusPill.style.color = 'var(--text-muted)';
+        if (engineStatusPill) {
+            engineStatusPill.textContent = 'на паузе (требуется GPU сервер)';
+            engineStatusPill.style.background = 'var(--card-border)';
+            engineStatusPill.style.color = 'var(--text-muted)';
         }
     }
-
-    checkCompanionServer();
-    setInterval(checkCompanionServer, 5000); // periodically ping server
+    checkEngineStatus();
 
         
 
@@ -331,80 +300,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let processed = false;
 
-            // --- PATH A: Local Hardware Server (Real-ESRGAN NCNN Vulkan) ---
-            if (state.isCompanionOnline && state.engineBackend !== 'browser') {
-                try {
-                    progressStatus.textContent = `Executing Real-ESRGAN (${mult}×) on Local Server...`;
-                    await stepProgress(25, 'Sending image to local engine...');
-
-                    // Convert source image to data URL
-                    const srcCanvas = document.createElement('canvas');
-                    srcCanvas.width = srcW;
-                    srcCanvas.height = srcH;
-                    const srcCtx = srcCanvas.getContext('2d');
-                    srcCtx.drawImage(state.sourceImage, 0, 0);
-                    const base64Img = srcCanvas.toDataURL('image/png');
-
-                    const modelName = selectAiModel ? selectAiModel.value : 'realesrgan-x4plus';
-
-                    await stepProgress(55, `Deep Neural Synthesis (${modelName} • ${mult}×)...`);
-
-                    const response = await fetch('http://127.0.0.1:7860/upscale', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            image: base64Img,
-                            scale: mult,
-                            model: modelName
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Companion server error: ${response.statusText}`);
-                    }
-
-                    const result = await response.json();
-                    await stepProgress(85, `Rendering ${mult}× Reconstructed Output...`);
-
-                    const aiImg = new Image();
-                    await new Promise((resolve, reject) => {
-                        aiImg.onload = resolve;
-                        aiImg.onerror = reject;
-                        aiImg.src = result.image;
-                    });
-
-                    const outW = aiImg.naturalWidth || aiImg.width;
-                    const outH = aiImg.naturalHeight || aiImg.height;
-
-                    // Render "After" Canvas with true AI output
-                    canvasAfter.width = outW;
-                    canvasAfter.height = outH;
-                    const ctxA = canvasAfter.getContext('2d');
-                    ctxA.imageSmoothingEnabled = true;
-                    ctxA.imageSmoothingQuality = 'high';
-                    ctxA.drawImage(aiImg, 0, 0);
-                    state.upscaledCanvas = canvasAfter;
-
-                    // Render "Before" Canvas with smooth baseline original (High Quality Bicubic)
-                    canvasBefore.width = outW;
-                    canvasBefore.height = outH;
-                    const ctxB = canvasBefore.getContext('2d');
-                    ctxB.imageSmoothingEnabled = true;
-                    ctxB.imageSmoothingQuality = 'high';
-                    ctxB.drawImage(state.sourceImage, 0, 0, outW, outH);
-
-                    await stepProgress(100, 'Complete!');
-                    metaDims.textContent = `${srcW}×${srcH} → ${outW}×${outH} (${mult}× resolution)`;
-                    showToast(`${mult}× AI Upscaled on Local Server!`);
-                    processed = true;
-                } catch (err) {
-                    console.warn('Companion server failed, falling back to browser engine:', err);
-                    showToast('Companion error, using browser engine fallback');
-                }
-            }
-
-            // --- PATH B: In-Browser Super-Resolution Fallback ---
-            if (!processed) {
+            // --- PATH B: In-Browser Super-Resolution Engine ---
+            {
                 progressStatus.textContent = `Running In-Browser Super-Resolution (${mult}×)...`;
                 await stepProgress(20, 'Directional Spline Tensor Expansion...');
 
@@ -625,6 +522,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         modalSettings.classList.remove('open');
         showToast('Settings saved');
-        checkCompanionServer();
+        checkEngineStatus();
     });
 });
