@@ -518,9 +518,7 @@
             <span id="sys-status-text">все системы в норме</span>
         </div>
         <div class="top-sys-actions">
-            <div class="sys-meta" id="sys-meta-text">
-                клиентский рантайм &bull; нулевая задержка
-            </div>
+
             <button id="btn-theme-toggle" class="hud-settings-btn theme-toggle-btn" title="переключить тему">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 <span id="btn-theme-label">тема</span>
@@ -538,9 +536,9 @@
         <header class="hero-section">
             <div class="brand-heading">
                 <h1 class="brand-title">the stash</h1>
-                <span class="brand-version">v1.0.4</span>
+                <span class="brand-version">v1.0.5</span>
             </div>
-            <p class="hero-desc">веб-сьют утилит и игр. без водяных знаков. без телеметрии. бесплатно.</p>
+            
         </header>
 
         <!-- Projects Grid -->
@@ -777,40 +775,57 @@
         // --- 2. Full i18n Localization Engine ---
         const STASH_I18N = {
             en: {
-                sysOnline: "all systems online",
-                sysMeta: "client runtime • zero latency",
+                sysOnline: "all systems operational",
                 btnTheme: "theme",
                 btnSettings: "settings",
-                heroDesc: "suite of client-side web tools and games. zero watermarks. zero telemetry. free.",
                 footerText: "the stash • web suite",
                 settingsBadge: "preferences",
                 settingsTitle: "settings",
-                lblSettingTheme: "theme",
-                descSettingTheme: "light or dark theme",
+                lblSettingTheme: "color theme",
+                descSettingTheme: "light or dark mode",
                 btnThemeDark: "dark",
                 btnThemeLight: "light",
                 lblSettingLang: "interface language",
                 descSettingLang: "choose display language for the stash",
                 btnSettingsSave: "save & close",
+                statusReady: "ready",
+                statusPaused: "paused",
+                glyphFlexle: "WRD",
+
+                cardFlexleTitle: "wordle",
                 cardFlexleDesc: "flexible wordle game with custom word lengths from 4 to 11+ letters, bracket drum picker for random ranges, and procedural WebAudio synthesizers.",
-                cardClarifyDesc: "neural photo upscaler (currently paused pending GPU server; basic client-side processing available)",
+                cardFlexleTags: ["#wordle", "#game", "#words", "#webaudio"],
+                btnLaunchFlexle: "launch wordle →",
+
+                cardClarifyTitle: "clarify / upscaler",
+                cardClarifyDesc: "neural photo upscaler (currently paused pending GPU server; basic client-side processing available).",
+                cardClarifyTags: ["#neural", "#upscaler", "#photo", "#gpu-paused"],
+                btnLaunchClarify: "launch clarify →",
+
+                cardFetchflowTitle: "fetchflow / video downloader",
                 cardFetchflowDesc: "batch video and audio download queue powered by yt-dlp backend on VPS with Cloudflare WARP SOCKS5 support. direct MP4 and MP3 downloads.",
+                cardFetchflowTags: ["#download", "#video", "#ytdlp", "#queue"],
+                btnLaunchFetchflow: "launch fetchflow →",
+
+                cardStashconvertTitle: "stashconvert / converter",
                 cardStashconvertDesc: "universal client-side converter for video, images, audio, and documents. supports GIF, audio extraction, batch queues, and zero telemetry.",
+                cardStashconvertTags: ["#converter", "#video", "#audio", "#images"],
+                btnLaunchStashconvert: "launch stashconvert →",
+
+                cardStashipTitle: "staship / network diagnostic",
                 cardStashipDesc: "zero-telemetry network diagnostics (IP, ISP, ASN, geolocation, timezone) and client-side speed test engine.",
+                cardStashipTags: ["#network", "#ip", "#speed", "#geo"],
+                btnLaunchStaship: "launch staship →",
+
+                cardStashlistTitle: "stashlist / habit tracker",
                 cardStashlistDesc: "recurring daily checklist and habit tracker. active day schedules, audio chimes, notifications, and auto-resets at midnight.",
-                btnLaunchFlexle: "launch вордл →",
-                btnLaunchClarify: "launch нейроапскейлер →",
-                btnLaunchFetchflow: "launch скачивание видео →",
-                btnLaunchStashconvert: "launch конвертер →",
-                btnLaunchStaship: "launch проверка ip →",
-                btnLaunchStashlist: "launch чеклист →",
+                cardStashlistTags: ["#checklist", "#habits", "#tasks", "#offline"],
+                btnLaunchStashlist: "launch stashlist →",
             },
             ru: {
                 sysOnline: "все системы в норме",
-                sysMeta: "клиентский рантайм • нулевая задержка",
                 btnTheme: "тема",
                 btnSettings: "настройки",
-                heroDesc: "веб-сьют утилит и игр. без водяных знаков. без телеметрии. бесплатно.",
                 footerText: "the stash • веб-сьют",
                 settingsBadge: "параметры",
                 settingsTitle: "настройки",
@@ -821,17 +836,38 @@
                 lblSettingLang: "язык интерфейса",
                 descSettingLang: "выберите язык отображения",
                 btnSettingsSave: "сохранить и закрыть",
+                statusReady: "готово",
+                statusPaused: "на паузе",
+                glyphFlexle: "ВРД",
+
+                cardFlexleTitle: "вордл",
                 cardFlexleDesc: "гибкий вордл с выбором длины слова от 4 до 11+ букв, барабанным выбором случайных диапазонов и процедурным WebAudio звуком.",
-                cardClarifyDesc: "нейросетевой апскейлер фото (временно на паузе до подключения GPU сервера; доступна базовая клиентская обработка).",
-                cardFetchflowDesc: "пакетная очередь загрузки видео и аудио через yt-dlp бэкенд на VPS с поддержкой Cloudflare WARP SOCKS5. прямое скачивание MP4 и MP3.",
-                cardStashconvertDesc: "универсальный клиентский конвертер видео, картинок, аудио и документов. поддержка GIF, извлечение аудио, пакетная очередь и нулевая телеметрия.",
-                cardStashipDesc: "диагностика сетевого подключения без телеметрии (IP, провайдер, ASN, геолокация, часовой пояс) и клиентский спидометр скорости.",
-                cardStashlistDesc: "локальный трекер привычек и регулярных задач. расписание по дням недели, аудиосигналы, напоминания и автосброс в полночь.",
+                cardFlexleTags: ["#вордл", "#игра", "#слова", "#webaudio"],
                 btnLaunchFlexle: "запустить вордл →",
+
+                cardClarifyTitle: "нейроапскейлер",
+                cardClarifyDesc: "нейросетевой апскейлер фото (временно на паузе до подключения GPU сервера; доступна базовая клиентская обработка).",
+                cardClarifyTags: ["#нейросеть", "#апскейлер", "#фото", "#gpu-пауза"],
                 btnLaunchClarify: "запустить нейроапскейлер →",
+
+                cardFetchflowTitle: "скачивание видео",
+                cardFetchflowDesc: "пакетная очередь загрузки видео и аудио через yt-dlp бэкенд на VPS с поддержкой Cloudflare WARP SOCKS5. прямое скачивание MP4 и MP3.",
+                cardFetchflowTags: ["#скачивание", "#видео", "#ytdlp", "#очередь"],
                 btnLaunchFetchflow: "запустить скачивание видео →",
+
+                cardStashconvertTitle: "конвертер",
+                cardStashconvertDesc: "универсальный клиентский конвертер видео, картинок, аудио и документов. поддержка GIF, извлечение аудио, пакетная очередь и нулевая телеметрия.",
+                cardStashconvertTags: ["#конвертер", "#видео", "#аудио", "#картинки"],
                 btnLaunchStashconvert: "запустить конвертер →",
+
+                cardStashipTitle: "проверка ip",
+                cardStashipDesc: "диагностика сетевого подключения без телеметрии (IP, провайдер, ASN, геолокация, часовой пояс) и клиентский спидометр скорости.",
+                cardStashipTags: ["#сеть", "#ip", "#скорость", "#гео"],
                 btnLaunchStaship: "запустить проверку ip →",
+
+                cardStashlistTitle: "чеклист",
+                cardStashlistDesc: "локальный трекер привычек и регулярных задач. расписание по дням недели, аудиосигналы, напоминания и автосброс в полночь.",
+                cardStashlistTags: ["#чеклист", "#привычки", "#задачи", "#офлайн"],
                 btnLaunchStashlist: "запустить чеклист →",
             }
         };
@@ -841,68 +877,51 @@
         function applyLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('the_stash_lang', lang);
+            document.documentElement.lang = lang;
             const dict = STASH_I18N[lang] || STASH_I18N.ru;
 
             const sysStatus = document.getElementById('sys-status-text');
             if (sysStatus) sysStatus.textContent = dict.sysOnline;
-            const sysMeta = document.getElementById('sys-meta-text');
-            if (sysMeta) sysMeta.textContent = dict.sysMeta;
             const btnThemeLabel = document.getElementById('btn-theme-label');
             if (btnThemeLabel) btnThemeLabel.textContent = dict.btnTheme;
             const btnSettingsLabel = document.getElementById('btn-settings-label');
             if (btnSettingsLabel) btnSettingsLabel.textContent = dict.btnSettings;
 
-            const heroDesc = document.querySelector('.hero-desc');
-            if (heroDesc) heroDesc.textContent = dict.heroDesc;
+            // Update status pills
+            document.querySelectorAll('.status-pill.status-playable').forEach(p => p.textContent = dict.statusReady);
+            document.querySelectorAll('.status-pill.status-wip').forEach(p => p.textContent = dict.statusPaused);
 
-            const cardFlexle = document.querySelector('a[href*="flexle"]')?.closest('.project-card');
-            if (cardFlexle) {
-                const desc = cardFlexle.querySelector('.card-desc');
-                if (desc) desc.textContent = dict.cardFlexleDesc;
-                const btn = cardFlexle.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnLaunchFlexle;
+            // Update Flexle glyph
+            const flexleGlyph = document.querySelector('.card-glyph-box');
+            if (flexleGlyph && flexleGlyph.textContent.trim().length <= 3) {
+                flexleGlyph.textContent = dict.glyphFlexle;
             }
 
-            const cardClarify = document.querySelector('a[href*="clarify"]')?.closest('.project-card');
-            if (cardClarify) {
-                const desc = cardClarify.querySelector('.card-desc');
-                if (desc) desc.textContent = dict.cardClarifyDesc;
-                const btn = cardClarify.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnLaunchClarify;
-            }
+            // Update each card
+            const cards = [
+                { key: 'Flexle', href: 'flexle' },
+                { key: 'Clarify', href: 'clarify' },
+                { key: 'Fetchflow', href: 'fetchflow' },
+                { key: 'Stashconvert', href: 'stashconvert' },
+                { key: 'Staship', href: 'staship' },
+                { key: 'Stashlist', href: 'stashlist' }
+            ];
 
-            const cardFetchflow = document.querySelector('a[href*="fetchflow"]')?.closest('.project-card');
-            if (cardFetchflow) {
-                const desc = cardFetchflow.querySelector('.card-desc');
-                if (desc) desc.textContent = dict.cardFetchflowDesc;
-                const btn = cardFetchflow.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnLaunchFetchflow;
-            }
-
-            const cardStashconvert = document.querySelector('a[href*="stashconvert"]')?.closest('.project-card');
-            if (cardStashconvert) {
-                const desc = cardStashconvert.querySelector('.card-desc');
-                if (desc) desc.textContent = dict.cardStashconvertDesc;
-                const btn = cardStashconvert.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnLaunchStashconvert;
-            }
-
-            const cardStaship = document.querySelector('a[href*="staship"]')?.closest('.project-card');
-            if (cardStaship) {
-                const desc = cardStaship.querySelector('.card-desc');
-                if (desc) desc.textContent = dict.cardStashipDesc;
-                const btn = cardStaship.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnLaunchStaship;
-            }
-
-            const cardStashlist = document.querySelector('a[href*="stashlist"]')?.closest('.project-card');
-            if (cardStashlist) {
-                const desc = cardStashlist.querySelector('.card-desc');
-                if (desc) desc.textContent = dict.cardStashlistDesc;
-                const btn = cardStashlist.querySelector('.btn-action');
-                if (btn) btn.textContent = dict.btnLaunchStashlist;
-            }
-
+            cards.forEach(c => {
+                const card = document.querySelector(`a[href*="${c.href}"]`)?.closest('.project-card');
+                if (!card) return;
+                const title = card.querySelector('.card-title');
+                if (title && dict[`card${c.key}Title`]) title.textContent = dict[`card${c.key}Title`];
+                const desc = card.querySelector('.card-desc');
+                if (desc && dict[`card${c.key}Desc`]) desc.textContent = dict[`card${c.key}Desc`];
+                const btn = card.querySelector('.btn-action');
+                if (btn && dict[`btnLaunch${c.key}`]) btn.textContent = dict[`btnLaunch${c.key}`];
+                const tagsContainer = card.querySelector('.card-tags');
+                const tagList = dict[`card${c.key}Tags`];
+                if (tagsContainer && tagList) {
+                    tagsContainer.innerHTML = tagList.map(t => `<span class="tag-pill">${t}</span>`).join('\n                                ');
+                }
+            });
 
             const footerText = document.getElementById('footer-text');
             if (footerText) footerText.textContent = dict.footerText;

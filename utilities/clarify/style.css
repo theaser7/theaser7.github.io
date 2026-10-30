@@ -62,18 +62,14 @@ body {
 /* Header */
 .header {
     width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0.85rem 1.5rem;
+    padding: 0.85rem 1.25rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--card-border);
-    background: rgba(8, 14, 11, 0.85);
-    backdrop-filter: blur(12px);
-    z-index: 10;
-    position: sticky;
-    top: 0;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .header-left {
@@ -83,7 +79,7 @@ body {
 }
 
 .btn-icon {
-    background: var(--card-bg);
+    background: var(--bg-color);
     border: 1px solid var(--card-border);
     color: var(--text-secondary);
     border-radius: 8px;

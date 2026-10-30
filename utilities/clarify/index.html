@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>нейроапскейлер • the stash</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%2215 3 21 3 21 9%22/><polyline points=%229 21 3 21 3 15%22/><line x1=%2221%22 y1=%223%22 x2=%2214%22 y2=%2210%22/><line x1=%223%22 y1=%2221%22 x2=%2210%22 y2=%2214%22/></svg>">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.0.5">
     <script>
         (function() {
             const theme = localStorage.getItem('stash_theme') || 'dark';
@@ -15,6 +15,10 @@
 </head>
 <body>
     <div class="toast-container" id="toast-container"></div>
+
+
+    <!-- Main Container -->
+    <main class="container">
 
     <!-- Header Bar -->
     <header class="header">
@@ -42,8 +46,6 @@
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="container">
         <!-- Hero Section -->
         <section class="hero-section" id="hero-section">
             <h1 class="hero-title" style="text-transform: lowercase;">нейроапскейлер</h1>
@@ -256,7 +258,7 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=1.0.5"></script>
     <script>
         function updateClarifyThemeIcons() {
             const isLight = document.documentElement.getAttribute('data-theme') === 'light';
