@@ -576,10 +576,11 @@
                 <div class="format-select-group">
                     <label for="format-select" class="format-label">формат:</label>
                     <select id="format-select" class="format-select">
-                        <option value="best">лучшее качество (MP4)</option>
-                        <option value="1080">1080p Full HD</option>
-                        <option value="720">720p HD</option>
-                        <option value="mp3">только аудио (MP3)</option>
+                        <option value="best">макс mp4</option>
+                        <option value="1080">1080p mp4</option>
+                        <option value="720">720p mp4</option>
+                        <option value="480">480p mp4</option>
+                        <option value="mp3">mp3</option>
                     </select>
                 </div>
 
@@ -602,6 +603,7 @@
                 </div>
 
                 <div class="queue-actions">
+                    <button class="btn-action-secondary" id="btn-clear-all" style="font-size: 0.72rem;">очистить всю очередь</button>
                     <button class="btn-action-secondary" id="btn-clear-completed" style="font-size: 0.72rem;">очистить завершённые</button>
                     <button class="btn-action-primary" id="btn-start-queue" style="font-size: 0.72rem;">запустить очередь</button>
                 </div>
@@ -619,9 +621,9 @@
             <h3 class="modal-title">настройки</h3>
 
             <div class="setting-field">
-                <label class="setting-label" for="setting-backend-url">адрес сервера загрузки (vps backend api):</label>
-                <input type="text" id="setting-backend-url" class="setting-input" placeholder="http://127.0.0.1:7861 или https://thestash.space">
-                <span style="font-size: 0.68rem; color: var(--text-dim);">по умолчанию: относительно сайта (/api) или локальный бэкенд</span>
+                <label class="setting-label" for="setting-backend-url">адрес сервера загрузки (vps / companion api):</label>
+                <input type="text" id="setting-backend-url" class="setting-input" placeholder="http://127.0.0.1:7860 или http://150.241.64.119:7861">
+                <span style="font-size: 0.68rem; color: var(--text-dim);">локальный companion server (.exe) на :7860 или удалённый VPS бэкенд на :7861</span>
             </div>
 
             <div class="setting-field">

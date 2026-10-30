@@ -1,7 +1,7 @@
 /**
  * The Stash • Video Downloader Frontend
  * Sequential batch queue media extractor and downloader.
- * Connects directly to the VPS backend /api/ endpoints.
+ * Connects directly to the VPS backend or local companion server /api/ endpoints.
  */
 
 // Icons for theme toggle
@@ -30,20 +30,14 @@ class FetchFlowApp {
         this.queue = [];
         this.isProcessing = false;
         this.currentJobId = null;
-
-        // Configurable backend URL
-        this.backendUrl = localStorage.getItem('stash_downloader_backend') || '';
-        if (!this.backendUrl) {
-            // Auto fallback: if running on localhost use :7861, else use origin (relative /api)
-            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            this.backendUrl = isLocal ? 'http://127.0.0.1:7861' : '';
-        }
+        this.backendUrl = '';
+        this.isBackendOnline = false;
 
         this.cacheDom();
         this.bindEvents();
         this.initTheme();
         this.renderStats();
-        this.checkServerHealth();
+        this.detectBackend();
     }
 
     cacheDom() {
@@ -54,6 +48,7 @@ class FetchFlowApp {
         this.btnPaste = document.getElementById('btn-paste-clipboard');
         this.btnStartQueue = document.getElementById('btn-start-queue');
         this.btnClearCompleted = document.getElementById('btn-clear-completed');
+        this.btnClearAll = document.getElementById('btn-clear-all');
         this.queueList = document.getElementById('queue-list');
         this.queueEmpty = document.getElementById('queue-empty');
 
@@ -95,6 +90,20 @@ class FetchFlowApp {
 
         this.btnStartQueue.addEventListener('click', () => {
             if (!this.isProcessing) {
+                // If any error items exist and user restarts, mark them pending
+                let resetAny = false;
+                this.queue.forEach(item => {
+                    if (item.status === 'error') {
+                        item.status = 'pending';
+                        item.errorMsg = '';
+                        item.progress = 0;
+                        resetAny = true;
+                    }
+                });
+                if (resetAny) {
+                    this.renderQueue();
+                    this.renderStats();
+                }
                 this.startQueue();
             }
         });
@@ -103,14 +112,22 @@ class FetchFlowApp {
             this.queue = this.queue.filter(item => item.status !== 'completed');
             this.renderQueue();
             this.renderStats();
+            if (window.fetchflowSound) window.fetchflowSound.playClick();
         });
+
+        if (this.btnClearAll) {
+            this.btnClearAll.addEventListener('click', () => {
+                this.handleClearAll();
+            });
+        }
 
         this.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
 
         this.btnSettings.addEventListener('click', () => {
-            this.settingBackendUrl.value = this.backendUrl;
+            const saved = localStorage.getItem('stash_downloader_backend') || '';
+            this.settingBackendUrl.value = saved || this.backendUrl;
             this.settingsModal.classList.add('open');
-            this.checkServerHealth();
+            this.detectBackend();
         });
 
         this.settingsModal.addEventListener('click', (e) => {
@@ -119,13 +136,20 @@ class FetchFlowApp {
             }
         });
 
-        this.btnSaveSettings.addEventListener('click', () => {
-            this.backendUrl = this.settingBackendUrl.value.trim().replace(/\/+$/, '');
-            localStorage.setItem('stash_downloader_backend', this.backendUrl);
+        this.btnSaveSettings.addEventListener('click', async () => {
+            const val = this.settingBackendUrl.value.trim().replace(/\/+$/, '');
+            if (val) {
+                localStorage.setItem('stash_downloader_backend', val);
+                this.backendUrl = val;
+            } else {
+                localStorage.removeItem('stash_downloader_backend');
+                this.backendUrl = '';
+            }
+            await this.detectBackend();
             this.settingsModal.classList.remove('open');
         });
 
-        this.btnTestServer.addEventListener('click', () => this.checkServerHealth());
+        this.btnTestServer.addEventListener('click', () => this.detectBackend());
 
         const btnThemeDark = document.getElementById('btn-theme-dark');
         const btnThemeLight = document.getElementById('btn-theme-light');
@@ -143,6 +167,15 @@ class FetchFlowApp {
                 this.applyTheme(e.newValue || 'dark');
             }
         });
+    }
+
+    handleClearAll() {
+        this.queue = [];
+        this.isProcessing = false;
+        this.currentJobId = null;
+        this.renderQueue();
+        this.renderStats();
+        if (window.fetchflowSound) window.fetchflowSound.playClick();
     }
 
     initTheme() {
@@ -169,29 +202,86 @@ class FetchFlowApp {
         this.applyTheme(next);
     }
 
-    async checkServerHealth() {
+    async pingEndpoint(baseUrl) {
+        const testUrls = [`${baseUrl}/health`, `${baseUrl}/api/health`];
+        for (const url of testUrls) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 1200);
+                const res = await fetch(url, { method: 'GET', signal: controller.signal });
+                clearTimeout(timeoutId);
+                if (res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    return { ok: true, data };
+                }
+            } catch (e) {
+                // Try next
+            }
+        }
+        return { ok: false };
+    }
+
+    async detectBackend() {
         this.serverStatusIndicator.textContent = 'проверка связи...';
         this.serverStatusIndicator.style.color = 'var(--text-muted)';
 
-        const base = this.backendUrl || '';
-        const testUrls = [`${base}/health`, `${base}/api/health`];
-
-        for (const url of testUrls) {
-            try {
-                const res = await fetch(url, { method: 'GET' });
-                if (res.ok) {
-                    const data = await res.json();
-                    const proxyStatus = data.warp_active ? 'активен' : 'прямое подключение';
-                    this.serverStatusIndicator.textContent = `онлайн • vps downloader (${proxyStatus})`;
-                    this.serverStatusIndicator.style.color = 'var(--text-main)';
-                    return true;
-                }
-            } catch (e) {
-                // Try next url
+        // 1. Check user-configured URL from localStorage
+        const saved = (localStorage.getItem('stash_downloader_backend') || '').trim().replace(/\/+$/, '');
+        if (saved) {
+            const check = await this.pingEndpoint(saved);
+            if (check.ok) {
+                this.backendUrl = saved;
+                this.isBackendOnline = true;
+                const info = check.data.service || check.data.server || 'backend';
+                const proxy = check.data.warp_active ? ' • warp' : '';
+                this.serverStatusIndicator.textContent = `онлайн • ${info}${proxy} (${saved})`;
+                this.serverStatusIndicator.style.color = 'var(--text-main)';
+                return true;
             }
         }
 
-        this.serverStatusIndicator.textContent = 'недоступен (проверьте адрес сервера и запущен ли backend)';
+        // 2. Check local VPS downloader service (port 7861)
+        const check7861 = await this.pingEndpoint('http://127.0.0.1:7861');
+        if (check7861.ok) {
+            this.backendUrl = 'http://127.0.0.1:7861';
+            this.isBackendOnline = true;
+            this.serverStatusIndicator.textContent = 'онлайн • vps downloader (127.0.0.1:7861)';
+            this.serverStatusIndicator.style.color = 'var(--text-main)';
+            return true;
+        }
+
+        // 3. Check local companion server (port 7860)
+        const check7860 = await this.pingEndpoint('http://127.0.0.1:7860');
+        if (check7860.ok) {
+            this.backendUrl = 'http://127.0.0.1:7860';
+            this.isBackendOnline = true;
+            this.serverStatusIndicator.textContent = 'онлайн • companion server (127.0.0.1:7860)';
+            this.serverStatusIndicator.style.color = 'var(--text-main)';
+            return true;
+        }
+
+        // 4. If current host is local origin
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocal) {
+            const checkOrigin = await this.pingEndpoint('');
+            if (checkOrigin.ok) {
+                this.backendUrl = '';
+                this.isBackendOnline = true;
+                this.serverStatusIndicator.textContent = 'онлайн • локальный хост';
+                this.serverStatusIndicator.style.color = 'var(--text-main)';
+                return true;
+            }
+        }
+
+        // 5. No reachable backend detected
+        this.isBackendOnline = false;
+        if (saved) {
+            this.backendUrl = saved;
+            this.serverStatusIndicator.textContent = `недоступен: ${saved}`;
+        } else {
+            this.backendUrl = '';
+            this.serverStatusIndicator.textContent = 'не подключен (запустите companion server или укажите vps в настройках)';
+        }
         this.serverStatusIndicator.style.color = 'var(--status-error)';
         return false;
     }
@@ -237,7 +327,7 @@ class FetchFlowApp {
         this.renderQueue();
         this.renderStats();
 
-        // Auto-start if not running
+        // Auto-start queue if not already processing
         if (!this.isProcessing) {
             this.startQueue();
         }
@@ -256,6 +346,15 @@ class FetchFlowApp {
         } catch (e) {
             return 'web';
         }
+    }
+
+    getFormatBadge(format) {
+        if (format === 'best') return 'макс mp4';
+        if (format === '1080') return '1080p mp4';
+        if (format === '720') return '720p mp4';
+        if (format === '480') return '480p mp4';
+        if (format === 'mp3') return 'mp3';
+        return format;
     }
 
     renderStats() {
@@ -294,13 +393,15 @@ class FetchFlowApp {
                 statusClass = 'status-error';
             }
 
+            const formatBadge = this.getFormatBadge(item.format);
+
             div.innerHTML = `
                 <div class="queue-item-main">
                     <div class="queue-item-meta">
                         <div class="queue-item-title" title="${item.title}">${index + 1}. ${item.title}</div>
                         <div class="queue-item-sub">
                             <span>[${item.domain}]</span>
-                            <span class="badge-format">${item.format}</span>
+                            <span class="badge-format">${formatBadge}</span>
                             <span title="${item.url}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${item.url}</span>
                         </div>
                     </div>
@@ -367,8 +468,10 @@ class FetchFlowApp {
         await this.processItem(nextItem);
         this.isProcessing = false;
 
-        // Continue to next item
-        this.startQueue();
+        // Continue to next item if still processing queue
+        if (this.queue.some(item => item.status === 'pending')) {
+            this.startQueue();
+        }
     }
 
     async processItem(item) {
@@ -376,6 +479,20 @@ class FetchFlowApp {
         item.progress = 5;
         this.renderQueue();
         this.renderStats();
+
+        // Ensure backend availability before sending POST
+        if (!this.isBackendOnline) {
+            await this.detectBackend();
+        }
+
+        const isStaticHost = window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:';
+        if (!this.isBackendOnline && (!this.backendUrl || isStaticHost)) {
+            item.status = 'error';
+            item.errorMsg = 'бэкенд не подключен (запустите companion.exe или укажите vps в настройках)';
+            this.renderQueue();
+            this.renderStats();
+            return;
+        }
 
         const base = this.backendUrl || '';
 
@@ -392,6 +509,9 @@ class FetchFlowApp {
             });
 
             if (!res.ok) {
+                if (res.status === 405) {
+                    throw new Error('HTTP 405 (сервер не поддерживает POST — проверьте адрес бэкенда в настройках)');
+                }
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.error || `HTTP error ${res.status}`);
             }
@@ -404,6 +524,11 @@ class FetchFlowApp {
             let completed = false;
             while (!completed) {
                 await new Promise(r => setTimeout(r, 800));
+
+                // If item was removed during polling
+                if (!this.queue.some(q => q.id === item.id)) {
+                    return;
+                }
 
                 const progRes = await fetch(`${base}/api/progress/${jobId}`);
                 if (!progRes.ok) throw new Error('Ошибка получения прогресса загрузки');

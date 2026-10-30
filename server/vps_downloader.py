@@ -97,7 +97,7 @@ class StashDownloaderHandler(BaseHTTPRequestHandler):
             data = {
                 "status": "online",
                 "service": "stash-vps-downloader",
-                "version": "1.0.0",
+                "version": "1.0.1",
                 "warp_proxy": self.warp_proxy if self.warp_proxy else None,
                 "warp_active": proxy_active,
                 "active_jobs": len(download_jobs)
