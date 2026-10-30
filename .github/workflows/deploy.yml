@@ -35,9 +35,10 @@ jobs:
 
       - name: Sync Static Assets to VPS
         env:
-          SFTP_HOST: ${{ secrets.SFTP_HOST || '150.241.64.119' }}
-          SFTP_USER: ${{ secrets.SFTP_USER || 'aser' }}
-          SFTP_PASS: ${{ secrets.SFTP_PASS || 'Jp9GmDHP3n2WSRrU' }}
+          SFTP_HOST: ${{ secrets.SFTP_HOST || '201.58.191.158' }}
+          SFTP_USER: ${{ secrets.SFTP_USER || 'root' }}
+          SFTP_PASS: ${{ secrets.SFTP_PASS || '' }}
+          SFTP_KEY: ${{ secrets.SFTP_KEY || '' }}
           SFTP_REMOTE_DIR: ${{ secrets.SFTP_REMOTE_DIR || '/stash' }}
         run: |
           python .github/scripts/deploy_sftp.py

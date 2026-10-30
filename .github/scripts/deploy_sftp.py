@@ -7,6 +7,7 @@ Zero Telemetry • Runs locally and in GitHub Actions.
 
 import os
 import sys
+import io
 import stat
 import hashlib
 from pathlib import Path
@@ -18,10 +19,12 @@ except ImportError:
     sys.exit(1)
 
 # Default configuration (can be overridden via environment variables)
-SFTP_HOST = os.environ.get("SFTP_HOST", "150.241.64.119")
+SFTP_HOST = os.environ.get("SFTP_HOST", "201.58.191.158")
 SFTP_PORT = int(os.environ.get("SFTP_PORT", "22"))
-SFTP_USER = os.environ.get("SFTP_USER", "aser")
-SFTP_PASS = os.environ.get("SFTP_PASS", "Jp9GmDHP3n2WSRrU")
+SFTP_USER = os.environ.get("SFTP_USER", "root")
+SFTP_PASS = os.environ.get("SFTP_PASS", "")
+SFTP_KEY = os.environ.get("SFTP_KEY", "").strip()
+SFTP_KEY_PATH = os.environ.get("SFTP_KEY_PATH", str(Path.home() / ".ssh" / "id_ed25519"))
 SFTP_REMOTE_DIR = os.environ.get("SFTP_REMOTE_DIR", "/stash")
 
 # Included root paths to synchronize
@@ -100,7 +103,27 @@ def deploy(base_dir: Path):
 
     transport = paramiko.Transport((SFTP_HOST, SFTP_PORT))
     try:
-        transport.connect(username=SFTP_USER, password=SFTP_PASS)
+        pkey = None
+        if SFTP_KEY:
+            try:
+                pkey = paramiko.Ed25519Key.from_private_key(io.StringIO(SFTP_KEY))
+            except Exception:
+                try:
+                    pkey = paramiko.RSAKey.from_private_key(io.StringIO(SFTP_KEY))
+                except Exception:
+                    pass
+        elif SFTP_KEY_PATH and Path(SFTP_KEY_PATH).exists():
+            try:
+                pkey = paramiko.Ed25519Key.from_private_key_file(SFTP_KEY_PATH)
+            except Exception:
+                try:
+                    pkey = paramiko.RSAKey.from_private_key_file(SFTP_KEY_PATH)
+                except Exception:
+                    pass
+        if pkey:
+            transport.connect(username=SFTP_USER, pkey=pkey)
+        else:
+            transport.connect(username=SFTP_USER, password=SFTP_PASS)
     except Exception as e:
         print(f"  [ERROR] SSH/SFTP Connection failed: {e}")
         sys.exit(1)
