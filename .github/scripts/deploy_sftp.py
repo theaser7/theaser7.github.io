@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 The Stash SFTP Deployer
-Efficient incremental sync of client-side static assets to the VPS.
+Efficient incremental sync of client-side static assets and server scripts to the VPS.
 Zero Telemetry • Runs locally and in GitHub Actions.
 """
 
@@ -25,11 +25,11 @@ SFTP_PASS = os.environ.get("SFTP_PASS", "Jp9GmDHP3n2WSRrU")
 SFTP_REMOTE_DIR = os.environ.get("SFTP_REMOTE_DIR", "/stash")
 
 # Included root paths to synchronize
-INCLUDE_ROOTS = ["index.html", "games", "utilities"]
+INCLUDE_ROOTS = ["index.html", "games", "utilities", "server", "downloads/the-stash-companion.exe"]
 
 # Exclude patterns/names
 EXCLUDE_NAMES = {
-    ".git", ".github", "downloads", "server", "build", "dist", "scratch", "bin",
+    ".git", ".github", "build", "dist", "scratch", "bin",
     "__pycache__", ".pytest_cache", ".vscode", ".idea", "desktop", "quantex"
 }
 EXCLUDE_EXTENSIONS = {".py", ".bat", ".spec", ".pyc", ".txt", ".md", ".yml", ".yaml"}
@@ -79,6 +79,10 @@ def collect_local_files(base_dir: Path) -> list:
                 if p.is_file():
                     if any(part in EXCLUDE_NAMES for part in p.parts):
                         continue
+                    if "server" in p.parts:
+                        if p.suffix.lower() in [".py", ".sh", ".json"]:
+                            collected.append(p)
+                        continue
                     if p.suffix.lower() in EXCLUDE_EXTENSIONS and p.name not in ["dataset.js", "words.js"]:
                         continue
                     collected.append(p)
@@ -92,7 +96,7 @@ def deploy(base_dir: Path):
     print("=" * 60)
 
     local_files = collect_local_files(base_dir)
-    print(f"  Found {len(local_files)} candidate static files to check.")
+    print(f"  Found {len(local_files)} candidate files to check.")
 
     transport = paramiko.Transport((SFTP_HOST, SFTP_PORT))
     try:
@@ -119,9 +123,12 @@ def deploy(base_dir: Path):
         try:
             r_stat = sftp.stat(remote_path)
             if r_stat.st_size == local_file.stat().st_size:
-                remote_hash = calculate_remote_hash(sftp, remote_path)
-                if local_hash == remote_hash:
+                if local_file.stat().st_size > 1024 * 1024:
                     needs_upload = False
+                else:
+                    remote_hash = calculate_remote_hash(sftp, remote_path)
+                    if local_hash == remote_hash:
+                        needs_upload = False
         except IOError:
             needs_upload = True
 
