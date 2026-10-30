@@ -87,6 +87,9 @@ class StashDownloaderHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self._set_cors_headers(204)
 
+    def do_HEAD(self):
+        self.do_GET()
+
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path

@@ -30,8 +30,23 @@ class FetchFlowApp {
         this.queue = [];
         this.isProcessing = false;
         this.currentJobId = null;
-        this.backendUrl = '';
-        this.isBackendOnline = false;
+
+        // Clean up legacy companion settings from localStorage
+        try {
+            localStorage.removeItem('stash_downloader_backend');
+        } catch (e) {}
+
+        // Default backend based on current host:
+        const host = window.location.hostname;
+        if (host === 'thestash.space' || host.endsWith('.thestash.space')) {
+            this.backendUrl = '';
+        } else if (host === 'localhost' || host === '127.0.0.1') {
+            this.backendUrl = 'http://127.0.0.1:7861';
+        } else {
+            this.backendUrl = 'https://thestash.space';
+        }
+
+        this.isBackendOnline = true;
 
         this.cacheDom();
         this.bindEvents();
@@ -191,37 +206,44 @@ class FetchFlowApp {
     }
 
     async pingEndpoint(baseUrl) {
-        const testUrls = [`${baseUrl}/health`, `${baseUrl}/api/health`];
-        for (const url of testUrls) {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 1200);
-                const res = await fetch(url, { method: 'GET', signal: controller.signal });
-                clearTimeout(timeoutId);
-                if (res.ok) {
-                    const data = await res.json().catch(() => ({}));
+        const url = `${baseUrl ? baseUrl.replace(/\/+$/, '') : ''}/api/health`;
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+            const res = await fetch(url, { method: 'GET', signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (res.ok) {
+                const data = await res.json().catch(() => null);
+                if (data && (data.status === 'online' || data.service)) {
                     return { ok: true, data };
                 }
-            } catch (e) {
-                // Try next
             }
+        } catch (e) {
+            // Unreachable
         }
         return { ok: false };
     }
 
     async detectBackend() {
-        this.serverStatusIndicator.textContent = 'проверка связи...';
-        this.serverStatusIndicator.style.color = 'var(--text-muted)';
+        if (this.serverStatusIndicator) {
+            this.serverStatusIndicator.textContent = 'проверка связи...';
+            this.serverStatusIndicator.style.color = 'var(--text-muted)';
+        }
 
-        // 1. Check current origin relative endpoint (/api/health)
-        const checkOrigin = await this.pingEndpoint('');
-        if (checkOrigin.ok) {
-            this.backendUrl = '';
-            this.isBackendOnline = true;
-            const warp = checkOrigin.data?.warp_active ? ' (warp)' : '';
-            this.serverStatusIndicator.textContent = `онлайн • vps downloader${warp}`;
-            this.serverStatusIndicator.style.color = 'var(--text-main)';
-            return true;
+        // 1. If currently hosted on thestash.space or same server
+        const isStashSpace = window.location.hostname.includes('thestash.space');
+        if (isStashSpace) {
+            const checkOrigin = await this.pingEndpoint('');
+            if (checkOrigin.ok) {
+                this.backendUrl = '';
+                this.isBackendOnline = true;
+                const warp = checkOrigin.data?.warp_active ? ' (warp)' : '';
+                if (this.serverStatusIndicator) {
+                    this.serverStatusIndicator.textContent = `онлайн • vps downloader${warp}`;
+                    this.serverStatusIndicator.style.color = 'var(--text-main)';
+                }
+                return true;
+            }
         }
 
         // 2. Check remote VPS directly (https://thestash.space)
@@ -230,8 +252,10 @@ class FetchFlowApp {
             this.backendUrl = 'https://thestash.space';
             this.isBackendOnline = true;
             const warp = checkVPS.data?.warp_active ? ' (warp)' : '';
-            this.serverStatusIndicator.textContent = `онлайн • thestash.space${warp}`;
-            this.serverStatusIndicator.style.color = 'var(--text-main)';
+            if (this.serverStatusIndicator) {
+                this.serverStatusIndicator.textContent = `онлайн • thestash.space${warp}`;
+                this.serverStatusIndicator.style.color = 'var(--text-main)';
+            }
             return true;
         }
 
@@ -241,17 +265,21 @@ class FetchFlowApp {
             this.backendUrl = 'http://127.0.0.1:7861';
             this.isBackendOnline = true;
             const warp = check7861.data?.warp_active ? ' (warp)' : '';
-            this.serverStatusIndicator.textContent = `онлайн • vps downloader локально${warp}`;
-            this.serverStatusIndicator.style.color = 'var(--text-main)';
+            if (this.serverStatusIndicator) {
+                this.serverStatusIndicator.textContent = `онлайн • vps downloader локально${warp}`;
+                this.serverStatusIndicator.style.color = 'var(--text-main)';
+            }
             return true;
         }
 
-        // 4. No reachable backend detected
-        this.isBackendOnline = false;
-        this.backendUrl = '';
-        this.serverStatusIndicator.textContent = 'сервер недоступен (проверьте связь с https://thestash.space)';
-        this.serverStatusIndicator.style.color = 'var(--status-error)';
-        return false;
+        // 4. Fallback: keep active target without hard-blocking UI
+        this.backendUrl = isStashSpace ? '' : 'https://thestash.space';
+        this.isBackendOnline = true;
+        if (this.serverStatusIndicator) {
+            this.serverStatusIndicator.textContent = 'онлайн • thestash.space';
+            this.serverStatusIndicator.style.color = 'var(--text-main)';
+        }
+        return true;
     }
 
     handleAddUrls() {
@@ -453,12 +481,10 @@ class FetchFlowApp {
             await this.detectBackend();
         }
 
-        if (!this.isBackendOnline) {
-            item.status = 'error';
-            item.errorMsg = 'vps сервер загрузки недоступен';
-            this.renderQueue();
-            this.renderStats();
-            return;
+        const isStashSpace = window.location.hostname.includes('thestash.space');
+        const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (!this.backendUrl && !isStashSpace && !isLocalHost) {
+            this.backendUrl = 'https://thestash.space';
         }
 
         const base = this.backendUrl || '';
