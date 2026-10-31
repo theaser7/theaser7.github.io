@@ -67,4 +67,4 @@ Listens on `http://127.0.0.1:7861`. On the production VPS, this runs continuousl
 
 ## License
 
-MIT License. Designed for privacy, speed, and full user control.
+GNU Affero General Public License v3.0 (AGPL-3.0). Designed for privacy, speed, and full user control.
